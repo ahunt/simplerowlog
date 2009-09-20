@@ -1,0 +1,140 @@
+<?xml version="1.0"?>
+<!--
+    This file is part of simple rowLog: the open rowing logbook.
+    Copyright (C) 2009  Andrzej JR Hunt
+
+    simple rowLog is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    simple rowLog is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with simple rowLog.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<project name="simple rowLog" default="build">
+  
+  
+  <!-- set global properties -->
+  <property name="src" value="src"/>
+  <property name="bin" value="bin"/>
+  <property name="lib" value="lib"/>
+  <property name="dist" value="dist"/>
+  <property name="version" value="devel001"/>
+  <property name="temp_derby" value="temp_getdep"/>
+  <property name="externalsrc" value="${src}/external"/>
+  
+  <target name="init">
+    <mkdir dir="${bin}"/>
+    <mkdir dir="${lib}"/>
+  </target>
+  
+  <target name="clean">
+    <echo message="Cleaning output directories." />
+    <delete dir="${lib}"/>
+    <delete dir="${bin}"/>
+    <delete dir="${dist}"/>
+    <delete file="${src}derby.tar.gz"/>
+    <delete file="${src}/simple-log-2.0.1.zip"/>
+    <delete dir="${temp_derby}"/>
+    <delete dir="${externalsrc}"/>
+    <delete file="srl.jar"/>
+  </target>
+  
+  <target name="build" depends="init">
+    <echo message="Compiling sources to .class files." />
+    <javac srcdir="${src}" destdir="${bin}" debug="on" source="1.5">
+      <classpath>
+        <pathelement path="${lib}/derby.jar"/>
+        <pathelement location="${lib}/simple-log.jar"/>
+      </classpath>
+    </javac>
+    <jar destfile="srl.jar"
+         basedir="${bin}">
+       <manifest>
+         <attribute name="Main-Class" value="org.ahunt.simpleRowLog.launcher.Launch"/>
+         <attribute name="Class-Path" value="${lib}/derby.jar ${lib}/simple-log.jar ."/>
+         <attribute name="Built-By" value="${user.name}"/>
+       </manifest>
+     </jar>
+  </target>
+
+  <target name="dist" depends="clean,getdep,build,dist-bin,dist-src"/>
+
+  <target name="dist-bin">
+    <delete dir="${dist}/simplerowlog-${version}"/>
+    <mkdir dir="${dist}"/>
+    <mkdir dir="${dist}/simplerowlog-${version}"/>
+    <!-- TODO: process all xcf to png -->
+      <copy todir="${dist}/simplerowlog-${version}">
+        <fileset dir=".">
+          <exclude name="**/${dist}/**"/>
+          <exclude name="**/${src}/**"/>
+          <exclude name="**/${bin}/**"/>
+          <exclude name="**/.**"/>
+          <exclude name="**/.settings/**"/>
+          <exclude name="**/build.xml"/>
+        </fileset>
+      </copy>
+    <!-- Make .tar.gz, .tar.bz2 and .zip, plus .tar.gz source -->
+    <zip destfile="${dist}/simplerowlog-${version}.zip"
+         basedir="${dist}/simplerowlog-${version}"
+         includes="**"
+         />
+    <tar destfile="${dist}/simplerowlog-${version}.tar.gz"
+         basedir="${dist}/simplerowlog-${version}"
+         includes="**"
+         compression="gzip"
+        />
+    <tar destfile="${dist}/simplerowlog-${version}.tar.bz2"
+         basedir="${dist}/simplerowlog-${version}"
+         includes="**"
+         compression="bzip2"
+        />
+  </target>
+  
+  
+  <target name="dist-src">
+    <delete dir="${dist}/simplerowlog-${version}-src"/>
+    <mkdir dir="${dist}"/>
+    <mkdir dir="${dist}/simplerowlog-${version}-src"/>
+    <copy todir="${dist}/simplerowlog-${version}-src">
+      <fileset dir=".">
+        <exclude name="**/${dist}/**"/>
+        <exclude name="**/${lib}/**"/>
+        <exclude name="**/${bin}/**"/>
+      </fileset>
+    </copy>
+    <!-- Make .tar.gz, .tar.bz2 and .zip, plus .tar.gz source -->
+    <tar destfile="${dist}/simplerowlog-${version}-src.tar.gz"
+         basedir="${dist}/simplerowlog-${version}-src"
+         includes="**"
+         compression="gzip"
+         />
+  </target>
+
+  <target name="getdep" depends="getdep-src,getdep-bin"/>
+
+  <target name="derby-download">
+    <mkdir dir="${temp_derby}"/>
+    <get src="http://archive.apache.org/dist/db/derby/db-derby-10.5.1.1/db-derby-10.5.1.1-lib.tar.gz" dest="${temp_derby}/derby.tar.gz" />
+  </target>
+
+  <target name="getdep-bin" depends="init,derby-download">
+    <get src="https://simple-log.dev.java.net/release/simple-log.jar" dest="${lib}/simple-log.jar"/>
+    <gunzip src="${temp_derby}/derby.tar.gz"/>
+    <untar src="${temp_derby}/derby.tar" dest="${temp_derby}"/>
+    <move file="${temp_derby}/db-derby-10.5.1.1-lib/lib/derby.jar" tofile="${lib}/derby.jar"/>
+  </target>
+
+  <target name="getdep-src" depends="derby-download">
+    <mkdir dir="${externalsrc}"/>
+    <copy file="${temp_derby}/derby.tar.gz" todir="${externalsrc}/derby.tar.gz"/>
+    <get src="https://simple-log.dev.java.net/release/simple-log-2.0.1.zip" dest="${externalsrc}/simple-log-2.0.1.zip"/>
+  </target>
+  
+</project>

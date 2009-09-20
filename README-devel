@@ -1,0 +1,9 @@
+1. simple rowLog is being written using Eclipse, which is highly recommended. It is
+a good idea to download the two jar files (see the README) and configure Eclipse to
+use these since otherwise you'll have to download them again after every ant clean.
+
+2. At the moment the language files are being written in British English. They will
+be checked before a release, so it doesn't matter if there are a few mistakes.
+Other languages will also be added leading up to a first release.
+
+3. The first release date is currently unknown. [Full Stop]...

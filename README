@@ -1,0 +1,8 @@
+simple rowLog Readme:
+
+1. Dependencies:
+	simple rowLog requires Apache Derby and simple-log to function. The jar
+	files derby.jar and simple-log.jar from the respective projects need to
+	be available in the classpath when running simple rowLog, and are included
+	in the default distribution. In the source distribution they can be found
+	under src/external. More information can be found under NOTICE.
