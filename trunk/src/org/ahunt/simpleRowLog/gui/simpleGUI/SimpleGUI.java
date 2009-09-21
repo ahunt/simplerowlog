@@ -85,10 +85,9 @@ public class SimpleGUI extends JFrame {
 		try {
 			config.load(new FileInputStream("conf/simpleGUI.properties"));
 		} catch (Exception e) {
-			// TODO: Ask for configuration.
+			new configDialog(null);
 		}
 		this.db = db;
-		setJMenuBar(new JMenuBar());
 		setupMenus();
 		reloadConfig();
 		updateOutings();
@@ -110,6 +109,7 @@ public class SimpleGUI extends JFrame {
 	 * 
 	 */
 	private void setupMenus() {
+		setJMenuBar(new JMenuBar());
 		JMenuBar mb = getJMenuBar();
 		// File menu
 		mb.add(menuFile);
@@ -175,6 +175,8 @@ public class SimpleGUI extends JFrame {
 
 		private void onClose() {
 			// TODO: stuff
+			// TODO: some method has to be called to clean up and save
+			//       data that changes e.g. config.
 		}
 	}
 }
