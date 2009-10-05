@@ -17,46 +17,33 @@
  *
  *
  *	Changelog:
- *	21/09/2009:	Created.
+ *	05/10/2009:	Created.
  */
 package org.ahunt.simpleRowLog.gui.simpleGUI;
-
-import java.util.Properties;
 
 import javax.swing.JDialog;
 
 /**
- * @author andy
+ * @author Andrzej JR Hunt
  *
  */
-class configDialog extends JDialog {
-	
-	private Properties config;
-	
-	/**
-	 * Open a new configuration Dialog. This exits once the dialog closes. 
-	 * @param config The current configuration. A default configuration will be
-	 * created if this is null.
-	 */
-	public configDialog(Properties config) {
-		if (config == null) {
-			config = getDefaultConfig();
-		}
-		this.config = config;
-		//TODO: the rest of the dialog.
-	}
+public class AboutDialog extends JDialog {
 
 	/**
 	 * serialVersionUID
 	 */
 	private static final long serialVersionUID = 1L;
 
+	
 	/**
-	 * Returns the default configuration for the simpleGUI.
-	 * @return The default configuration.
+	 * Open a new about Dialog. This exits once the dialog closes. 
 	 */
-	private Properties getDefaultConfig() {
-		//TODO: implement.
-		Return null;
+	public AboutDialog() {
+
+		//TODO: the rest of the dialog.
 	}
+	
+
+
+
 }

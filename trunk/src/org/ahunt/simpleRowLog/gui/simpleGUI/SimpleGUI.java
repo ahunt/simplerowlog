@@ -85,7 +85,7 @@ public class SimpleGUI extends JFrame {
 		try {
 			config.load(new FileInputStream("conf/simpleGUI.properties"));
 		} catch (Exception e) {
-			new configDialog(null);
+			new ConfigDialog(null);
 		}
 		this.db = db;
 		setupMenus();
