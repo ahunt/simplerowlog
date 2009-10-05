@@ -57,7 +57,7 @@
          basedir="${bin}">
        <manifest>
          <attribute name="Main-Class" value="org.ahunt.simpleRowLog.launcher.Launch"/>
-         <attribute name="Class-Path" value="${lib}/derby.jar ${lib}/simple-log.jar ."/>
+         <attribute name="Class-Path" value="${lib}/derby.jar ${lib}/simple-log.jar conf ."/>
          <attribute name="Built-By" value="${user.name}"/>
        </manifest>
      </jar>
@@ -78,6 +78,7 @@
           <exclude name="**/.**"/>
           <exclude name="**/.settings/**"/>
           <exclude name="**/build.xml"/>
+	  <exclude name="README-devel"/>
         </fileset>
       </copy>
     <!-- Make .tar.gz, .tar.bz2 and .zip, plus .tar.gz source -->
