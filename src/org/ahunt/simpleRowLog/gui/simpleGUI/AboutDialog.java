@@ -21,10 +21,20 @@
  */
 package org.ahunt.simpleRowLog.gui.simpleGUI;
 
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Insets;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.util.ResourceBundle;
 
+import javax.swing.ImageIcon;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.SwingConstants;
+
 import org.ahunt.simpleRowLog.Info;
 /**
  * @author Andrzej JR Hunt
@@ -56,18 +66,44 @@ public class AboutDialog extends JDialog {
 		// Prepare the window.
 		this.setModal(true);
 		this.setTitle(rb.getString("dialog.about.title"));
-		this.add(new JLabel("<html>"
+		Container pane = this.getContentPane();
+		pane.setLayout(null);
+		JLabel textLabel = new JLabel("<html>"
 				+ srlCopyright + "<br/>"
 				+ "<a href=\"" + srlWebSite +"\">" + srlWebSite + "</a><br/>"
 				+ rb.getString("dialog.about.srlVersion")
 				+ " <i>" + srlVersion + " (" + srlBuildType + ")</i><br/>"
 				+ rb.getString("dialog.about.javaVersion")
 				+ " <i>" + javaVersion + "</i>"
-				+"</html>"
-		));
-		
-		//TODO: the rest of the dialog. (Remember to show GPL.)
-		this.setSize(600, 400);
+				+"</html>",
+				new ImageIcon("img/logo/logo.png"),
+				SwingConstants.LEFT);
+		String disp = "";
+		String buff;
+		// TODO: Load GPL File.
+		try {
+			BufferedReader b = new BufferedReader(new FileReader("LICENSE"));
+			while ((buff= b.readLine())!= null) {
+				disp += buff + "\n";
+			}
+		} catch (Exception e) {
+			disp = "GNU GPL couldn't be loaded, please refer to http://www.gnu.org/licenses/gpl-3.0.txt";
+		}
+		// Set up the text field.
+		JScrollPane gplPane = new JScrollPane(new JTextArea(disp));
+	
+		// Layouting.
+		pane.add(textLabel);
+		pane.add(gplPane);
+		Insets insets = pane.getInsets();
+		textLabel.setBounds(25 + insets.left, 5 + insets.top, 500, 100);
+		gplPane.setBounds(15 + insets.left, 110 + insets.top, 550, 260);
+
+
+
+		//TODO: the rest of the dialog. Add an exit button.
+		this.setResizable(false);
+		this.setSize(600, 450);
 		this.setVisible(true);
 	}
 
