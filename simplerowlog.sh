@@ -1,1 +1,1 @@
-java -jar bin/simplerowlog.jar 
+java -jar srl.jar 
