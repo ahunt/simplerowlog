@@ -26,6 +26,9 @@ import java.io.File;
 
 import java.util.ResourceBundle;
 
+import org.ahunt.simpleRowLog.db.simpleDB.Database;
+import org.grlea.log.SimpleLogger;
+
 /**
  * The launcher for simple rowLog.
  * 
@@ -34,6 +37,7 @@ import java.util.ResourceBundle;
  */
 public class Launch {
 
+	private static final SimpleLogger log = new SimpleLogger(Launch.class);
 
 	/**
 	 * Start the simple rowLog program.
@@ -42,6 +46,7 @@ public class Launch {
 	 *            The commandline arguments. Currently args[0] is dir.
 	 */
 	public static void main(String[] args) {
+		log.entry("main");
 		// String for storing alternate config directory, if required.
 		String in;
 		// Get the language data.
@@ -56,11 +61,24 @@ public class Launch {
 			in = "./";
 		}
 		// Check and store the data directory.
+		log.info("Checking data directory");
 		Util.setDataDir(new File(in));
 		if (!isValidDir(Util.getDataDir())) {
 			printInvalidDir(in);
+			log.error("Invalid data directory.");
 			System.exit(1);
 		}
+		// Set GTK if possible.
+	    try {
+		    // Set System L&F
+	        javax.swing.UIManager.setLookAndFeel(
+	            "com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
+	        log.info("GTK set as toolkit.");
+	    } catch (Exception e) {
+			// TODO: Add error info (log), but keep running with Motif.
+	    	System.out.println(rb.getString("noGTK"));
+	    	log.info("GTK unavailable, default used.");
+	    }
 		// Tell the user things are happening + copyright
 		System.out.println(rb.getString("welcome") + "\n"
 				+ rb.getString("starting"));
@@ -76,6 +94,8 @@ public class Launch {
 	 *            The path of the directory to test.
 	 */
 	private static boolean isValidDir(File test) {
+		log.entry("isValidDir");
+		log.debugObject("test", test);
 		if (!test.isDirectory()) {
 			return false;
 		} else {
