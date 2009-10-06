@@ -53,6 +53,10 @@
         <pathelement location="${lib}/simple-log.jar"/>
       </classpath>
     </javac>
+  </target>
+
+  <target name="jar" depends="build">
+    <echo message="Packing jar." />
     <jar destfile="srl.jar"
          basedir="${bin}">
        <manifest>
@@ -62,8 +66,8 @@
        </manifest>
      </jar>
   </target>
-
-  <target name="dist" depends="clean,getdep,build,dist-bin,dist-src"/>
+	
+  <target name="dist" depends="clean,getdep,build,jar,dist-bin,dist-src"/>
 
   <target name="dist-bin">
     <delete dir="${dist}/simplerowlog-${version}"/>
