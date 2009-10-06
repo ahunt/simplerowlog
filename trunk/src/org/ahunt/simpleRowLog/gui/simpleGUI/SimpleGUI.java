@@ -48,6 +48,9 @@ public class SimpleGUI extends JFrame {
 
 	static final long serialVersionUID = 1l;
 
+	// Get the language file
+	private ResourceBundle rb = ResourceBundle.getBundle("loc/gui");
+	
 	// File Menu
 	private JMenu menuFile = new JMenu();
 
@@ -144,7 +147,6 @@ public class SimpleGUI extends JFrame {
 	 * 
 	 */
 	private void updateMenus() {
-		ResourceBundle rb = ResourceBundle.getBundle("loc/gui");
 		// File menu
 		menuFile.setText(rb.getString("file"));
 		menuFileExit.setText(rb.getString("file.exit"));
