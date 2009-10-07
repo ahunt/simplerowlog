@@ -1,1 +1,1 @@
-java -jar srl.jar 
+java -jar lib/srl.jar 
