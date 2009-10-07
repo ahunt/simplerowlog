@@ -18,16 +18,19 @@
  *
  *	Changelog:
  *	05/10/2009:	Created.
+ *  07/10/2009: Completed initial version.
  */
 package org.ahunt.simpleRowLog.gui.simpleGUI;
 
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Insets;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.text.MessageFormat;
 import java.util.ResourceBundle;
 
 import javax.swing.ImageIcon;
@@ -40,37 +43,21 @@ import javax.swing.SwingConstants;
 
 import org.ahunt.simpleRowLog.Info;
 /**
+ * The About Dialog showing version information and the GPL Licence for simple
+ * rowLog. The dialog is a modal dialog, to use the dialog simply call the
+ * constructor: <code>new AboutDialog()</code> The constructor returns once
+ * the dialog has been closed.
  * @author Andrzej JR Hunt
- *
+ * @version 1
  */
 public class AboutDialog extends JDialog implements ActionListener {
-	
-	/**
-	 * The currently open dialog. If a dialog is open, this is defined, else
-	 * it is null.
-	 */
-	private static AboutDialog dialog;
 
 	/**
 	 * serialVersionUID
 	 */
 	private static final long serialVersionUID = 1L;
 	
-	// TODO: Test function, remove once ready
-	public static void main(String[] args) {
-	    try {
-		    // Set System L&F
-	        javax.swing.UIManager.setLookAndFeel(
-	            "com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
-	    } catch (Exception e) {
-			// TODO: handle exception
-		}
-
-		new AboutDialog();
-		System.exit(0);
-	}
-	
-	
+	// Language data
 	private ResourceBundle rb = ResourceBundle.getBundle("loc/gui");
 	
 	// Get the various data about simple rowLog to display.
@@ -80,9 +67,9 @@ public class AboutDialog extends JDialog implements ActionListener {
 	private String srlCopyright = Info.getCopyright();
 	
 	// Get the java version.
-	private String javaVersion = System.getProperty("java.version");
+	private String javaVersion = System.getProperty("java.vm.version");
+	private String javaName = System.getProperty("java.vm.name");
 	
-	//TODO: Implement error throwing if dialog already open.
 	/**
 	 * Open a new about Dialog. This exits once the dialog closes. It throws an
 	 * error if an about Dialog is already open.
@@ -92,15 +79,20 @@ public class AboutDialog extends JDialog implements ActionListener {
 		this.setModal(true);
 		this.setTitle(rb.getString("dialog.about.title"));
 		// Prepare the content
-		JLabel textLabel = new JLabel("<html><b>"
-				+ srlCopyright + "</b><br/>"
-				+ "<a href=\"" + srlWebSite +"\">" + srlWebSite + "</a><br/>"
-				+ "<b>" + rb.getString("dialog.about.srlVersion") + "</b>"
-				+ " <i>" + srlVersion + " (" + srlBuildType + ")</i><br/>"
-				+ "<b>" + rb.getString("dialog.about.javaVersion") +"</b"
-				+ " <i>" + javaVersion + "</i>"
-				+"</html>",
-				new ImageIcon("img/logo/logo.png"),
+		String result = MessageFormat.format(
+				//Line 1: Copyright
+				"<html><b>{0}</b><br/>"
+				// Line 2 Website
+				+ "<font size=+2><a href=\"{1}\">{1}</a></font><br/>"
+				// Line 3 srl version
+				+ "<b>{2}</b> {3} ({4})<br/>"
+				// Line 4 java version
+				+ "<b>{5}</b> {6} ({7})</html>",
+				srlCopyright, srlWebSite,
+				rb.getString("dialog.about.srlVersion"), srlVersion,
+				srlBuildType, rb.getString("dialog.about.javaVersion"),
+				javaVersion, javaName);
+		JLabel textLabel = new JLabel(result,new ImageIcon("img/logo/logo.png"),
 				SwingConstants.LEFT);
 		// Load the GPL file to show.
 		String disp = "";
@@ -136,15 +128,20 @@ public class AboutDialog extends JDialog implements ActionListener {
 		Dimension size = exitButton.getPreferredSize();
 		exitButton.setBounds(250 + insets.left, 380 + insets.top,
 				size.width + 30, size.height + 5);
-		//TODO: the rest of the dialog. Add an exit button + center.
 		// Finish off the window.
 		this.setResizable(false);
 		this.setSize(590, 450);
+		// Centering
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize(); 
+		this.setBounds(screenSize.width/2-this.getSize().width/2,
+				screenSize.height/2-this.getSize().height/2, 590, 450);
+		this.setAlwaysOnTop(true);
 		this.setVisible(true);
 	}
 
 	/**
-	 * The listener for the exit button.
+	 * The listener for the exit button. I.e. close the window, which causes the
+	 * constructor to return.
 	 */
 	public void actionPerformed(ActionEvent e) {
 		this.setVisible(false);
