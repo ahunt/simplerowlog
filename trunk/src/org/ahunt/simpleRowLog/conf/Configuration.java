@@ -25,12 +25,13 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.PrintWriter;
+import java.util.Hashtable;
 import java.util.Properties;
 
 /**
  * A wrapper class for properties, which deals with the chores such as finding
  * where the file is, loading a default if unavailable, and saving on
- * modification.
+ * modification. Caching is also done.
  * @author Andrzej JR Hunt
  *
  */
@@ -41,12 +42,15 @@ public class Configuration {
 	/** Whether the properties should be saved on modification. */
 	private Boolean storeOnModify = true;
 
+	private static Hashtable<String, Configuration> cache = new Hashtable<String, Configuration>();
+		  
 	/**
 	 * Get the desired configuration.
 	 * @param desired Name of config.
+	 * @param doCache Whether the configuration should be cached.
 	 * @see #getConf(String)
 	 */
-	private Configuration(String desired) {
+	private Configuration(String desired, boolean doCache) {
 		prop = new Properties();
 		try {
 			prop.load(new BufferedReader(new FileReader("conf/" + desired
@@ -59,9 +63,22 @@ public class Configuration {
 				// TODO: handle exception
 			}
 		}
-			//TODO: add to list of opened.
+		if (doCache) {
+			cache.put(prop.getProperty("FILENAME"),this);
+		}
 	}
 
+	/**
+	 * Get the configuration file of specified name. The configuration will be
+	 * cached.
+	 * @param desired The configuration you want.
+	 * @return The Configuration file.
+	 * @see #getConf(String, boolean)
+	 */
+	public static Configuration getConf(String desired) {
+		return getConf(desired, true);
+	}
+	
 	/**
 	 * Get the configuration file of specified name. Path and prefix will be
 	 * added automatically, and should not be specified. I.e. to load
@@ -69,11 +86,15 @@ public class Configuration {
 	 * which will load the file conf/main.properties, and if it doesn't exist,
 	 * the default file will be loaded from conf/default/main.properties.
 	 * @param desired The configuration you want.
+	 * @param doCache Whether the configuration should be cached.
 	 * @return The Configuration file.
 	 */
-	public static Configuration getConf(String desired) {
-		//TODO: check whether opened.
-		return new Configuration(desired);
+	public static Configuration getConf(String desired, boolean doCache) {
+		if (cache.containsKey(desired +".properties")) {
+			return cache.get(desired +".properties");
+		} else {
+			return new Configuration(desired, doCache);
+		}
 	}
 	
 	/**
@@ -92,7 +113,7 @@ public class Configuration {
 	 * @param storeOnModify Whether or not the file should be automatically
 	 * 			saved.
 	 */
-	public void setStoreOnModify(boolean storeOnModify) {
+	public synchronized void setStoreOnModify(boolean storeOnModify) {
 		this.storeOnModify = storeOnModify;
 	}
 	
@@ -103,7 +124,7 @@ public class Configuration {
 	 * @param key The property's key.
 	 * @param value The property's new value.
 	 */
-	public void setProperty(String key, String value) {
+	public synchronized void setProperty(String key, String value) {
 		// Don't do modify the Filename, since that would cause chaos.
 		if (!key.equals("FILENAME")) {
 			prop.setProperty(key, value);
@@ -116,7 +137,7 @@ public class Configuration {
 	/**
 	 * Save the configuration file to it's default location.
 	 */
-	public void save() {
+	public synchronized void save() {
 		try {
 			prop.store(new BufferedWriter(new PrintWriter("conf/"
 					+ prop.getProperty("FILENAME"))), "Auto stored file");
