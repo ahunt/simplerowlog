@@ -29,7 +29,7 @@ public class DatabaseError extends Error {
 	 */
 	private static final long serialVersionUID = -2360816381244841420L;
 
-	public DatabaseError(String errorMessage) {
-		super(errorMessage);
+	public DatabaseError(String errorMessage, Throwable cause) {
+		super(errorMessage, cause);
 	}
 }

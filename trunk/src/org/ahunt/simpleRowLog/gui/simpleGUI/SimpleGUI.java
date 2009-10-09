@@ -22,6 +22,7 @@
 
 package org.ahunt.simpleRowLog.gui.simpleGUI;
 
+import java.awt.Toolkit;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ResourceBundle;
@@ -35,7 +36,10 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 
+import org.ahunt.simpleRowLog.conf.Configuration;
 import org.ahunt.simpleRowLog.interfaces.Database;
+
+import sun.awt.X11.Screen;
 
 
 /**
@@ -75,21 +79,17 @@ public class SimpleGUI extends JFrame {
 	// Help Menu: About
 	private JMenuItem menuHelpAbout = new JMenuItem();
 
-	// Settings
-	private Properties config = new Properties();
-
 	// The database
 	private Database db;
 	
 	// The current date selected in the window. (Not specifically today's date.)
 	private Date current = new Date();
 
+	// Configuration file.
+	Configuration conf;
+	
 	public SimpleGUI(Database db) {
-		try {
-			config.load(new FileInputStream("conf/simpleGUI.properties"));
-		} catch (Exception e) {
-			new ConfigDialog(null);
-		}
+		conf = Configuration.getConf("simpleGUI");
 		this.db = db;
 		setupMenus();
 		reloadConfig();
@@ -102,7 +102,7 @@ public class SimpleGUI extends JFrame {
 	 * 
 	 */
 	private void reloadConfig() {
-		if (config.getProperty("fullscreen", "true").equals("true")) {
+		if (conf.getProperty("fullscreen").equals("true")) {
 			setFullScreen(true);
 		}
 	}
@@ -139,6 +139,7 @@ public class SimpleGUI extends JFrame {
 	private void setFullScreen(boolean setFullScreen) {
 		setUndecorated(setFullScreen);
 		setResizable(!setFullScreen);
+		setLocation(0, 0);
 	}
 
 	/**

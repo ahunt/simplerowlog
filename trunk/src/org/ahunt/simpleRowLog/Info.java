@@ -69,4 +69,12 @@ public final class Info {
 		return "Copyright \u00a9 2009 Andrzej JR Hunt";
 	}
 	
+	/**
+	 * Get the licence information.
+	 * @return Licence string.
+	 */
+	public static String getLicence() {
+		return "Released under GNU GPL v3, see LICENSE for details.";
+	}
+	
 }

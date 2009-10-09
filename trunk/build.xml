@@ -159,9 +159,9 @@
     <move file="${temp_derby}/db-derby-10.5.1.1-lib/lib/derby.jar" tofile="${lib}/derby.jar"/>
   </target>
 
-  <target name="getdep-src" depends="checkdep,derby-download" unless="dep">
+  <target name="getdep-src" depends="checkdep" unless="dep">
     <mkdir dir="${externalsrc}"/>
-    <copy file="${temp_derby}/derby.tar.gz" todir="${externalsrc}"/>
+    <get src="http://archive.apache.org/dist/db/derby/db-derby-10.5.1.1/db-derby-10.5.1.1-src.tar.gz" dest="${externalsrc}/db-derby-10.5.1.1-src.tar.gz"/>
     <get src="https://simple-log.dev.java.net/release/simple-log-2.0.1.zip" dest="${externalsrc}/simple-log-2.0.1.zip"/>
   </target>
   

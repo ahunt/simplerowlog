@@ -47,7 +47,7 @@ public class Util {
 		StringBuffer buff = new StringBuffer();
 		while ((line = in.readLine()) != null) {
 			// Only append if not a commented line.
-			if (!line.substring(0,1).equals("#")) {
+			if ((line.length() > 0) && !line.substring(0,1).equals("#")) {
 				buff.append(line);
 			}
 		}
