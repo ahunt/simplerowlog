@@ -42,6 +42,7 @@ public class Configuration {
 	/** Whether the properties should be saved on modification. */
 	private Boolean storeOnModify = true;
 
+	/** Cache storing opened  configurations. */
 	private static Hashtable<String, Configuration> cache = new Hashtable<String, Configuration>();
 		  
 	/**
@@ -142,6 +143,18 @@ public class Configuration {
 			prop.store(new BufferedWriter(new PrintWriter("conf/"
 					+ prop.getProperty("FILENAME"))), "Auto stored file");
 		} catch (Exception e) {
+			// TODO: handle exception
+		}
+	}
+	
+	/**
+	 * Force the config file to reload the default configuration.
+	 */
+	public void loadDefault() {
+		try {
+			prop.load(new BufferedReader(new FileReader("conf/default/"
+					+ prop.getProperty("FILENAME"))));
+		} catch (Exception f) {
 			// TODO: handle exception
 		}
 	}

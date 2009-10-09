@@ -26,6 +26,7 @@
  */
 package org.ahunt.simpleRowLog.db.simpleDB;
 
+import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -47,7 +48,6 @@ import org.ahunt.simpleRowLog.common.MemberInfo;
 import org.ahunt.simpleRowLog.common.MemberStatistic;
 import org.ahunt.simpleRowLog.common.OutingInfo;
 import org.grlea.log.SimpleLogger;
-
 
 /**
  * @author Andrzej JR Hunt
@@ -71,15 +71,44 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
     private Connection con = null;
     
     // various prepared statements for use.
-    PreparedStatement psGetOutings;
+    private PreparedStatement psGetOutings;
     //TODO: add others.
     
+    // The opened instance (if existing).
+    private static Database db;
     
-	public Database() throws DatabaseError {
+    public static void main(String[] args) {
+    	getInstance();
+    }
+    
+    
+    //TODO: Implement a "locking" mechanism so that users can hold on to the db,
+    // and once everyone has released it it automatically closes.
+    /**
+     * Get an instance of the database.
+     * @return The database.
+     */
+    public static synchronized Database getInstance() {
+    	if (db != null) {
+    		return db;
+    	} else {
+    		return new Database();
+    	}
+    }
+    
+    /**
+     * Start the database.
+     */
+	private Database() throws DatabaseError {
 		log.entry("Database()");
 		
+		// Set up derby properties.
+		System.setProperty("derby.system.home", new File(".").getAbsolutePath()
+				+"/database");
+		
+		
 		// Set up the resourceBundle for use
-		rb = ResourceBundle.getBundle("loc.db");
+		rb = ResourceBundle.getBundle("loc/db");
 		log.info("Resource Bundle loaded.");
 		
 		// Load the driver.
@@ -88,7 +117,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
             log.info("Loaded db driver.");
         } catch(Exception e) {
         	log.errorException(e);
-            throw new DatabaseError(rb.getString("driverError"));
+            throw new DatabaseError(rb.getString("driverError"),e);
         }
         
         // Set up the connection to the Database
@@ -97,7 +126,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
             log.info("Connected to db.");
         }  catch (Throwable e)  {   
         	log.errorException(e);
-            throw new DatabaseError(rb.getString("connectionError"));
+            throw new DatabaseError(rb.getString("connectionError"),e);
         }
         
         // Check if the Database already existed, or if it needs set up.
@@ -107,13 +136,15 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 				createDatabase();
 			} else {
 				log.info("Database previously existed and will be used.");
+				// TODO: remove, this is for debug only.
+				createDatabase();
 			}
 		} catch (SQLException e) {
         	log.errorException(e);
-			throw new DatabaseError(rb.getString("setupError"));
+			throw new DatabaseError(rb.getString("setupError"), e);
 		} catch (IOException e) {
         	log.errorException(e);
-			throw new DatabaseError(rb.getString("scriptError"));
+			throw new DatabaseError(rb.getString("scriptError"), e);
 		}
 		
 		// Check if an outings table exists for this year.
@@ -129,7 +160,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			// Just ignore. Not worrying.
 		} catch (IOException e) {
 			log.errorException(e);
-			throw new DatabaseError(rb.getString("scriptError"));			
+			throw new DatabaseError(rb.getString("scriptError"),e);			
 		}
 		
 		// TODO: set up prepared statements.
@@ -139,21 +170,31 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			log.debug("Prepared statements prepared successfully.");
 		} catch (SQLException e) {
 			log.errorException(e);
-			throw new DatabaseError(rb.getString("dbError"));
+			throw new DatabaseError(rb.getString("dbError"),e);
 		}
-	
+		// Store this database as the running db.
+		db=this;
 		log.exit("Database()");
 	}
 	
-	
+	/**
+	 * Run the scripts setting up the database.
+	 * @throws SQLException If there are problems running the scripts.
+	 * @throws IOException If there are problems loading the scripts.
+	 */
 	private void createDatabase() throws SQLException, IOException {
 		log.entry("createDatabase()");
 		log.info("Running db setup scripts.");
 		Statement s = con.createStatement();
+		log.debug("setupGroups");
 		s.execute(Util.loadScript("setupGroups"));
+		log.debug("setupGroupTrigger1");
 		s.execute(Util.loadScript("setupGroupTrigger1"));
+		log.debug("setupGroupTrigger2");
 		s.execute(Util.loadScript("setupGroupTrigger2"));
+		log.debug("setupMembers");
 		s.execute(Util.loadScript("setupMembers"));
+		log.debug("setupBoats");
 		s.execute(Util.loadScript("setupBoats"));
 		
 		

@@ -22,8 +22,12 @@
 package org.ahunt.simpleRowLog.gui.simpleGUI;
 
 import java.util.Properties;
+import java.util.ResourceBundle;
 
+import javax.swing.JButton;
 import javax.swing.JDialog;
+
+import org.ahunt.simpleRowLog.conf.Configuration;
 
 /**
  * @author Andrzej JR Hunt
@@ -37,27 +41,34 @@ class ConfigDialog extends JDialog {
 	private static final long serialVersionUID = 1L;
 	
 	/** The configuration in use */
-	private Properties config;
+	private Configuration config;
+	
+	private ResourceBundle rb = ResourceBundle.getBundle("loc/gui");
+	
+	// UI Buttons
+	private JButton applyButton = new JButton();
+	private JButton exitButton = new JButton();
+	
+	//TODO: add reset button, loading default configuration.
 	
 	/**
 	 * Open a new configuration Dialog. This exits once the dialog closes. 
-	 * @param config The current configuration. A default configuration will be
 	 * created if this is null.
 	 */
-	public ConfigDialog(Properties config) {
-		if (config == null) {
-			config = getDefaultConfig();
-		}
-		this.config = config;
+	public ConfigDialog() {
+		config = Configuration.getConf("simpleGUI");
 		//TODO: the rest of the dialog.
+		
+		updateLabels();
+	}
+	
+	/**
+	 * Update the labels on any buttons etc.
+	 */
+	private void updateLabels() {
+		// Buttons
+		applyButton.setText(rb.getString("dialog.conf.apply"));
+		exitButton.setText(rb.getString("dialog.conf.exit"));
 	}
 
-	/**
-	 * Returns the default configuration for the simpleGUI.
-	 * @return The default configuration.
-	 */
-	private Properties getDefaultConfig() {
-		//TODO: implement.
-		return null;
-	}
 }

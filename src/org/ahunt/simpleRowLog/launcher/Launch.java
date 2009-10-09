@@ -24,8 +24,11 @@ package org.ahunt.simpleRowLog.launcher;
 
 import java.io.File;
 
+import java.text.MessageFormat;
 import java.util.ResourceBundle;
 
+import org.ahunt.simpleRowLog.Info;
+import org.ahunt.simpleRowLog.conf.Configuration;
 import org.ahunt.simpleRowLog.db.simpleDB.Database;
 import org.grlea.log.SimpleLogger;
 
@@ -68,21 +71,28 @@ public class Launch {
 			log.error("Invalid data directory.");
 			System.exit(1);
 		}
-		// Set GTK if possible.
+		// Tell the user things are happening + copyright
+		System.out.println(rb.getString("welcome") + "\n"
+				+ rb.getString("starting") + "\n[simple rowLog "
+				+ Info.getVersion() + " (" + Info.getBuildType() + ")]\n"
+				+ Info.getCopyright() + "\n" + Info.getLicence());
+		// Load the configuration.
+		Configuration conf = Configuration.getConf("main");
+		// Set the desired toolkit.
 	    try {
-		    // Set System L&F
-	        javax.swing.UIManager.setLookAndFeel(
-	            "com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
-	        log.info("GTK set as toolkit.");
+		    // Set Desired L&F
+	        javax.swing.UIManager.setLookAndFeel(conf.getProperty("gui.toolkit"));
+	        // Tell the user it is loaded
+	        System.out.println(MessageFormat.format(rb.getString("tkLoaded"),
+	        		javax.swing.UIManager.getLookAndFeel().getID()));
+	        log.info(javax.swing.UIManager.getLookAndFeel().getID()
+	        		+ " set as toolkit.");
 	    } catch (Exception e) {
-			// TODO: Add error info (log), but keep running with Motif.
+			// TODO: Add error info (log), but keep running with Motif etc.
 	    	System.out.println(rb.getString("noGTK"));
 	    	log.info("GTK unavailable, default used.");
 	    }
-		// Tell the user things are happening + copyright
-		System.out.println(rb.getString("welcome") + "\n"
-				+ rb.getString("starting"));
-		printCopyInfo();
+		
 		//TODO: Do stuff. (Splash, Load DB, start GUI) Remember the data dir.
 	}
 
@@ -122,16 +132,9 @@ public class Launch {
 	 * 
 	 */
 	private static void printUsage() {
-		printCopyInfo();
 		System.out.println("Usage:\n\tsimplerowlog DATADIRECTORY");
 		//TODO: Print a whole load more.
 	}
 	
-	/**
-	 * Print the copying information for simple rowLog.
-	 */
-	private static void printCopyInfo() {
-		System.out.println("Copyright (c) 2009 Andrzej JR Hunt - Licensed under GNU GPL v3");
-	}
 
 }

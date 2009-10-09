@@ -17,10 +17,12 @@
 #
 #
 #	Changelog:
+#   09/10/2009: Modified and tested -- now works.
 #	23/08/2009:	Changelog added.
 #
 #
 # Script: setupGroupTrigger2
-CREATE TRIGGER trig_defaultgroup AFTER UPDATE OF isDefault ON groups
+CREATE TRIGGER trig_defaultGroup2 AFTER UPDATE ON groups
 REFERENCING NEW AS mod
-UPDATE members SET isDefault = 0 WHERE (isDefault = 0) AND (NOT (id = mod.name))  
+FOR EACH ROW MODE DB2SQL
+UPDATE groups SET isDefault = 0 WHERE (isDefault = 1) AND ((NOT (id = mod.id)) AND (mod.isDefault = 1)) 

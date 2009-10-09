@@ -17,10 +17,13 @@
 #
 #
 #	Changelog:
+#   09/10/2009: Modified and tested -- now works.
 #	23/08/2009:	Changelog added.
 #
-#
 # Script: setupGroupTrigger1
-CREATE TRIGGER trig_defaultgroup AFTER INSERT OF isDefault ON groups
+# Makes sure if there's an insert, that only one row is default.
+CREATE TRIGGER trig_defaultGroup1 AFTER INSERT ON groups
 REFERENCING NEW AS mod
-UPDATE members SET isDefault = 0 WHERE (isDefault = 0) AND (NOT (id = mod.name))  
+FOR EACH ROW MODE DB2SQL
+UPDATE groups SET isDefault = 0 WHERE (isDefault = 1) AND ((NOT (id = mod.id)) AND (mod.isDefault = 1))
+
