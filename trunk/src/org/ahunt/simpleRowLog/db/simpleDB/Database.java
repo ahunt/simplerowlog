@@ -116,7 +116,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		
 		
 		// Set up the resourceBundle for use
-		rb = ResourceBundle.getBundle("loc/db");
+		rb = ResourceBundle.getBundle("db");
 		log.info("Resource Bundle loaded.");
 		
 		// Load the driver.

@@ -43,7 +43,7 @@ class ConfigDialog extends JDialog {
 	/** The configuration in use */
 	private Configuration config;
 	
-	private ResourceBundle rb = ResourceBundle.getBundle("loc/gui");
+	private ResourceBundle rb = ResourceBundle.getBundle("gui");
 	
 	// UI Buttons
 	private JButton applyButton = new JButton();

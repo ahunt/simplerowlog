@@ -53,7 +53,7 @@ public class SimpleGUI extends JFrame {
 	static final long serialVersionUID = 1l;
 
 	// Get the language file
-	private ResourceBundle rb = ResourceBundle.getBundle("loc/gui");
+	private ResourceBundle rb = ResourceBundle.getBundle("gui");
 	
 	// File Menu
 	private JMenu menuFile = new JMenu();

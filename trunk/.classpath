@@ -6,5 +6,6 @@
 	<classpathentry kind="lib" path="/home/andy/workspaces/lib/simple-log.jar"/>
 	<classpathentry kind="lib" path="lib/simple-log-rollover.jar"/>
 	<classpathentry kind="lib" path="conf"/>
+	<classpathentry kind="lib" path="loc"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
