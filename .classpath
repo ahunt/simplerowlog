@@ -4,5 +4,7 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="/home/andy/workspaces/lib/derby.jar"/>
 	<classpathentry kind="lib" path="/home/andy/workspaces/lib/simple-log.jar"/>
+	<classpathentry kind="lib" path="lib/simple-log-rollover.jar"/>
+	<classpathentry kind="var" path="CONF"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

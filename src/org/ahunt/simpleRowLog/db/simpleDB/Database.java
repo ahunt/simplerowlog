@@ -77,7 +77,15 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
     // The opened instance (if existing).
     private static Database db;
     
+    //Temporary testing method
+    // TODO: remove once finished class.
     public static void main(String[] args) {
+    	try {
+			Runtime.getRuntime().exec("rm -rf ./database/srl");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     	getInstance();
     }
     
@@ -136,8 +144,6 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 				createDatabase();
 			} else {
 				log.info("Database previously existed and will be used.");
-				// TODO: remove, this is for debug only.
-				createDatabase();
 			}
 		} catch (SQLException e) {
         	log.errorException(e);
@@ -186,12 +192,15 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		log.entry("createDatabase()");
 		log.info("Running db setup scripts.");
 		Statement s = con.createStatement();
+		log.debugObject("con.getAutoCommit()", con.getAutoCommit());
+		// Groups + triggers
 		log.debug("setupGroups");
 		s.execute(Util.loadScript("setupGroups"));
 		log.debug("setupGroupTrigger1");
 		s.execute(Util.loadScript("setupGroupTrigger1"));
 		log.debug("setupGroupTrigger2");
 		s.execute(Util.loadScript("setupGroupTrigger2"));
+		// Members
 		log.debug("setupMembers");
 		s.execute(Util.loadScript("setupMembers"));
 		log.debug("setupBoats");

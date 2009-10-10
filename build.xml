@@ -61,7 +61,7 @@
          basedir="${bin}">
        <manifest>
          <attribute name="Main-Class" value="org.ahunt.simpleRowLog.launcher.Launch"/>
-         <attribute name="Class-Path" value="derby.jar simple-log.jar ../conf .."/>
+         <attribute name="Class-Path" value="derby.jar simple-log-rollover.jar simple-log.jar ../conf .."/>
          <attribute name="Built-By" value="${user.name}"/>
        </manifest>
      </jar>
@@ -154,6 +154,7 @@
 	    	
   <target name="getdep-bin" depends="checkdep,init,derby-download" unless="dep">
     <get src="https://simple-log.dev.java.net/release/simple-log.jar" dest="${lib}/simple-log.jar"/>
+  	<get src="https://simple-log.dev.java.net/release/simple-log-rollover.jar" dest="${lib}/simple-log-rollover.jar"/>
     <gunzip src="${temp_derby}/derby.tar.gz"/>
     <untar src="${temp_derby}/derby.tar" dest="${temp_derby}"/>
     <move file="${temp_derby}/db-derby-10.5.1.1-lib/lib/derby.jar" tofile="${lib}/derby.jar"/>
