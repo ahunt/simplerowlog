@@ -58,7 +58,7 @@ public class AboutDialog extends JDialog implements ActionListener {
 	private static final long serialVersionUID = 1L;
 	
 	// Language data
-	private ResourceBundle rb = ResourceBundle.getBundle("loc/gui");
+	private ResourceBundle rb = ResourceBundle.getBundle("gui");
 	
 	// Get the various data about simple rowLog to display.
 	private String srlVersion = Info.getVersion();

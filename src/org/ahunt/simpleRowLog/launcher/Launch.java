@@ -50,10 +50,11 @@ public class Launch {
 	 */
 	public static void main(String[] args) {
 		log.entry("main");
+		log.info("simple rowLog starting");
 		// String for storing alternate config directory, if required.
 		String in;
 		// Get the language data.
-		ResourceBundle rb = ResourceBundle.getBundle("loc/startup");
+		ResourceBundle rb = ResourceBundle.getBundle("startup");
 		try {
 			in = args[0];
 			if (in.equals("-h")) {

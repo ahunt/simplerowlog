@@ -41,6 +41,8 @@ public class Configuration {
 	private Properties prop;
 	/** Whether the properties should be saved on modification. */
 	private Boolean storeOnModify = true;
+	
+	private static final String SUFFIX = ".conf";
 
 	/** Cache storing opened  configurations. */
 	private static Hashtable<String, Configuration> cache = new Hashtable<String, Configuration>();
@@ -55,11 +57,11 @@ public class Configuration {
 		prop = new Properties();
 		try {
 			prop.load(new BufferedReader(new FileReader("conf/" + desired
-					+ ".properties")));
+					+ SUFFIX)));
 			} catch (Exception e) {
 			try {
-				prop.load(new BufferedReader(new FileReader("conf/default/" + desired
-						+ ".properties")));
+				prop.load(new BufferedReader(new FileReader("conf/default/"
+						+ desired + SUFFIX)));
 			} catch (Exception f) {
 				// TODO: handle exception
 			}
@@ -91,8 +93,8 @@ public class Configuration {
 	 * @return The Configuration file.
 	 */
 	public static Configuration getConf(String desired, boolean doCache) {
-		if (cache.containsKey(desired +".properties")) {
-			return cache.get(desired +".properties");
+		if (cache.containsKey(desired + SUFFIX)) {
+			return cache.get(desired + SUFFIX);
 		} else {
 			return new Configuration(desired, doCache);
 		}
