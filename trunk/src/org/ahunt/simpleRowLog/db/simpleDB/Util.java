@@ -48,7 +48,7 @@ public class Util {
 		while ((line = in.readLine()) != null) {
 			// Only append if not a commented line.
 			if ((line.length() > 0) && !line.substring(0,1).equals("#")) {
-				buff.append(line);
+				buff.append(line + " ");
 			}
 		}
 		return buff.toString();
