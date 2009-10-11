@@ -17,16 +17,17 @@
 #
 #
 #	Changelog:
+#   11/10/2009: Changed PK name to GROUPS_PK
 #   09/10/2009: Edited. (Slight errors in script removed.)
 #	23/08/2009:	Changelog added.
 #
 # Script: setupGroups
 # Requires: none
 CREATE TABLE groups (
-	id INT NOT NULL GENERATED ALWAYS AS IDENTITY CONSTRAINT WISH_PK PRIMARY KEY,
-	name VARCHAR(32) NOT NULL,
-	description VARCHAR(64),
-	colour INT NOT NULL,
-	isDefault INT NOT NULL,
-	isPermanent INT NOT NULL
+    id INT NOT NULL GENERATED ALWAYS AS IDENTITY CONSTRAINT GROUPS_PK PRIMARY KEY,
+    name VARCHAR(32) NOT NULL,
+    description VARCHAR(64),
+    colour INT NOT NULL,
+    isDefault INT NOT NULL,
+    isPermanent INT NOT NULL
 )

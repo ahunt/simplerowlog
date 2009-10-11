@@ -17,15 +17,16 @@
 #
 #
 #	Changelog:
+#   11/10/2009: Updated & corrected.
 #	23/08/2009:	Changelog added.
 #
 #
 # Script: createOutings
 # Requires: mebers, boats
 # note: a seperate table is made for each year. (Question mark in outings_? is
-# for the year.)
-CREATE TABLE outings_? (
-	id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 0, INCREMENT BY 1)CONSTRAINT WISH_PK PRIMARY KEY,
+# for the year.) This must be called using MessageFormat.format(loadFile(), year);
+CREATE TABLE outings_{0} (
+	id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY CONSTRAINT OUTINGS{0}_PK PRIMARY KEY,
 	day DATE NOT NULL,
 	rower1 INT NOT NULL,
 	rower2 INT,
@@ -42,14 +43,14 @@ CREATE TABLE outings_? (
 	destination VARCHAR(128),
 	boat VARCHAR(32) NOT NULL,
 	distance INT,
-	CONSTRAINT rw1_fk FOREIGN KEY (rower1) references members (id),
-	CONSTRAINT rw2_fk FOREIGN KEY (rower2) references members (id),
-	CONSTRAINT rw3_fk FOREIGN KEY (rower3) references members (id),
-	CONSTRAINT rw4_fk FOREIGN KEY (rower4) references members (id),
-	CONSTRAINT rw5_fk FOREIGN KEY (rower5) references members (id),
-	CONSTRAINT rw6_fk FOREIGN KEY (rower6) references members (id),
-	CONSTRAINT rw7_fk FOREIGN KEY (rower7) references members (id),
-	CONSTRAINT rw8_fk FOREIGN KEY (rower8) references members (id),
-	CONSTRAINT cox_fk FOREIGN KEY (cox) references members (id),
-	CONSTRAINT boat_fk FOREIGN KEY (boat) references boats (name)
+	CONSTRAINT rw1_fk_{0} FOREIGN KEY (rower1) references members (id),
+	CONSTRAINT rw2_fk_{0} FOREIGN KEY (rower2) references members (id),
+	CONSTRAINT rw3_fk_{0} FOREIGN KEY (rower3) references members (id),
+	CONSTRAINT rw4_fk_{0} FOREIGN KEY (rower4) references members (id),
+	CONSTRAINT rw5_fk_{0} FOREIGN KEY (rower5) references members (id),
+	CONSTRAINT rw6_fk_{0} FOREIGN KEY (rower6) references members (id),
+	CONSTRAINT rw7_fk_{0} FOREIGN KEY (rower7) references members (id),
+	CONSTRAINT rw8_fk_{0} FOREIGN KEY (rower8) references members (id),
+	CONSTRAINT cox_fk_{0} FOREIGN KEY (cox) references members (id),
+	CONSTRAINT boat_fk_{0} FOREIGN KEY (boat) references boats (name)
 )

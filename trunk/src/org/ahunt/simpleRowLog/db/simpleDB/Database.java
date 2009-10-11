@@ -34,6 +34,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -71,6 +72,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
     private Connection con = null;
     
     // various prepared statements for use.
+    private PreparedStatement psAddGroup;
     private PreparedStatement psGetOutings;
     //TODO: add others.
     
@@ -156,14 +158,17 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		// Check if an outings table exists for this year.
 		// This is done by creating the table. An error arises if it exists.
 		try {
-			PreparedStatement ps =
-					con.prepareStatement(Util.loadScript("createOutings"));
-			int year = Calendar.getInstance().get(Calendar.YEAR);
-			ps.setInt(1, year);
-			ps.execute();
-			log.info("New Outings table for year " + year + ".");
+			log.info("Trying to create a new table for this year.");
+			String year = new Integer(Calendar.getInstance().get(Calendar.YEAR))
+					.toString();
+			log.db(org.grlea.log.DebugLevel.L6_VERBOSE,
+					MessageFormat.format(Util.loadScript("createOutings"), year));
+			con.createStatement().execute(MessageFormat.format(Util.loadScript("createOutings"), year));
+			log.info("New Outings table for year " + year + " created.");
 		} catch (SQLException e) {
-			// Just ignore. Not worrying.
+			// Just ignore. Not worrying. This means the table exists.
+			log.info("Outings table for this year already exists.");
+			log.dbe(org.grlea.log.DebugLevel.L6_VERBOSE, e);
 		} catch (IOException e) {
 			log.errorException(e);
 			throw new DatabaseError(rb.getString("scriptError"),e);			
@@ -172,12 +177,15 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		// TODO: set up prepared statements.
 		try {
 			log.debug("Beginning preparation of prepared statements.");
-			psGetOutings = con.prepareStatement("SELECT * FROM outings_? WHERE day = ? ORDER BY time_out");
+			createPreparedStatements();
+			createDefaultData();
 			log.debug("Prepared statements prepared successfully.");
 		} catch (SQLException e) {
 			log.errorException(e);
 			throw new DatabaseError(rb.getString("dbError"),e);
 		}
+		//TODO: complete
+
 		// Store this database as the running db.
 		db=this;
 		log.exit("Database()");
@@ -195,11 +203,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		log.debugObject("con.getAutoCommit()", con.getAutoCommit());
 		// Groups + triggers
 		log.debug("setupGroups");
-		// TODO: remove
-		log.debugObject("Util.loadScript(setupGroups)", Util.loadScript("setupGroups"));
 		s.execute(Util.loadScript("setupGroups"));
 		log.debug("setupGroupTrigger1");
-		log.debugObject("Util.loadScript(setupGroupTrigger1)", Util.loadScript("setupGroupTrigger1"));
 		s.execute(Util.loadScript("setupGroupTrigger1"));
 		log.debug("setupGroupTrigger2");
 		s.execute(Util.loadScript("setupGroupTrigger2"));
@@ -208,29 +213,55 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		s.execute(Util.loadScript("setupMembers"));
 		log.debug("setupBoats");
 		s.execute(Util.loadScript("setupBoats"));
-		
-		
+		log.exit("createDatabase()");
+	}
+	
+	/**
+	 * Create all the prepared statements necessary for functionining.
+	 * @throws SQLException If there are problems running the statements.
+	 */
+	private void createPreparedStatements() throws SQLException {
+		log.entry("createPreparedStatements()");
+		// Group adding prepared statement
+		log.info("creating psAddGroup");
+		psAddGroup = con.prepareStatement("INSERT INTO "
+				+"groups(name, description, colour, isDefault, isPermanent)"
+				+" VALUES (?, ?, ?, ?, ?)");
+		log.info("creating psGetOutings");
+		psGetOutings = con.prepareStatement("SELECT * FROM ? WHERE day = ? ORDER BY time_out");
+		log.exit("createPreparedStatements()");
+	}
+	
+	/**
+	 * Create the default data for the database.
+	 * @throws SQLException If there are problems creating the data.
+	 */
+	private void createDefaultData() throws SQLException {
+		//TODO: check colours here.
+		log.entry("createDefaultData()");	
 		// Add the default groups and members.
 		log.info("Setting up default groups and users.");
-		// Group: guest
-		PreparedStatement ps = con.prepareStatement(
-				"INSERT INTO groups VALUES (0, '?', '?', -16776961, 1, 1)");
-		ps.setString(1, rb.getString("guestGroupName"));
-		ps.setString(2, rb.getString("guestGroupDescription"));
-		ps.execute();
+		// Group: guest (Is default group as such)
+		log.info("Guest group.");
+		psAddGroup.setString(1, rb.getString("guestGroupName"));
+		psAddGroup.setString(2, rb.getString("guestGroupDescription"));
+		psAddGroup.setInt(3, -16776961);
+		psAddGroup.setInt(4, 1);
+		psAddGroup.setInt(5,1);
+		psAddGroup.execute();
 		// Group: deleted
-		ps = con.prepareStatement(
-				"INSERT INTO groups VALUES (1, '?', '?', -16776961, 1, 1)");
-		ps.setString(1, rb.getString("deletedGroupName"));
-		ps.setString(2, rb.getString("deletedGroupDescription"));
-		ps.execute();
+		log.info("Deleted group.");
+		psAddGroup.setString(1, rb.getString("deletedGroupName"));
+		psAddGroup.setString(2, rb.getString("deletedGroupDescription"));
+		psAddGroup.setInt(4, 0);
+		psAddGroup.execute();
 		// Group: Standard members
-		ps = con.prepareStatement(
-				"INSERT INTO groups VALUES (2, '?', '?', -16777216, 1, 1)");
-		ps.setString(1, rb.getString("defaultGroupName"));
-		ps.setString(2, rb.getString("defaultGroupDescription"));
-		ps.execute();
-		
+		log.info("Standard group");
+		psAddGroup.setString(1, rb.getString("defaultGroupName"));
+		psAddGroup.setString(2, rb.getString("defaultGroupDescription"));
+		psAddGroup.execute();
+
+/*		
 		// Member: Guest
 		ps = con.prepareStatement(
 				"INSERT INTO members VALUES (0, ?, '', ?, ?)");
@@ -243,9 +274,9 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 				"INSERT INTO members VALUES (1, ?, '', ?, ?)");
 		ps.setString(1, rb.getString("deletedMemberName"));
 		ps.setDate(2, new java.sql.Date(0));
-		ps.setInt(3, 1);
+		ps.setInt(3, 1);*/
 		
-		log.exit("createDatabase()");
+		log.exit("createDefaultData()");
 	}
 	
 	/* (non-Javadoc)
