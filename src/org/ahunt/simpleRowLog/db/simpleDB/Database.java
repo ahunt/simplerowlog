@@ -195,8 +195,11 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		log.debugObject("con.getAutoCommit()", con.getAutoCommit());
 		// Groups + triggers
 		log.debug("setupGroups");
+		// TODO: remove
+		log.debugObject("Util.loadScript(setupGroups)", Util.loadScript("setupGroups"));
 		s.execute(Util.loadScript("setupGroups"));
 		log.debug("setupGroupTrigger1");
+		log.debugObject("Util.loadScript(setupGroupTrigger1)", Util.loadScript("setupGroupTrigger1"));
 		s.execute(Util.loadScript("setupGroupTrigger1"));
 		log.debug("setupGroupTrigger2");
 		s.execute(Util.loadScript("setupGroupTrigger2"));
