@@ -38,6 +38,9 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Enumeration;
+import java.util.GregorianCalendar;
+import java.util.Hashtable;
 import java.util.ResourceBundle;
 
 import org.ahunt.simpleRowLog.common.BoatInfo;
@@ -73,11 +76,13 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
     
     // various prepared statements for use.
     private PreparedStatement psAddGroup;
-    private PreparedStatement psGetOutings;
     //TODO: add others.
     
-    // The opened instance (if existing).
+    /** The opened instance. null if none. */
     private static Database db;
+    
+    /** Stores the outing tables for each year. */
+    private OutingManager outingManager;
     
     //Temporary testing method
     // TODO: remove once finished class.
@@ -155,32 +160,27 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			throw new DatabaseError(rb.getString("scriptError"), e);
 		}
 		
-		// Check if an outings table exists for this year.
-		// This is done by creating the table. An error arises if it exists.
+		// Set up the outing manager.
 		try {
-			log.info("Trying to create a new table for this year.");
-			String year = new Integer(Calendar.getInstance().get(Calendar.YEAR))
-					.toString();
-			log.db(org.grlea.log.DebugLevel.L6_VERBOSE,
-					MessageFormat.format(Util.loadScript("createOutings"), year));
-			con.createStatement().execute(MessageFormat.format(Util.loadScript("createOutings"), year));
-			log.info("New Outings table for year " + year + " created.");
+			log.info("Creating OutingManager.");
+			outingManager = new OutingManager();
+			log.info("Outing manager set up");
 		} catch (SQLException e) {
-			// Just ignore. Not worrying. This means the table exists.
-			log.info("Outings table for this year already exists.");
-			log.dbe(org.grlea.log.DebugLevel.L6_VERBOSE, e);
-		} catch (IOException e) {
+			log.error("Problem creating outing Manager.");
 			log.errorException(e);
-			throw new DatabaseError(rb.getString("scriptError"),e);			
+			throw new DatabaseError(rb.getString("scriptError"), e);
+		} catch (IOException e) {
+        	log.errorException(e);
+			throw new DatabaseError(rb.getString("scriptError"), e);
 		}
 		
 		// TODO: set up prepared statements.
 		try {
-			log.debug("Beginning preparation of prepared statements.");
+			log.info("Beginning preparation of other prepared statements.");
 			createPreparedStatements();
-			createDefaultData();
-			log.debug("Prepared statements prepared successfully.");
+			log.info("Prepared statements prepared successfully.");
 		} catch (SQLException e) {
+			log.error("Problem creating outing Manager.");
 			log.errorException(e);
 			throw new DatabaseError(rb.getString("dbError"),e);
 		}
@@ -227,8 +227,6 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		psAddGroup = con.prepareStatement("INSERT INTO "
 				+"groups(name, description, colour, isDefault, isPermanent)"
 				+" VALUES (?, ?, ?, ?, ?)");
-		log.info("creating psGetOutings");
-		psGetOutings = con.prepareStatement("SELECT * FROM ? WHERE day = ? ORDER BY time_out");
 		log.exit("createPreparedStatements()");
 	}
 	
@@ -396,52 +394,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	 */
 	
 	public OutingInfo[] getOutings(Date date) throws SQLException {
-		log.entry("getOutings()");
-		log.info("Getting outings for " + date.toString());
-		
-		// Get the correct years table selected first, then load matching
-		// entries.
-		Calendar cal = Calendar.getInstance();
-		cal.setTime(date);
-		psGetOutings.setString(1, "" + cal.get(Calendar.YEAR));
-		psGetOutings.setDate(2, new java.sql.Date(date.getTime()));
-		ResultSet res = psGetOutings.executeQuery();
-		
-		log.info("Got ResultSet for that date, now processing.");
-		ArrayList<OutingInfo> array = new ArrayList<OutingInfo>();
-		// Process each Outing into an object.
-		// Note that for fields which can be null, the data is checked.
-		while (res.next()) {
-			long out_id = res.getLong("id");
-			log.verbose("Processing outing with id=" + out_id);
-			MemberInfo[] seats = new MemberInfo[8];
-			for (int i = 0; i< 8; i++) {
-				int member_id = res.getInt("rower" + (i +1));
-				if (member_id != 0) {
-					seats[i] = getMember(member_id);
-				}
-			}
-			Date day = res.getDate("day");
-			MemberInfo cox = null;
-			int coxID = res.getInt("cox");
-			if (coxID != 0) {
-				cox = getMember(coxID);
-			}
-			Date timeOut = new Date(res.getLong("time_out"));
-			Date timeIn = null;
-			long timeInL = res.getLong("time_in");
-			if (timeInL != 0) {
-				timeIn = new Date(timeInL);
-			}
-			String comment = res.getString("comment");
-			String destination = res.getString("destination");
-			BoatInfo boat = getBoatInfo(res.getString("boat"));
-			int distance = res.getInt("distance");
-			array.add(new OutingInfo(out_id, day, seats, cox, timeOut, timeIn, comment,
-					destination, boat, distance));
-		}
-		log.exit("getOutings()");
-		return array.toArray(new OutingInfo[0]);
+		return outingManager.getOutings(date);
 	}
 
 	public BoatInfo getBoatInfo(String name) {
@@ -477,5 +430,220 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
+	
+	private PreparedStatement getOutingPreparedPStatement(int year) {
+		return null;
+		// TODO: O:implement;
+	}
+	
+	/**
+	 * 
+	 * Inner class responsible for outings.
+	 * @author Andrzej JR Hunt
+	 *
+	 */
+	private class OutingManager implements Runnable {
+		//TODO: add a thread periodically checking last usage of a particlar
+		// statement set.
+		
+		// Stores the various tables.
+		private Hashtable<Integer, OutingStatementSet> statementCache;
+		
+		public OutingManager() throws SQLException, IOException {
+			log.entry("Database#OutingManager()");
+			try {
+				log.info("Trying to create a new table for this year.");
+				String year = new Integer(Calendar.getInstance().
+						get(Calendar.YEAR)).toString();
+				log.db(org.grlea.log.DebugLevel.L6_VERBOSE,
+						MessageFormat.format(Util.loadScript("createOutings"),
+						year));
+				con.createStatement().execute(MessageFormat.format(
+						Util.loadScript("createOutings"), year));
+				log.info("New Outings table for year " + year + " created.");
+			} catch (SQLException e) {
+			// Just ignore. Not worrying. This means the table exists.
+				log.info("Outings table for this year already exists.");
+				log.dbe(org.grlea.log.DebugLevel.L6_VERBOSE, e);
+			}
+			log.exit("Database#OutingManager()");
+		}
+		
+		public OutingInfo[] getOutings(Date date) throws DatabaseError {
+			log.entry("getOutings()");
+			log.info("Getting outings for " + date.toString());
+			Calendar cal = new GregorianCalendar();
+			cal.setTime(date);
+			ArrayList<OutingInfo> array = new ArrayList<OutingInfo>();
+			try {
+				PreparedStatement ps = getOutingStatementSet(
+						cal.get(Calendar.YEAR)).getPreparedStatement(
+						OutingStatementType.GET_OUTINGS);
+				ps.setDate(1, new java.sql.Date(date.getTime()));
+				ResultSet res = ps.executeQuery();
+				log.info("Got ResultSet for that date, now processing.");
+				// Process each Outing into an object.
+				// Note that for fields which can be null, the data is checked.
+				while (res.next()) {
+					long out_id = res.getLong("id");
+					log.verbose("Processing outing with id=" + out_id);
+					MemberInfo[] seats = new MemberInfo[8];
+					for (int i = 0; i< 8; i++) {
+						int member_id = res.getInt("rower" + (i +1));
+						if (member_id != 0) {
+							seats[i] = getMember(member_id);
+						}
+					}
+					Date day = res.getDate("day");
+					MemberInfo cox = null;
+					int coxID = res.getInt("cox");
+					if (coxID != 0) {
+						cox = getMember(coxID);
+					}
+					Date timeOut = new Date(res.getLong("time_out"));
+					Date timeIn = null;
+					long timeInL = res.getLong("time_in");
+					if (timeInL != 0) {
+						timeIn = new Date(timeInL);
+					}
+					String comment = res.getString("comment");
+					String destination = res.getString("destination");
+					BoatInfo boat = getBoatInfo(res.getString("boat"));
+					int distance = res.getInt("distance");
+					array.add(new OutingInfo(out_id, day, seats, cox, timeOut,
+							timeIn, comment, destination, boat, distance));
+				}
+			} catch (SQLException e) {
+				log.errorException(e);
+				throw new DatabaseError(rb.getString("commandError"), e);
+			}
+			log.exit("getOutings()");
+			return array.toArray(new OutingInfo[0]);
+		}
+		
+		/**
+		 * Get the OutingStatementSet for a particular year. Automatically
+		 * loads the set if required.
+		 * @param year The year for which you want the set.
+		 * @return The OutingStatementSet.
+		 */
+		private OutingStatementSet getOutingStatementSet(int year) throws
+				SQLException {
+			int y = new Integer(year);
+			if (statementCache.contains(y)) {
+				return statementCache.get(y);
+			} else {
+				return new OutingStatementSet(y, statementCache);
+			}
+		}
+		
+		/**
+		 * The thread method checking every so often through the cache to see
+		 * when an object was last used.
+		 */
+		public void run() {
+			// We want this to run indefinitely.
+			while (true) {
+				// Wait for half an hour.
+				try {
+					Thread.sleep(1800000l);
+				} catch (Exception e) {
+					// We don't care if the thread is interrupted.
+				}
+				// Data to check;
+				Integer year = GregorianCalendar.getInstance().
+						get(GregorianCalendar.YEAR);
+				long now = new Date().getTime();
+				// Now go through the cache:
+				Enumeration<OutingStatementSet> e = statementCache.elements();
+				while (e.hasMoreElements()) {
+					OutingStatementSet os = e.nextElement();
+					// If the set is older than 20 mins and not for the current
+					// year then delete it.
+					if ((os.getLastUsed() + 1200000 < now) &&
+							!os.getYear().equals(year)) {
+						statementCache.remove(os.getYear());
+						os.close();
+					}
+				}
+			}
+		}
+		
+	}
+	
+	private enum OutingStatementType {GET_OUTINGS, ADD_OUTING, MODIFY_OUTING};
+	
+	
+	
+	private class OutingStatementSet {
+		
+		/** The last time that this set was used.*/
+		private long lastUsed;
+		
+		/** The year for which this set is defined. */
+		private Integer year;
+		
+		// The various prepared statements.
+		private PreparedStatement psGetOutings;
+		
+		/**
+		 * Set up an outingstatement set for a given year.
+		 * @param year The year for which the set is needed.
+		 * @param statementCache The statement cache in use.
+		 */
+		public OutingStatementSet(Integer year, Hashtable<Integer,
+				OutingStatementSet> statementCache) throws SQLException {
+			this.year = year;
+			log.entry("OutingStatementSet(Integer, HashTable");
+			log.info("creating psGetOutings");
+			psGetOutings = con.prepareStatement(MessageFormat
+					.format("SELECT * FROM {0} WHERE day = ? ORDER BY time_out",
+					year.toString()));
+			// We want the last used time set.
+			updateTime();
+			// TODO: implement.
+			log.exit("OutingStatementSet(Integer, HashTable");
+		}
+		
+		
+		public PreparedStatement getPreparedStatement(OutingStatementType typ) {
+			// TODO: implement.
+			updateTime();
+			if (typ == OutingStatementType.GET_OUTINGS) {
+				return psGetOutings;
+			}
+			return null;
+		}
+		
+		/**
+		 * Get when this set was last accessed.
+		 * @return The time the object was last used.
+		 */
+		public long getLastUsed() {return lastUsed;}
+		
+		/**
+		 * Get the year for  which the set is defined.
+		 * @return The year for which this set is defined.
+		 */
+		public Integer getYear() {return year;}
+		
+		/**
+		 * Update the last used time. Should be called by any method of
+		 * the class.
+		 */
+		private void updateTime() {
+			lastUsed = new Date().getTime();
+		}
+		
+		public void close() {
+			log.info("Closing OutingStatementSet for year " + year.toString());
+			try {
+				//TODO : close all statements.
+				psGetOutings.close();
+			} catch (SQLException e) {
+				log.errorException(e);
+			}
+			year = null;
+		}
+	}
 }
