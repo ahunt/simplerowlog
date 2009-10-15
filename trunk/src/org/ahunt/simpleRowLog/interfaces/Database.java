@@ -191,6 +191,29 @@ public interface Database {
 	 */
 	public OutingInfo[] getOutings(Date date) throws SQLException;
 
+	
+	/**
+	 * Create a new outing in the database.
+	 * @param date The date on which the outing exists. Only the day/month/year
+	 * 		values are used from this.
+	 * @param rowers An array of the ids rowers in the boat. The element
+	 * 		<code>rowers[0]</code> must be a valid reference, all other elements
+	 * 		 may be 0, or ommited. Only the first eight elements will be
+	 * 		considered.
+	 * @param cox The id of the cox. 0 denotes no cox.
+	 * @param timeOut The time of starting the outing.
+	 * @param timeIn The time of finishing the outing. Can be <code>null</null>.
+	 * @param comment A comment. Can be <code>null</null>.
+	 * @param dest The destination. Can be <code>null</null>.
+	 * @param boat The name of the boat. Must be a valid reference to the name
+	 * 		of a boat from <code>getBoats()</code>.
+	 * @param distance The distance rowed. Can be 0 to denote no distance.
+	 * @throws DatabaseError Thrown if there are problems writing to the
+	 * 		database or if the data is in the incorrect format.
+	 */
+	public void addOuting(Date date, int[] rowers,
+			int cox, Date timeOut, Date timeIn, String comment, String dest,
+			String boat, int distance) throws DatabaseError;
 	/**
 	 * Modify an outing.
 	 * 
