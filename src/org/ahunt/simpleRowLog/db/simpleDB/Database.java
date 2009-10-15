@@ -76,6 +76,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
     
     // various prepared statements for use.
     private PreparedStatement psAddGroup;
+    private PreparedStatement psAddMember;   
     //TODO: add others.
     
     /** The opened instance. null if none. */
@@ -94,6 +95,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			e.printStackTrace();
 		}
     	getInstance();
+    	System.exit(0);
     }
     
     
@@ -180,12 +182,25 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			createPreparedStatements();
 			log.info("Prepared statements prepared successfully.");
 		} catch (SQLException e) {
-			log.error("Problem creating outing Manager.");
+			log.error("Problem creating prepared statements..");
+			log.errorException(e);
+			throw new DatabaseError(rb.getString("dbError"),e);
+		}
+		
+		try {
+			log.info("Beginning creation of default data.");
+			createDefaultData();
+			log.info("Default data created successfully.");
+		} catch (SQLException e) {
+			log.error("Problem creating default data.");
 			log.errorException(e);
 			throw new DatabaseError(rb.getString("dbError"),e);
 		}
 		//TODO: complete
 
+//Test code:
+		outingManager.getOutings(new Date());
+		
 		// Store this database as the running db.
 		db=this;
 		log.exit("Database()");
@@ -227,6 +242,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		psAddGroup = con.prepareStatement("INSERT INTO "
 				+"groups(name, description, colour, isDefault, isPermanent)"
 				+" VALUES (?, ?, ?, ?, ?)");
+		psAddMember = con.prepareStatement("INSERT INTO members (surname, "
+				+ "forename, dob, usergroup) VALUES (?, ?, ?, ?)");
 		log.exit("createPreparedStatements()");
 	}
 	
@@ -259,20 +276,17 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		psAddGroup.setString(2, rb.getString("defaultGroupDescription"));
 		psAddGroup.execute();
 
-/*		
 		// Member: Guest
-		ps = con.prepareStatement(
-				"INSERT INTO members VALUES (0, ?, '', ?, ?)");
-		ps.setString(1, rb.getString("guestMemberName"));
-		ps.setDate(2, new java.sql.Date(0));
-		ps.setInt(3, 0);
-			
-		// Member: Deleted
-		ps = con.prepareStatement(
-				"INSERT INTO members VALUES (1, ?, '', ?, ?)");
-		ps.setString(1, rb.getString("deletedMemberName"));
-		ps.setDate(2, new java.sql.Date(0));
-		ps.setInt(3, 1);*/
+	    psAddMember.setString(1,rb.getString("guestMemberName"));
+	    psAddMember.setString(2,"");
+		psAddMember.setDate(3, new java.sql.Date(0));
+		psAddMember.setInt(4, 1);
+		psAddMember.execute();
+		
+		// Member: deleted
+	    psAddMember.setString(1,rb.getString("deletedMemberName"));
+		psAddMember.setInt(4, 2);
+		psAddMember.execute();
 		
 		log.exit("createDefaultData()");
 	}
@@ -389,12 +403,24 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.ahunt.simpleRowLog.interfaces.Database#getOutings(java.util.Date)
+	/**
+	 * Get outings for the date specified.
+	 * @see org.ahunt.simpleRowLog.interfaces.Database#getOutings(Date)
 	 */
-	
 	public OutingInfo[] getOutings(Date date) throws SQLException {
 		return outingManager.getOutings(date);
+	}
+
+	/**
+	 * Add a new outing.
+	 * @see org.ahunt.simpleRowLog.interfaces.Database#addOuting(Date, int[],
+	 * int, Date, Date, String, String, String, int)
+	 */
+	public void addOuting(Date date, int[] rowers, int cox, Date timeOut,
+			Date timeIn, String comment, String dest, String boat, int distance)
+			throws DatabaseError {
+		outingManager.addOuting(date, rowers, cox, timeOut, timeIn,
+				comment, dest, boat, distance);
 	}
 
 	public BoatInfo getBoatInfo(String name) {
@@ -447,7 +473,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		// statement set.
 		
 		// Stores the various tables.
-		private Hashtable<Integer, OutingStatementSet> statementCache;
+		private Hashtable<Integer, OutingStatementSet> statementCache =
+				new Hashtable<Integer, OutingStatementSet>();
 		
 		public OutingManager() throws SQLException, IOException {
 			log.entry("Database#OutingManager()");
@@ -466,6 +493,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 				log.info("Outings table for this year already exists.");
 				log.dbe(org.grlea.log.DebugLevel.L6_VERBOSE, e);
 			}
+			// Start the cache checker.
+			new Thread(this).start();
 			log.exit("Database#OutingManager()");
 		}
 		
@@ -519,6 +548,68 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			}
 			log.exit("getOutings()");
 			return array.toArray(new OutingInfo[0]);
+		}
+		
+		
+		public void addOuting(Date date, int[] rowers,
+				int cox, Date timeOut, Date timeIn, String comment, String dest,
+				String boat, int distance) throws DatabaseError {
+			log.entry("getOutings()");
+			log.info("Adding outing");
+			Calendar cal = new GregorianCalendar();
+			cal.setTime(date);
+			try  {
+				PreparedStatement ps = getOutingStatementSet(
+						cal.get(GregorianCalendar.YEAR)).getPreparedStatement(
+						OutingStatementType.ADD_OUTING);
+				ps.setDate(1, new java.sql.Date(date.getTime()));
+				ps.setInt(2, rowers[0]);
+				// Go through all rowers and set to null if inexistant
+				for (int i = 0; i < (rowers.length-1) && i < 8; i++) {
+					if (rowers[i+1] != 0) {
+						ps.setInt(i+3,rowers[i+1]);
+					} else {
+						ps.setNull(i+3, java.sql.Types.INTEGER);
+					}
+				}
+				if (cox != 0) {
+					ps.setInt(10,cox);
+				} else {
+					ps.setNull(10, java.sql.Types.INTEGER);
+				}
+				// Time in/out
+				ps.setLong(11, timeOut.getTime());
+				if (timeIn != null) {
+					ps.setLong(12, timeIn.getTime());
+				} else {
+					ps.setNull(12,java.sql.Types.BIGINT);
+				}
+				// Comment
+				if (comment != null) {
+					ps.setString(13, comment);
+				} else {
+					ps.setNull(13, java.sql.Types.VARCHAR);
+				}
+				// Destination
+				if (dest != null) {
+					ps.setString(14, dest);
+				} else {
+					ps.setNull(14, java.sql.Types.VARCHAR);
+				}
+				// Boat
+				ps.setString(15, boat);
+				// Distance
+				if (distance != 0) {
+					ps.setInt(16,distance);
+				} else {
+					ps.setNull(16, java.sql.Types.INTEGER);
+				}
+				ps.execute();
+			} catch (SQLException e) {
+				log.errorException(e);
+				throw new DatabaseError(rb.getString("commandError"), e);
+			}
+			log.exit("getOutings()");
 		}
 		
 		/**
@@ -585,6 +676,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		
 		// The various prepared statements.
 		private PreparedStatement psGetOutings;
+		private PreparedStatement psAddOuting;
 		
 		/**
 		 * Set up an outingstatement set for a given year.
@@ -597,8 +689,15 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			log.entry("OutingStatementSet(Integer, HashTable");
 			log.info("creating psGetOutings");
 			psGetOutings = con.prepareStatement(MessageFormat
-					.format("SELECT * FROM {0} WHERE day = ? ORDER BY time_out",
+					.format("SELECT * FROM outings_{0} WHERE day = ? ORDER BY time_out",
 					year.toString()));
+			psAddOuting = con.prepareStatement(MessageFormat
+					.format("INSERT INTO outings_{0} (day, rower1, rower2,"+
+							" rower3, rower4, rower5, rower6, rower7, rower8, "+
+							"cox, time_out, time_in, comment, destination," +
+							"boat, distance) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?"
+							+",?,?,?)",
+					year.toString()));			
 			// We want the last used time set.
 			updateTime();
 			// TODO: implement.
@@ -611,6 +710,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			updateTime();
 			if (typ == OutingStatementType.GET_OUTINGS) {
 				return psGetOutings;
+			} else if (typ == OutingStatementType.ADD_OUTING) {
+				return psAddOuting;
 			}
 			return null;
 		}
@@ -640,6 +741,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			try {
 				//TODO : close all statements.
 				psGetOutings.close();
+				psAddOuting.close();
 			} catch (SQLException e) {
 				log.errorException(e);
 			}
