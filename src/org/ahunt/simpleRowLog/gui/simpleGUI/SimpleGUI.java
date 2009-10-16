@@ -22,24 +22,29 @@
 
 package org.ahunt.simpleRowLog.gui.simpleGUI;
 
+import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ResourceBundle;
-import java.util.Properties;
 import java.util.Date;
 
-import java.io.FileInputStream;
-
+import javax.swing.GroupLayout;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.table.AbstractTableModel;
 
+import org.ahunt.simpleRowLog.common.MemberInfo;
+import org.ahunt.simpleRowLog.common.OutingInfo;
 import org.ahunt.simpleRowLog.conf.Configuration;
 import org.ahunt.simpleRowLog.interfaces.Database;
-
-import sun.awt.X11.Screen;
 
 
 /**
@@ -79,6 +84,14 @@ public class SimpleGUI extends JFrame {
 	// Help Menu: About
 	private JMenuItem menuHelpAbout = new JMenuItem();
 
+	// Outings table.
+	private JScrollPane outingTablePane;
+	private JTable outingTable;
+	private OutingTableManager outingTableManager;
+	
+	private JButton editOutingButton = new JButton();
+	private JButton newOutingButton = new JButton();
+	
 	// The database
 	private Database db;
 	
@@ -86,17 +99,73 @@ public class SimpleGUI extends JFrame {
 	private Date current = new Date();
 
 	// Configuration file.
-	Configuration conf;
+	private Configuration conf;
 	
+	/**
+	 * Temporary test method.
+	 * @param args
+	 */
+	public static void main(String[] args) throws Exception {
+		Runtime.getRuntime().exec("rm -rf ./database/srl");
+		Database bc = org.ahunt.simpleRowLog.db.simpleDB.Database.getInstance();
+		bc.addBoat("Anna", "4x+", true);
+		System.out.println(bc.addMember("Hunt", "Andrew", new Date(), (short) 1));
+		bc.addOuting(new Date(), new short[] {3, 1,3,1,3,1,3,1}, (short) 1, new Date(), null, null, null, "Anna", 20);
+		new SimpleGUI(bc);
+	}
+	
+	/**
+	 * Create the gui.
+	 * @param db The database from which data is to be requested.
+	 */
 	public SimpleGUI(Database db) {
 		conf = Configuration.getConf("simpleGUI");
 		this.db = db;
 		setupMenus();
+		updateLanguages();
 		reloadConfig();
-		updateOutings();
+		
+		// Set up the table. TODO: check whether height is correct.
+		outingTableManager = new OutingTableManager();
+		outingTable = new JTable(outingTableManager);
+		outingTablePane = new JScrollPane(outingTable);
+		outingTable.setRowHeight(64);
+		
+		outingTablePane.setVerticalScrollBarPolicy(
+				ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+		outingTablePane.setHorizontalScrollBarPolicy(
+				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		setupLayout();
 		setVisible(true);
 	}
+	
+	/**
+	 * Set up the layout as required.
+	 */
+	private void setupLayout() {
+		Container p = this.getContentPane();
+		GroupLayout l = new GroupLayout(p);
+		p.setLayout(l);
+		l.setAutoCreateGaps(true);
+		l.setAutoCreateContainerGaps(true);
 
+//		outingTable.setMinimumSize(new Dimension(400,300));
+		Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
+		l.setVerticalGroup(
+				l.createSequentialGroup()
+					.addComponent(outingTablePane, 300, d.height, d.height)
+					.addGroup(l.createParallelGroup(GroupLayout.Alignment.BASELINE)
+							.addComponent(editOutingButton)
+							.addComponent(newOutingButton)));
+		l.setHorizontalGroup(
+			l.createParallelGroup(GroupLayout.Alignment.TRAILING)
+				.addComponent(outingTablePane, 400, d.width, d.width)
+				.addGroup(l.createSequentialGroup()
+						.addComponent(editOutingButton)
+						.addComponent(newOutingButton)));
+		// TODO: implement.
+	}
+	
 	/**
 	 * Tells the window to take all chaged settings into account.
 	 * 
@@ -125,8 +194,6 @@ public class SimpleGUI extends JFrame {
 		mb.add(menuHelp);
 		menuHelp.add(menuHelpHelp);
 		menuHelp.add(menuHelpAbout);
-
-		updateMenus();
 	}
 
 	/**
@@ -139,6 +206,7 @@ public class SimpleGUI extends JFrame {
 	private void setFullScreen(boolean setFullScreen) {
 		setUndecorated(setFullScreen);
 		setResizable(!setFullScreen);
+		setSize(Toolkit.getDefaultToolkit().getScreenSize());
 		setLocation(0, 0);
 	}
 
@@ -147,11 +215,11 @@ public class SimpleGUI extends JFrame {
 	 * the settings.
 	 * 
 	 */
-	private void updateMenus() {
+	private void updateMenuLanguages() {
 		// File menu
 		menuFile.setText(rb.getString("file"));
 		menuFileExit.setText(rb.getString("file.exit"));
-		menuFileNewMember.setText(rb.getString("newMember"));
+		menuFileNewMember.setText(rb.getString("file.newMember"));
 		// Options menu
 		menuOptions.setText(rb.getString("options"));
 		menuOptionsAdmin.setText(rb.getString("options.admin"));
@@ -161,13 +229,10 @@ public class SimpleGUI extends JFrame {
 		menuHelpAbout.setText(rb.getString("help.about"));
 	}
 
-	/**
-	 * Updates the displayed outings using the database.
-	 * 
-	 */
-	private void updateOutings() {
-		// TODO: Complete
-		//db.getOutings(current);
+	private void updateLanguages() {
+		updateMenuLanguages();
+		editOutingButton.setText(rb.getString("main.editOuting"));
+		newOutingButton.setText(rb.getString("main.newOuting"));
 	}
 
 	class ExitListener extends WindowAdapter {
@@ -181,5 +246,95 @@ public class SimpleGUI extends JFrame {
 			// TODO: some method has to be called to clean up and save
 			//       data that changes e.g. config.
 		}
+	}
+	
+	private class OutingTableManager extends AbstractTableModel {
+		
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
+		/**
+		 * The outings this TableModel is responsible for.
+		 */
+		private OutingInfo[] outings;
+		
+		private String[] columnNames = {rb.getString("outing.boat"),
+				rb.getString("outing.rowers"),rb.getString("outing.cox"),
+				rb.getString("outing.timeOut"), rb.getString("outing.timeIn"),
+				rb.getString("outing.comment"),
+				rb.getString("outing.destination"),
+				rb.getString("outing.distance")};
+		
+		public OutingTableManager() {
+			// TODO: set width
+			outingTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+			updateOutings();
+		}
+		
+	
+		public int getColumnCount() {return 8;}	
+		public int getRowCount() {return outings.length;}
+		
+		/**
+		 * Get the name for a specific column.
+		 * @param col The column.
+		 * @return The name of the column.
+		 */
+	    public String getColumnName(int col) {
+	    	return columnNames[col].toString();
+	    }
+
+	    public Object getValueAt(int row, int col) {
+	        if (col == 0) {
+	        	//TODO: implement in DB.
+	        	//return outings[row].getBoat().getName();
+	        	return "Anna";
+	        } else if (col == 1) {
+	        	// Build the table showing rower names.
+	        	StringBuffer buff = new StringBuffer();
+	        	// TODO: check whether alignment is correct.
+	        	buff.append("<html><table align=top>");
+	        	MemberInfo[] rowers = outings[row].getRowers();
+	        	// Go through four rows.
+	        	for (short i = 0; i < 4; i++) {
+	        		// Get rower 1 - 4 if existant.
+	        		if (i <  rowers.length && rowers[i] != null) {
+	        			buff.append("<tr><td>");
+	        			buff.append(rowers[i].getName());
+	        			buff.append("</td>");
+	        			// Get rower 5-8 if existant. (1 and 5 in same row.)
+	        			if (i <  rowers.length  + 4 && rowers[i+4] != null) {
+	        				buff.append("<td>");
+	        				buff.append(rowers[i+4].getName());
+	        				buff.append("</td>");
+	        			}
+		        		buff.append("</tr>");
+	        		}
+	        	}
+	        	buff.append("</table></html>");
+	        	System.out.println(buff.toString());
+	        	return buff.toString();
+	        }
+	        //TODO:rest
+	        return "aa";
+	    }
+		
+		/**
+		 * Updates the displayed outings using the database.
+		 * 
+		 */
+		public void updateOutings() {
+			try {
+				outings = db.getOutings(current);
+				fireTableDataChanged();
+			} catch (Exception e) {
+				// TODO: error dialog and cry!
+			}
+			// TODO: Complete
+			//db.getOutings(current);
+		}
+
 	}
 }

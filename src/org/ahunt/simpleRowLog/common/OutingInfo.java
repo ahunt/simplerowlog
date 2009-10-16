@@ -196,8 +196,8 @@ public class OutingInfo {
 	 * 
 	 * @return The member at the specified position.
 	 */
-	public MemberInfo getAt(short position) {
-		return seat[position];
+	public MemberInfo[] getRowers() {
+		return seat;
 	}
 
 }
