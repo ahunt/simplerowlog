@@ -115,5 +115,10 @@ public class MemberInfo {
 	public GroupInfo getGroupInfo() {
 		return groupInfo;
 	}
+	
+	public String getName() {
+		return surname + " " + forename;
+		//TODO: implement mechanism for name formatting.
+	}
 
 }

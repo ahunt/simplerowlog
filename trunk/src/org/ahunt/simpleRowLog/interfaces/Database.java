@@ -85,7 +85,7 @@ public interface Database {
 	 *            The id for the member.
 	 * @return The member info.
 	 */
-	public MemberInfo getMember(int id);
+	public MemberInfo getMember(short id) throws DatabaseError;
 
 	/**
 	 * Get the statistics for a given member.
@@ -94,7 +94,7 @@ public interface Database {
 	 *            The members key.
 	 * @return The members statistics.
 	 */
-	public MemberStatistic getMemberStatistics(int key);
+	public MemberStatistic getMemberStatistics(short key);
 
 	/**
 	 * Get the statistics for all the members
@@ -211,8 +211,8 @@ public interface Database {
 	 * @throws DatabaseError Thrown if there are problems writing to the
 	 * 		database or if the data is in the incorrect format.
 	 */
-	public void addOuting(Date date, int[] rowers,
-			int cox, Date timeOut, Date timeIn, String comment, String dest,
+	public void addOuting(Date date, short[] rowers,
+			short cox, Date timeOut, Date timeIn, String comment, String dest,
 			String boat, int distance) throws DatabaseError;
 	/**
 	 * Modify an outing.
@@ -230,4 +230,10 @@ public interface Database {
 	public void modifyOuting(long created, MemberInfo cox, MemberInfo[] seat,
 			Date out, Date in, String comment, String destination,
 			BoatInfo boat, int distance);
+	
+	public short addMember(String surname, String forename, Date dob, short group)
+			throws DatabaseError;
+	
+	public void addBoat(String name, String type, boolean inHouse)
+			throws DatabaseError;
 }
