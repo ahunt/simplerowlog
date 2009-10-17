@@ -23,6 +23,7 @@
 package org.ahunt.simpleRowLog.interfaces;
 
 
+import java.awt.Color;
 import java.sql.SQLException;
 import java.util.Date;
 
@@ -58,7 +59,7 @@ public interface Database {
 	 * 
 	 * @return An Array of the members. Sorted alphabetically by name.
 	 */
-	public MemberInfo[] getMembers();
+	public MemberInfo[] getMembers() throws DatabaseError;
 
 	/**
 	 * Get a list of the members.
@@ -67,7 +68,7 @@ public interface Database {
 	 *            How the returned list is to be sorted.
 	 * @return An Array of the members.
 	 */
-	public MemberInfo[] getMembers(int sorting);
+	public MemberInfo[] getMembers(int sorting) throws DatabaseError;
 
 	/**
 	 * Get the information for a specific boat.
@@ -76,7 +77,7 @@ public interface Database {
 	 *            The name of the boat.
 	 * @return The information about htis boat.
 	 */
-	public BoatInfo getBoat(String name)throws DatabaseError;
+	public BoatInfo getBoat(String name) throws DatabaseError;
 
 	/**
 	 * Get the information for a certain member.
@@ -94,14 +95,14 @@ public interface Database {
 	 *            The members key.
 	 * @return The members statistics.
 	 */
-	public MemberStatistic getMemberStatistics(short key);
+	public MemberStatistic getMemberStatistics(short id) throws DatabaseError;
 
 	/**
 	 * Get the statistics for all the members
 	 * 
 	 * @return A list of members statistics.
 	 */
-	public MemberStatistic[] getMembersStatistics();
+	public MemberStatistic[] getMembersStatistics() throws DatabaseError;
 
 	/**
 	 * Get the statistics for all the members
@@ -110,41 +111,71 @@ public interface Database {
 	 *            How the returned list is to be sorted.
 	 * @return A list of members statistics.
 	 */
-	public MemberStatistic[] getMembersStatistics(int sorting);
+	public MemberStatistic[] getMembersStatistics(int sorting) throws DatabaseError;
 
+	/**
+	 * Add a group to the database.
+	 * @param name The group's name.
+	 * @param description The description.
+	 * @param colour The highlighting colour for the group.
+	 * @return The group's id.
+	 * @throws DatabaseError If there is a problem accessing the db.
+	 */
+	public short addGroup(String name, String description, Color colour,
+			boolean isDefault) throws DatabaseError;
+
+	/**
+	 * Get the group information for a specific group
+	 * @param id The group's id
+	 * @return The group information.
+	 * @throws DatabaseError If there is a problem accessing the db.
+	 */
+	public GroupInfo getGroup(short id) throws DatabaseError;
+	
+	/**
+	 * Modify the group of given id.
+	 * @param id The group's id.
+	 * @param name The new name. If null the old name will be used.
+	 * @param description The new description. If null the old description will
+	 * 		be used.
+	 * @param colour The new colour. If null the old colour will be used.
+	 * @throws DatabaseError If there is a problem accessing the db.
+	 */
+	public void modifyGroup(short id, String name, String description,
+			Color colour, boolean isDefault) throws DatabaseError;
+	
 	/**
 	 * Get a list of all the groups.
 	 * 
 	 * @return An array of all the groups, sorted alphabetically.
 	 */
-	public GroupInfo[] getGroups();
-
-	/**
-	 * Get a list of all the groups.
-	 * 
-	 * @param sorting
-	 *            How the returned list is to be sorted.
-	 * @return An array of all the groups.
-	 */
-	public GroupInfo[] getGroups(int sorting);
+	public GroupInfo[] getGroups() throws DatabaseError;
 
 	/**
 	 * Get the statistics for a given group. If the name is null the statistics
 	 * for the entire club are returned.
 	 * 
 	 * @param name
-	 *            The name of the group. Null for whole club.
+	 *            The name of the group. 0 for whole club.
 	 * @return The groups statistics.
 	 */
-	public GroupStatistic getGroupStatistic(String name);
+	public GroupStatistic getGroupStatistic(short id);
 
 	/**
-	 * Get a list of the boats.
+	 * Get a list of the boats. This returns all boats.
 	 * 
 	 * @return A list of the boats, alphabetically sorted.
+	 * @throws DatabaseError If there are problems accessing the database.
 	 */
-	public BoatInfo[] getBoats();
+	public BoatInfo[] getBoats() throws DatabaseError;
 
+	/**
+	 * Get a list of boats either in or without the boathouse.
+	 * @param inHouse Whether you want the boats in the boathouse.
+	 * @return A list of boats.
+	 * @throws DatabaseError If there are problems accessing the database.
+	 */
+	public BoatInfo[] getBoats(boolean inHouse) throws DatabaseError;
 	/**
 	 * Get a list of the boats.
 	 * 
