@@ -26,6 +26,7 @@
  */
 package org.ahunt.simpleRowLog.db.simpleDB;
 
+import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
@@ -77,9 +78,14 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
     
     // various prepared statements for use.
     private PreparedStatement psAddGroup;
+    private PreparedStatement psGetGroup;
+    private PreparedStatement psGetGroups;
+    private PreparedStatement psModifyGroup;
     private PreparedStatement psAddMember;
     private PreparedStatement psGetMember;
     private PreparedStatement psGetBoat;
+    private PreparedStatement psGetBoats;
+    private PreparedStatement psGetBoatsSelection;
     
     //TODO: add others.
     
@@ -240,12 +246,16 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	 * @throws SQLException If there are problems running the statements.
 	 */
 	private void createPreparedStatements() throws SQLException {
+		//TODO: remove once all implemented in methods.
 		log.entry("createPreparedStatements()");
 		// Group adding prepared statement
 		log.info("creating psAddGroup");
 		psAddGroup = con.prepareStatement("INSERT INTO "
-				+"groups(name, description, colour, isDefault, isPermanent)"
-				+" VALUES (?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+				+"groups(name, description, colour, isDefault)"
+				+" VALUES (?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+		psGetGroup = con.prepareStatement("SELECT * FROM groups WHERE id = ?");
+		psModifyGroup = con.prepareStatement("UPDATE groups name = ?," +
+				"description = ?, colour = ?, isDefault = ? WHERE id = ?");
 		psAddMember = con.prepareStatement("INSERT INTO members (surname, "
 				+ "forename, dob, usergroup) VALUES (?, ?, ?, ?)",
 				Statement.RETURN_GENERATED_KEYS);
@@ -269,7 +279,6 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		psAddGroup.setString(2, rb.getString("guestGroupDescription"));
 		psAddGroup.setInt(3, -16776961);
 		psAddGroup.setShort(4, (short) 1);
-		psAddGroup.setShort(5, (short) 1);
 		psAddGroup.execute();
 		// Group: deleted
 		log.info("Deleted group.");
@@ -325,50 +334,205 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.ahunt.simpleRowLog.interfaces.Database#getBoats()
-	 */
-	
-	public BoatInfo[] getBoats() {
-		// TODO Auto-generated method stub
-		return null;
+
+	public BoatInfo[] getBoats()  throws DatabaseError{
+		log.verbose("getBoats()");
+		try {
+			// Check whether prepared statement exists. Create if necessary.
+			if (psGetBoats == null) {
+				psGetBoats = con.prepareStatement("SELECT name FROM boats ORDER"
+						+ " BY name");
+			}
+			// Get the data.
+			psGetBoats.execute();
+			// Get results.
+			ResultSet rs = psGetBoats.getResultSet();
+			ArrayList<BoatInfo> a = new ArrayList<BoatInfo>();
+			// Go through the groups.
+			while (rs.next()) {
+				a.add(getBoat(rs.getString("name")));
+			}
+			log.verbose("Data gotten, returning groups");
+			// Return a GroupInfo.
+			return a.toArray(new BoatInfo[0]);
+		} catch (SQLException e) {
+			log.error("Error getting groups");
+			log.errorException(e);
+			throw new DatabaseError(rb.getString("commandError"), e);
+		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.ahunt.simpleRowLog.interfaces.Database#getBoats(int)
-	 */
-	
-	public BoatInfo[] getBoats(int sorting) {
-		// TODO Auto-generated method stub
-		return null;
+	public BoatInfo[] getBoats(boolean inHouse) throws DatabaseError {
+		//TODO: change all these to entry.
+		log.verbose("getBoats(boolean)");
+		try {
+			// Check whether prepared statement exists. Create if necessary.
+			if (psGetBoatsSelection == null) {
+				psGetBoatsSelection = con.prepareStatement("SELECT name FROM" +
+						"boats WHERE inHouse = ? ORDER BY name");
+			}
+			//Set up
+			short s;
+			if (inHouse) {s=1;} else {s=0};
+			psGetBoatsSelection.setShort(1, s);
+			// Get the data.
+			psGetBoatsSelection.execute();
+			// Get results.
+			ResultSet rs = psGetBoats.getResultSet();
+			ArrayList<BoatInfo> a = new ArrayList<BoatInfo>();
+			// Go through the groups.
+			while (rs.next()) {
+				a.add(getBoat(rs.getString("name")));
+			}
+			log.verbose("Data gotten, returning groups");
+			// Return a GroupInfo.
+			return a.toArray(new BoatInfo[0]);
+		} catch (SQLException e) {
+			log.error("Error getting groups");
+			log.errorException(e);
+			throw new DatabaseError(rb.getString("commandError"), e);
+		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.ahunt.simpleRowLog.interfaces.Database#getGroupStatistic(java.lang.String)
-	 */
+	// TODO: comment the next three.
+	
+	public short addGroup(String name, String description, Color colour,
+			boolean isDefault) throws DatabaseError {
+		log.verbose("addGroup(...)");
+		try {
+			// Check whether prepared statement exists. Create if necessary.
+			if (psAddGroup == null) {
+				psAddGroup = con.prepareStatement("INSERT INTO "
+							+"groups(name, description, colour, isDefault)"
+							+" VALUES (?, ?, ?, ?)",
+							Statement.RETURN_GENERATED_KEYS);
+			}
+			// Set up data.
+			psAddGroup.setString(1, name);
+			psAddGroup.setString(2, description);
+			psAddGroup.setInt(3, colour.getRGB());
+			if (isDefault) {
+				psAddGroup.setShort(4, (short) 1);
+			} else {
+				psAddGroup.setShort(4, (short) 0);
+			}
+			psAddGroup.execute();
+			// Get the generated id.
+			ResultSet rs = psAddGroup.getGeneratedKeys();
+			rs.next();
+			return rs.getShort(1);
+		} catch (SQLException e) {
+			log.error("Error setting up group.");
+			log.errorException(e);
+			throw new DatabaseError(rb.getString("commandError"), e);
+		}
+	}
+	
+	public GroupInfo getGroup(short id) throws DatabaseError {
+		log.verbose("getGroup(" + id +")");
+		try {
+			// Check whether prepared statement exists. Create if necessary.
+			if (psGetGroup == null) {
+				psGetGroup = con.prepareStatement("SELECT * FROM groups " +
+						"WHERE id = ?");
+			}
+			// Set the data
+			psGetGroup.setShort(1, id);
+			psGetGroup.execute();
+			// Get results.
+			ResultSet rs = psGetGroup.getResultSet();
+			rs.next();
+			// Extract data.
+			String name = rs.getString("name");
+			String description = rs.getString("description");
+			Color c = new Color(rs.getInt("colour"));
+			boolean isDefault;
+			if (rs.getShort("isDefault") == 0) {
+				isDefault = false;
+			} else {
+				isDefault = true;
+			}
+			log.verbose("Data gotten, returning group");
+			// Return a GroupInfo.
+			return new GroupInfo(id, name, description, c, isDefault);
+		} catch (SQLException e) {
+			log.error("Error getting group " + id);
+			log.errorException(e);
+			throw new DatabaseError(rb.getString("commandError"), e);
+		}
+	}
+	
+	public void modifyGroup(short id, String name, String description,
+			Color colour, boolean isDefault) throws DatabaseError {
+		log.verbose("Modifying group " + id);
+		GroupInfo old = getGroup(id);
+		try {
+			// Check whether prepared statement exists. Create if necessary.
+			if (psModifyGroup == null) {
+				psModifyGroup = con.prepareStatement("UPDATE groups name = ?," +
+				"description = ?, colour = ?, isDefault = ? WHERE id = ?");
+			}
+			// Check what data is null (i.e. unchanged) and retrieve.
+			if (name == null) {
+				name = old.getName();
+			}
+			if (description == null) {
+				description = old.getDescription();
+			}
+			if (colour == null) {
+				colour = old.getDisplayColour();
+			}
+			// Setup data.
+			psModifyGroup.setString(1, name);
+			psModifyGroup.setString(2, description);
+			psModifyGroup.setInt(3, colour.getRGB());
+			if (isDefault) {
+				psModifyGroup.setShort(4, (short) 1);
+			} else {
+				psModifyGroup.setShort(4, (short) 0);
+			}
+			psModifyGroup.setShort(5, id);
+			// Process
+			psModifyGroup.execute();
+		} catch (SQLException e) {
+			log.error("Error modifying group " + id);
+			log.errorException(e);
+			throw new DatabaseError(rb.getString("commandError"), e);
+		}
+	}
+	
 	
 	public GroupStatistic getGroupStatistic(String name) {
-		// TODO Auto-generated method stub
+		// TODO Auto-generated method stub. Low priority.
 		return null;
+	}
+	
+	public GroupInfo[] getGroups() throws DatabaseError {
+		log.verbose("getGroups()");
+		try {
+			// Check whether prepared statement exists. Create if necessary.
+			if (psGetGroups == null) {
+				psGetGroups = con.prepareStatement("SELECT id FROM groups");
+			}
+			// Get the data.
+			psGetGroups.execute();
+			// Get results.
+			ResultSet rs = psGetGroups.getResultSet();
+			ArrayList<MemberInfo> a = new ArrayList<MemberInfo>();
+			// Go through the groups.
+			while (rs.next()) {
+				a.add(getMember(rs.getShort("id")));
+			}
+			log.verbose("Data gotten, returning groups");
+			// Return a GroupInfo.
+			return a.toArray(new GroupInfo[0]);
+		} catch (SQLException e) {
+			log.error("Error getting groups");
+			log.errorException(e);
+			throw new DatabaseError(rb.getString("commandError"), e);
+		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.ahunt.simpleRowLog.interfaces.Database#getGroups()
-	 */
-	
-	public GroupInfo[] getGroups() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.ahunt.simpleRowLog.interfaces.Database#getGroups(int)
-	 */
-	
-	public GroupInfo[] getGroups(int sorting) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
 	/* (non-Javadoc)
 	 * @see org.ahunt.simpleRowLog.interfaces.Database#getMemberStatistics(short)

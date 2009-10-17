@@ -28,6 +28,5 @@ CREATE TABLE groups (
     name VARCHAR(32) NOT NULL,
     description VARCHAR(64),
     colour INT NOT NULL,
-    isDefault SMALLINT NOT NULL,
-    isPermanent SMALLINT NOT NULL
+    isDefault SMALLINT NOT NULL
 )

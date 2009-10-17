@@ -30,11 +30,14 @@ package org.ahunt.simpleRowLog.common;
  */
 public class BoatInfo {
 
-	/* Stores the name of the group. */
+	/** Stores the name of the group. */
 	private String name;
 
-	/* Type of Boat. E.g. 4x, 8+... */
+	/** Type of Boat. E.g. 4x, 8+... */
 	private String type;
+	
+	/** Whether or nor the boat is in the boathouse. */
+	private boolean inHouse;
 
 	/**
 	 * Create the information for a Boat.
@@ -44,9 +47,10 @@ public class BoatInfo {
 	 * @param type
 	 *            The type of boat, in whatever style the end user wants.
 	 */
-	public BoatInfo(String name, String type) {
+	public BoatInfo(String name, String type, boolean inHouse) {
 		this.name = name;
 		this.type = type;
+		this.inHouse = inHouse;
 	}
 
 	/**
@@ -65,6 +69,14 @@ public class BoatInfo {
 	 */
 	public String getType() {
 		return type;
+	}
+	
+	/**
+	 * Check whether the boat is in the boathouse.
+	 * @return Whether the boat is in the boathouse.
+	 */
+	public boolean getInHouse() {
+		return inHouse;
 	}
 
 }

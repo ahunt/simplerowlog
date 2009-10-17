@@ -17,6 +17,7 @@
  *
  *
  *	Changelog:
+ *	17/10/2009: Updated to store id.
  *	23/08/2009:	Changelog added.
  */
 
@@ -28,18 +29,24 @@ import java.awt.Color;
  * All the information for a specific group.
  * 
  * @author Andrzej JR Hunt
- * @version 0.03 - 24. August 2008
+ * @version 0.04 - 17. October 2009
  */
 public class GroupInfo {
+	
+	/** Stores the groups id. */
+	private short id;
 
-	/* Stores the name of the group. */
+	/** Stores the name of the group. */
 	private String name;
 
-	/* Stores a description of the group. */
+	/** Stores a description of the group. */
 	private String description;
 
-	/* Stores the highlighting colour of the group. */
+	/** Stores the highlighting colour of the group. */
 	private Color displayColour;
+	
+	/** Stores whether this group is default. */
+	private boolean isDefault;
 
 	/**
 	 * Create the information for a group. The colour of the group is the colour
@@ -52,12 +59,23 @@ public class GroupInfo {
 	 * @param displayColour
 	 *            The highlighting colour for the group.
 	 */
-	public GroupInfo(String name, String description, Color displayColour) {
+	public GroupInfo(short id, String name, String description, 
+			Color displayColour, boolean isDefault) {
+		this.id = id;
 		this.name = name;
 		this.description = description;
 		this.displayColour = displayColour;
+		this.isDefault = isDefault;
 	}
 
+	/**
+	 * Get the group's id.
+	 * @return
+	 */
+	public short getId() {
+		return id;
+	}
+	
 	/**
 	 * Get the groups name.
 	 * 
@@ -84,5 +102,14 @@ public class GroupInfo {
 	public Color getDisplayColour() {
 		return displayColour;
 	}
+	
+	/**
+	 * Check whether this is the default group.
+	 * @return Whether the group is default.
+	 */
+	public boolean getIsDefault() {
+		return isDefault;
+	}
+	
 
 }
