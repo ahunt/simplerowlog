@@ -76,7 +76,7 @@ public interface Database {
 	 *            The name of the boat.
 	 * @return The information about htis boat.
 	 */
-	public BoatInfo getBoatInfo(String name);
+	public BoatInfo getBoat(String name)throws DatabaseError;
 
 	/**
 	 * Get the information for a certain member.
