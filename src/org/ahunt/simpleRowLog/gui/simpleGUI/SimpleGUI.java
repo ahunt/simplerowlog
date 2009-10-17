@@ -22,11 +22,14 @@
 
 package org.ahunt.simpleRowLog.gui.simpleGUI;
 
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.text.SimpleDateFormat;
 import java.util.ResourceBundle;
 import java.util.Date;
 
@@ -40,6 +43,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
 
 import org.ahunt.simpleRowLog.common.MemberInfo;
 import org.ahunt.simpleRowLog.common.OutingInfo;
@@ -108,9 +113,11 @@ public class SimpleGUI extends JFrame {
 	public static void main(String[] args) throws Exception {
 		Runtime.getRuntime().exec("rm -rf ./database/srl");
 		Database bc = org.ahunt.simpleRowLog.db.simpleDB.Database.getInstance();
-		bc.addBoat("Anna", "4x+", true);
-		System.out.println(bc.addMember("Hunt", "Andrew", new Date(), (short) 1));
-		bc.addOuting(new Date(), new short[] {3, 1,3,1,3,1,3,1}, (short) 1, new Date(), null, null, null, "Anna", 20);
+		bc.addBoat("Anna", "8+", true);
+		bc.addBoat("Bob", "1x", true);
+		System.out.println();
+		bc.addOuting(new Date(), new short[] {bc.addMember("Blog", "James", new Date(), (short) 1), bc.addMember("Blog", "Mike", new Date(), (short) 1),bc.addMember("Blog", "Jane", new Date(), (short) 1),1,1,1,1,1}, bc.addMember("Blog", "May", new Date(), (short) 1), new Date(), null, "Blogtown", null, "Anna", 0);
+		bc.addOuting(new Date(), new short[] {bc.addMember("Bump", "John", new Date(), (short) 1)}, (short) 0, new Date(), new Date(new Date().getTime() + 3600000), "Middle Earth", "Fun trip!", "Bob", 12);
 		new SimpleGUI(bc);
 	}
 	
@@ -127,9 +134,32 @@ public class SimpleGUI extends JFrame {
 		
 		// Set up the table. TODO: check whether height is correct.
 		outingTableManager = new OutingTableManager();
-		outingTable = new JTable(outingTableManager);
+		outingTable = new JTable(outingTableManager) {
+			private static final long serialVersionUID = 1L;
+			//  Get the class of the column in use.
+            public Component prepareRenderer(TableCellRenderer renderer, int row, int column)
+            {
+                    Component c = super.prepareRenderer(renderer, row, column);
+                    if (!c.getBackground().equals(getSelectionBackground())){
+                            Object timeOut = getModel().getValueAt(row, 3);
+                            // Sets colours for completed rows.
+                            c.setBackground( timeOut == null ?
+                            		Color.RED : Color.WHITE );
+                    }
+                    return c;
+            }
+		};
+		
+		
+		outingTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+	    int vColIndex = 1;
+	    TableColumn col = outingTable.getColumnModel().getColumn(vColIndex);
+	    int width = 200;
+	    col.setPreferredWidth(width);
+	    outingTable.getColumnModel().getColumn(0).setPreferredWidth(50);
+
 		outingTablePane = new JScrollPane(outingTable);
-		outingTable.setRowHeight(64);
+		outingTable.setRowHeight(100);
 		
 		outingTablePane.setVerticalScrollBarPolicy(
 				ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
@@ -231,8 +261,12 @@ public class SimpleGUI extends JFrame {
 
 	private void updateLanguages() {
 		updateMenuLanguages();
-		editOutingButton.setText(rb.getString("main.editOuting"));
-		newOutingButton.setText(rb.getString("main.newOuting"));
+		String prepend = "<html><font size=+2>";
+		String append = "</font></html>";
+		editOutingButton.setText(prepend + rb.getString("main.editOuting")
+				+ append);
+		newOutingButton.setText(prepend + rb.getString("main.newOuting")
+				+ append);
 	}
 
 	class ExitListener extends WindowAdapter {
@@ -260,21 +294,20 @@ public class SimpleGUI extends JFrame {
 		 */
 		private OutingInfo[] outings;
 		
+		private String columnNamePrepend = "<html><font size=+1>";
+		private String columnNameAppend = "</font></html>";
 		private String[] columnNames = {rb.getString("outing.boat"),
-				rb.getString("outing.rowers"),rb.getString("outing.cox"),
-				rb.getString("outing.timeOut"), rb.getString("outing.timeIn"),
-				rb.getString("outing.comment"),
-				rb.getString("outing.destination"),
-				rb.getString("outing.distance")};
+				rb.getString("outing.rowers"), rb.getString("outing.timeOut"),
+				rb.getString("outing.timeIn"), rb.getString("outing.comment"),
+				rb.getString("outing.destination"),rb.getString("outing.distance")};
 		
 		public OutingTableManager() {
 			// TODO: set width
-			outingTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 			updateOutings();
 		}
 		
 	
-		public int getColumnCount() {return 8;}	
+		public int getColumnCount() {return 7;}	
 		public int getRowCount() {return outings.length;}
 		
 		/**
@@ -283,14 +316,15 @@ public class SimpleGUI extends JFrame {
 		 * @return The name of the column.
 		 */
 	    public String getColumnName(int col) {
-	    	return columnNames[col].toString();
+	    	return columnNamePrepend + columnNames[col].toString()
+	    			+ columnNameAppend;
 	    }
 
 	    public Object getValueAt(int row, int col) {
 	        if (col == 0) {
 	        	//TODO: implement in DB.
-	        	//return outings[row].getBoat().getName();
-	        	return "Anna";
+	        	return outings[row].getBoat().getName();
+	        	//if (row == 0) {return "Anna";} else {return "Bob";}
 	        } else if (col == 1) {
 	        	// Build the table showing rower names.
 	        	StringBuffer buff = new StringBuffer();
@@ -313,12 +347,38 @@ public class SimpleGUI extends JFrame {
 		        		buff.append("</tr>");
 	        		}
 	        	}
+        		if (outings[row].getCox() != null) {
+        			buff.append("<tr><td><i>" + outings[row].getCox().getName()
+        					+"</i></td</tr");
+        		}
 	        	buff.append("</table></html>");
 	        	System.out.println(buff.toString());
 	        	return buff.toString();
+	        } else if (col == 2) {
+	        	// TODO: user format.
+	        	SimpleDateFormat df = new SimpleDateFormat("HH:mm");
+	        	return df.format(outings[row].getOut());
+	        } else if (col == 3) {
+	        	if (outings[row].getIn() != null) {
+		        	SimpleDateFormat df = new SimpleDateFormat("HH:mm");
+		        	return df.format(outings[row].getIn());
+	        	}
+	        } else if (col == 4) {
+	        	return outings[row].getDestination();
+	        } else if (col == 5) {
+	        	return outings[row].getComment();
+	        } else if (col ==6) {
+	        	// TODO: get Distance units.
+	        	int d = outings[row].getDistance();
+	        	if (d != 0) {
+	        		return d;
+	        	} else {
+	        		return null;
+	        	}
+	        } else {
+	        	System.out.println("col " + row + " --null");
 	        }
-	        //TODO:rest
-	        return "aa";
+	        return null;
 	    }
 		
 		/**

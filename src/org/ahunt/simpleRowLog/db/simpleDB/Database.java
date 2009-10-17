@@ -79,6 +79,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
     private PreparedStatement psAddGroup;
     private PreparedStatement psAddMember;
     private PreparedStatement psGetMember;
+    private PreparedStatement psGetBoat;
+    
     //TODO: add others.
     
     /** The opened instance. null if none. */
@@ -247,7 +249,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		psAddMember = con.prepareStatement("INSERT INTO members (surname, "
 				+ "forename, dob, usergroup) VALUES (?, ?, ?, ?)",
 				Statement.RETURN_GENERATED_KEYS);
-		psGetMember = con.prepareStatement("SELECT * FROM members where id = ?");
+		psGetMember = con.prepareStatement("SELECT * FROM members WHERE id = ?");
+		psGetBoat = con.prepareStatement("SELECT * FROM boats WHERE name = ?");
 		log.exit("createPreparedStatements()");
 	}
 	
@@ -427,10 +430,6 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 				comment, dest, boat, distance);
 	}
 
-	public BoatInfo getBoatInfo(String name) {
-		// TODO: implement.
-		return null;
-	}
 	public MemberInfo getMember(short id) throws DatabaseError {
 		//TODO: Correct group.
 		log.entry("getMember(int)");
@@ -558,7 +557,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 					}
 					String comment = res.getString("comment");
 					String destination = res.getString("destination");
-					BoatInfo boat = getBoatInfo(res.getString("boat"));
+					BoatInfo boat = getBoat(res.getString("boat"));
 					int distance = res.getInt("distance");
 					array.add(new OutingInfo(out_id, day, seats, cox, timeOut,
 							timeIn, comment, destination, boat, distance));
@@ -803,6 +802,22 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		} catch (SQLException e) {
 			log.errorException(e);
 			throw new DatabaseError(rb.getString("commandError"), e);
+		}
+	}
+
+
+	public BoatInfo getBoat(String name) throws DatabaseError {
+		try {
+			psGetBoat.setString(1, name);
+			psGetBoat.execute();
+			ResultSet rs = psGetBoat.getResultSet();
+			rs.next();
+			// TODO: implement boolean inHouse.
+			return new BoatInfo(rs.getString("name"),rs.getString("type"));
+		} catch (SQLException e) {
+			log.error("Failed to get boat: " + name);
+			log.errorException(e);
+			throw new DatabaseError(rb.getString("commandError"),e);
 		}
 	}
 }
