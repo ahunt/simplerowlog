@@ -373,7 +373,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			}
 			//Set up
 			short s;
-			if (inHouse) {s=1;} else {s=0};
+			if (inHouse) {s=1;} else {s=0;};
 			psGetBoatsSelection.setShort(1, s);
 			// Get the data.
 			psGetBoatsSelection.execute();
