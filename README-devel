@@ -21,3 +21,10 @@ files lacking endings (this file included). Too bad.
 'ant dist' - builds the distributable files. Remember to edit the version in
 	     build.xml as to have correctly named files. Also remember that internal
 	     versioning info is set in the class org.ahunt.simpleRowLog.Info.
+	     
+6. Documentation:
+Documentation is written in latex, and can be found in the folder doc. The Ant
+commands are still to be added: now run 'doc/make.sh make' to create the documentation
+and 'doc/make.sh clean' to clean all the output files. You will probably only
+be able to do this on a *nix system, possibly under cygwin as well (but
+who would?).
