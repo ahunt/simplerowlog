@@ -1,11 +1,18 @@
 \documentclass[11pt,a4paper]{book}
 \usepackage{html}
-\usepackage[pdftex]{graphicx}
-\usepackage[colorlinks]{hyperref}
+%\usepackage[pdftex]{graphicx}
+\hfuzz = .6pt
+\hypersetup{colorlinks, 
+           citecolor=black,
+           filecolor=black,
+           linkcolor=black,
+           urlcolor=black,
+           bookmarksopen=true}
+%\usepackage[colorlinks]{hyperref}
   \newcommand{\srl}{\textit{simple rowLog }} 
   \newcommand{\code}[1]{\texttt{#1}}
   \newcommand{\link}[2]{\htmladdnormallinkfoot{#1}{#2}}
-  \newcommand{\command}[1]{\begin{quote}\begin{small}\code{#1}\end{small}\end{quote}}
+  \newcommand{\command}[1]{\begin{quote}\begin{normalsize}\code{#1}\end{normalsize}\end{quote}}
 \title{simple rowLog Manual}
 \author{Andrzej JR Hunt}
 \date{version 0.1 -- 24. October 2009}
@@ -26,7 +33,7 @@ Free Documentation License".
 \html{\hrule} % hline only in html
 \srl is a simple rowing logbook for use in rowing clubs. It is intended to allow easy organisation of log data from outings and other happenings. This manual is intended to help in the use of simple rowLog, and to document the features it includes. \srl should be simple enough to use without referring to this manual, however it is highly reccommended that administrators read the manual to better know how to operate the software.
 \html{\hrule}\latex{\newline} % hline for html, newline (parbreak) for normal
-This manual is available in its latest version in \link{html}{http://srl.ahunt.org/manual/current/html/} and \link{pdf}{http://srl.ahunt.org/manual/current/manual.pdf} format online in the latest version, as well as included with distribution packaged versions of simple rowLog. It is also viewable directly in simple rowLog through use of the \code{Help} menu, and then selecting \code{Help contents}.
+This manual is available in its latest version in \link{html}{http://srl.ahunt.org/manual/current/html/} and \link{pdf}{http://srl.ahunt.org/manual/current/manual.pdf} format online in the latest version, as well as included with distribution packaged versions of simple rowLog. It is will also be viewable directly in simple rowLog through use of the \code{Help} menu, and then selecting \code{Help contents}. [Unimplemented as yet.]
 \
 \
 % TOC
