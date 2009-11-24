@@ -23,58 +23,65 @@ package org.ahunt.simpleRowLog;
 
 /**
  * Static class providing various information about the program and build.
+ * 
  * @author Andrzej JR Hunt
- *
+ * 
  */
 public final class Info {
-	
+
 	/**
 	 * Get the version number of this build.
+	 * 
 	 * @return The version number.
 	 */
 	public static String getVersion() {
 		return "0.1.0";
 	}
-	
+
 	/**
 	 * Get the status of the build.
+	 * 
 	 * @return The status of the build, e.g "Pre-Alpha", "Alpha", "Beta",
-	 * 			"Final"...
+	 *         "Final"...
 	 */
 	public static String getBuildType() {
 		return "Pre-Alpha";
 	}
-	
+
 	/**
 	 * Get the homepage for this release.
+	 * 
 	 * @return The homepage.
 	 */
 	public static String getWebSite() {
 		return "http://srl.ahunt.org";
 	}
-	
+
 	/**
 	 * Get the authors.
+	 * 
 	 * @return The authors.
 	 */
 	public static String getAuthors() {
 		return "Andrzej JR Hunt";
 	}
-	
+
 	/**
 	 * Get the copyright information.
+	 * 
 	 * @return Copyright string.
 	 */
 	public static String getCopyright() {
 		return "Copyright \u00a9 2009 Andrzej JR Hunt";
 	}
-	
+
 	/**
 	 * Get the licence information.
+	 * 
 	 * @return Licence string.
 	 */
 	public static String getLicence() {
 		return "Released under GNU GPL v3, see LICENSE for details.";
 	}
-	
+
 }

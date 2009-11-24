@@ -81,7 +81,7 @@ public interface Database {
 	 * Add a new boat to the list of boats.
 	 * 
 	 * @param name
-	 *            The name of the boat. This cannot be null.
+	 *            The name of the boat. Cannot be null or empty.
 	 * @param type
 	 *            A string describing the type of boat. May be null.
 	 * @param inHouse
