@@ -28,3 +28,9 @@ commands are still to be added: now run 'doc/make.sh make' to create the documen
 and 'doc/make.sh clean' to clean all the output files. You will probably only
 be able to do this on a *nix system, possibly under cygwin as well (but
 who would?).
+[TODO: add 'ant doc' which builds the doc, and add cleaning of doc to 'ant clean']
+Note: This only concerns the user manual. The javadoc documentation is usually
+ignored: it is only of interest to developers, and if one is using an ide,
+it is automatically generated as necessary. However ant commands to generate
+the javadoc will be made in the future, e.g. for developers not using an ide.
+(A move to emacs is also being considered.)

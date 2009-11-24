@@ -22,13 +22,30 @@
 
 package org.ahunt.simpleRowLog.common;
 
+/**
+ * An error thrown by the database if there are problems either connecting,
+ * reading from, or writing to, the database. This signalises a deep problem in
+ * the program, the user should be warned, and the program exited.
+ * 
+ * @author Andrzej JR Hunt
+ * @see org.ahunt.simpleRowLog.interfaces.Database
+ */
 public class DatabaseError extends Error {
 
 	/**
-	 * 
+	 * serialVersionUID.
 	 */
 	private static final long serialVersionUID = -2360816381244841420L;
 
+	/**
+	 * Create a new Database Error.
+	 * 
+	 * @param errorMessage
+	 *            The error message. This is to be logged, and is not shown to
+	 *            the user. (User information is done higher up, if necessary.)
+	 * @param cause
+	 *            The cause of this error.
+	 */
 	public DatabaseError(String errorMessage, Throwable cause) {
 		super(errorMessage, cause);
 	}

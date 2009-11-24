@@ -83,6 +83,14 @@ clean() {
     clean_temp
 }
 
+#
+# TODO:
+texinfo() {
+    latex2html simplerowlog.tex -dir texi -split 0
+    html2texi texi/index.html
+    mv texi.texi simplerowlog.texi
+}
+
 compile() {
     clean_output
     echo "Compiling pdf..."
