@@ -176,8 +176,8 @@ public interface Database {
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
 	 */
-	public short addMember(String surname, String forename, Date dob,
-			short group) throws DatabaseError;
+	public int addMember(String surname, String forename, Date dob,
+			int group) throws DatabaseError;
 
 	/**
 	 * Get the information for a certain member.
@@ -189,7 +189,7 @@ public interface Database {
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
 	 */
-	public MemberInfo getMember(short id) throws DatabaseError;
+	public MemberInfo getMember(int id) throws DatabaseError;
 
 	/**
 	 * 
@@ -202,8 +202,8 @@ public interface Database {
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
 	 */
-	public void modifyMember(short id, String surname, String forename,
-			Date dob, short group) throws DatabaseError;
+	public void modifyMember(int id, String surname, String forename,
+			Date dob, int group) throws DatabaseError;
 
 	/* -------------------- MEMBERS (GROUP) [G+] ----------------- */
 
@@ -243,7 +243,7 @@ public interface Database {
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
 	 */
-	public MemberStatistic getMemberStatistics(short id) throws DatabaseError;
+	public MemberStatistic getMemberStatistics(int id) throws DatabaseError;
 
 	/**
 	 * Get the statistics for all the members
@@ -283,7 +283,7 @@ public interface Database {
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
 	 */
-	public short addGroup(String name, String description, Color colour,
+	public int addGroup(String name, String description, Color colour,
 			boolean isDefault) throws DatabaseError;
 
 	/**
@@ -296,7 +296,7 @@ public interface Database {
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
 	 */
-	public GroupInfo getGroup(short id) throws DatabaseError;
+	public GroupInfo getGroup(int id) throws DatabaseError;
 
 	/**
 	 * Modify the group of given id.
@@ -313,7 +313,7 @@ public interface Database {
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
 	 */
-	public void modifyGroup(short id, String name, String description,
+	public void modifyGroup(int id, String name, String description,
 			Color colour, boolean isDefault) throws DatabaseError;
 
 	/**
@@ -339,7 +339,7 @@ public interface Database {
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
 	 */
-	public GroupStatistic getGroupStatistic(short id) throws DatabaseError;
+	public GroupStatistic getGroupStatistic(int id) throws DatabaseError;
 
 	/**
 	 * 
@@ -382,7 +382,7 @@ public interface Database {
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
 	 */
-	public void addOuting(Date date, short[] rowers, short cox, Date timeOut,
+	public void addOuting(Date date, int[] rowers, int cox, Date timeOut,
 			Date timeIn, String comment, String dest, String boat, int distance)
 			throws DatabaseError;
 

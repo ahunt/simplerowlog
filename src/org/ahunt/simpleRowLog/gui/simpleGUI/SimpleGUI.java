@@ -116,8 +116,8 @@ public class SimpleGUI extends JFrame {
 		bc.addBoat("Anna", "8+", true);
 		bc.addBoat("Bob", "1x", true);
 		System.out.println();
-		bc.addOuting(new Date(), new short[] {bc.addMember("Blog", "James", new Date(), (short) 1), bc.addMember("Blog", "Mike", new Date(), (short) 1),bc.addMember("Blog", "Jane", new Date(), (short) 1),1,1,1,1,1}, bc.addMember("Blog", "May", new Date(), (short) 1), new Date(), null, "Blogtown", null, "Anna", 0);
-		bc.addOuting(new Date(), new short[] {bc.addMember("Bump", "John", new Date(), (short) 1)}, (short) 0, new Date(), new Date(new Date().getTime() + 3600000), "Middle Earth", "Fun trip!", "Bob", 12);
+		bc.addOuting(new Date(), new int[] {bc.addMember("Blog", "James", new Date(), 1), bc.addMember("Blog", "Mike", new Date(),  1),bc.addMember("Blog", "Jane", new Date(),  1),1,1,1,1,1}, bc.addMember("Blog", "May", new Date(), 1), new Date(), null, "Blogtown", null, "Anna", 0);
+		bc.addOuting(new Date(), new int[] {bc.addMember("Bump", "John", new Date(), 1)}, 0, new Date(), new Date(new Date().getTime() + 3600000), "Middle Earth", "Fun trip!", "Bob", 12);
 		new SimpleGUI(bc);
 	}
 	

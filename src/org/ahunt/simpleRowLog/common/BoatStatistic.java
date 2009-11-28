@@ -17,6 +17,7 @@
  *
  *
  *	Changelog:
+ *  28/11/2009: Added inHouse support (i.e. to support BoatInfo). Cleaned doc.
  *	23/08/2009:	Changelog added.
  */
 
@@ -25,34 +26,36 @@ package org.ahunt.simpleRowLog.common;
 import org.ahunt.simpleRowLog.interfaces.RowingStatistic;
 
 /**
+ * The statistics for a specific boat. This class simply extends
+ * {@link BoatInfo}, so you can also get the normal boat data from this. Note,
+ * you cannot modify the data here, only the database is allowed to do this.
+ * 
  * @author Andrzej JR Hunt
- * @version 0.01 - 21. September 2008
+ * @version 0.02 - 28. November 2009
  */
 public class BoatStatistic extends BoatInfo implements RowingStatistic {
 
-	/* Stores the number of outings in this year. */
+	/** Stores the number of outings in this year. */
 	private int thisYearOutings;
 
-	/* Stores the number of kilometres rowed in this year. */
+	/** Stores the number of kilometres rowed in this year. */
 	private int thisYearKM;
 
-	/* Stores the number of outings in the last year. */
+	/** Stores the number of outings in the last year. */
 	private int lastYearOutings;
 
-	/* Stores the number of kilometres rowed in the last year. */
+	/** Stores the number of kilometres rowed in the last year. */
 	private int lastYearKM;
 
 	/**
-	 * Create a new MemberStatistic.
+	 * Create a new BoatStatistic.
 	 * 
 	 * @param name
-	 *            The name of the group.
-	 * 
-	 * @param description
-	 *            A description of the group.
-	 * @param displayColour
-	 *            The highlighting colour for the group.
-	 * 
+	 *            The name of the group. Cannot be null or empty.
+	 * @param type
+	 *            Type of boat.
+	 * @param inHouse
+	 *            Whether or not the boat is in the boathouse.
 	 * @param thisYearOutings
 	 *            The number of outings the member has made in this year.
 	 * @param thisYearKM
@@ -65,9 +68,10 @@ public class BoatStatistic extends BoatInfo implements RowingStatistic {
 	 * 
 	 * @see GroupInfo#GroupInfo()
 	 */
-	public BoatStatistic(String name, String type, int thisYearOutings,
-			int thisYearKM, int lastYearOutings, int lastYearKM) {
-		super(name, type);
+	public BoatStatistic(String name, String type, boolean inHouse,
+			int thisYearOutings, int thisYearKM, int lastYearOutings,
+			int lastYearKM) {
+		super(name, type, inHouse);
 		this.thisYearOutings = thisYearOutings;
 		this.thisYearKM = thisYearKM;
 		this.lastYearOutings = thisYearOutings;
