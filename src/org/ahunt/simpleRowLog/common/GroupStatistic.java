@@ -17,6 +17,7 @@
  *
  *
  *	Changelog:
+ *  28/11/2009: Updated constructor, cleaned.
  *	23/08/2009:	Changelog added.
  */
 
@@ -26,36 +27,41 @@ import java.awt.Color;
 
 import org.ahunt.simpleRowLog.interfaces.RowingStatistic;
 
-
 /**
+ * A group statistic. This is a simple extenstion of GroupInfo and can be used
+ * in the same manner.
+ * 
  * @author Andrzej JR Hunt
- * @version 0.01 - 24. August 2008
+ * @version 0.02 - 28. November 2009
  */
 public class GroupStatistic extends GroupInfo implements RowingStatistic {
 
-	/* Stores the number of outings in this year. */
+	/** Stores the number of outings in this year. */
 	private int thisYearOutings;
 
-	/* Stores the number of kilometres rowed in this year. */
+	/** Stores the number of kilometres rowed in this year. */
 	private int thisYearKM;
 
-	/* Stores the number of outings in the last year. */
+	/** Stores the number of outings in the last year. */
 	private int lastYearOutings;
 
-	/* Stores the number of kilometres rowed in the last year. */
+	/** Stores the number of kilometres rowed in the last year. */
 	private int lastYearKM;
 
 	/**
-	 * Create a new MemberStatistic.
+	 * Create a new GroupStatistic. This is just an extension of GroupInfo, and
+	 * can therefore be used in the same way.
 	 * 
+	 * @param id
+	 *            The group's id.
 	 * @param name
-	 *            The name of the group.
-	 * 
+	 *            The name of the group. Cannot be null.
 	 * @param description
 	 *            A description of the group.
 	 * @param displayColour
 	 *            The highlighting colour for the group.
-	 * 
+	 * @param isDefault
+	 *            Whether this group is the default group.
 	 * @param thisYearOutings
 	 *            The number of outings the member has made in this year.
 	 * @param thisYearKM
@@ -68,10 +74,10 @@ public class GroupStatistic extends GroupInfo implements RowingStatistic {
 	 * 
 	 * @see GroupInfo#GroupInfo()
 	 */
-	public GroupStatistic(String name, String description, Color displayColour,
-			int thisYearOutings, int thisYearKM, int lastYearOutings,
-			int lastYearKM) {
-		super(name, description, displayColour);
+	public GroupStatistic(int id, String name, String description,
+			Color displayColour, boolean isDefault, int thisYearOutings,
+			int thisYearKM, int lastYearOutings, int lastYearKM) {
+		super(id, name, description, displayColour, isDefault);
 		this.thisYearOutings = thisYearOutings;
 		this.thisYearKM = thisYearKM;
 		this.lastYearOutings = thisYearOutings;
