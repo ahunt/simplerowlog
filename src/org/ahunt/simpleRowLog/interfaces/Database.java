@@ -91,6 +91,7 @@ public interface Database {
 	 *             database.
 	 * @throws IllegalArgumentException
 	 *             If the supplied data is not valid.
+	 * @see BoatInfo
 	 */
 	public void addBoat(String name, String type, boolean inHouse)
 			throws DatabaseError, IllegalArgumentException;
@@ -113,6 +114,7 @@ public interface Database {
 	 * @throws DatabaseError
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
+	 * @see BoatInfo
 	 */
 	public void modifyBoat(BoatInfo old, String name, String type,
 			boolean inHouse) throws DatabaseError, IllegalArgumentException;
@@ -176,8 +178,8 @@ public interface Database {
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
 	 */
-	public int addMember(String surname, String forename, Date dob,
-			int group) throws DatabaseError;
+	public int addMember(String surname, String forename, Date dob, int group)
+			throws DatabaseError;
 
 	/**
 	 * Get the information for a certain member.
@@ -202,8 +204,8 @@ public interface Database {
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
 	 */
-	public void modifyMember(int id, String surname, String forename,
-			Date dob, int group) throws DatabaseError;
+	public void modifyMember(int id, String surname, String forename, Date dob,
+			int group) throws DatabaseError;
 
 	/* -------------------- MEMBERS (GROUP) [G+] ----------------- */
 

@@ -63,7 +63,7 @@ public class BoatInfo {
 	public BoatInfo(String name, String type, boolean inHouse)
 			throws IllegalArgumentException {
 		if (name == null | name.length() == 0) { // Check that the boat has a name.
-			throw new IllegalArgumentException("Name of boat must be > 1.");
+			throw new IllegalArgumentException("Name of boat cannot be null or length 0.");
 		}
 		this.name = name;
 		if (type.length() != 0) { //If there is a string or is null assign it.

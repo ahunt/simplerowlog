@@ -1,7 +1,7 @@
 simple rowLog TODO file.
 
 -- Do type checking on all "basic" object types.
-	[Done]: BoatInfo
+	[Done]: BoatInfo, BoatStatistic, DatabaseError, GroupInfo
 	
 -- Update the Database documentation to do the same type of checking.
 -- Update the error system, in the gui do the error catching and create an

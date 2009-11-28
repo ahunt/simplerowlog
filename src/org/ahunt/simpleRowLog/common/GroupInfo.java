@@ -17,6 +17,7 @@
  *
  *
  *	Changelog:
+ *  28/11/2009: Added checking in constructor. Finished doc.
  *	17/10/2009: Updated to store id.
  *	23/08/2009:	Changelog added.
  */
@@ -29,10 +30,10 @@ import java.awt.Color;
  * All the information for a specific group.
  * 
  * @author Andrzej JR Hunt
- * @version 0.04 - 17. October 2009
+ * @version 0.05 - 28. November 2009
  */
 public class GroupInfo {
-	
+
 	/** Stores the groups id. */
 	private int id;
 
@@ -44,7 +45,7 @@ public class GroupInfo {
 
 	/** Stores the highlighting colour of the group. */
 	private Color displayColour;
-	
+
 	/** Stores whether this group is default. */
 	private boolean isDefault;
 
@@ -52,30 +53,44 @@ public class GroupInfo {
 	 * Create the information for a group. The colour of the group is the colour
 	 * used to highlight members of the group in a member listing.
 	 * 
+	 * @param id
+	 *            The groups's id.
 	 * @param name
-	 *            The name of the group.
+	 *            The name of the group. Cannot be null or empty.
 	 * @param description
 	 *            A description of the group.
 	 * @param displayColour
-	 *            The highlighting colour for the group.
+	 *            The highlighting colour for the group. Cannot be null.
+	 * @param isDefault
+	 *            Whether this is the default Group.
 	 */
-	public GroupInfo(int id, String name, String description, 
+	public GroupInfo(int id, String name, String description,
 			Color displayColour, boolean isDefault) {
 		this.id = id;
-		this.name = name;
+		if (name != null && name.length() > 0) {
+			this.name = name;
+		} else {
+			throw new IllegalArgumentException(
+					"Name of group cannot be null or length 0.");
+		}
 		this.description = description;
-		this.displayColour = displayColour;
+		if (displayColour != null) {
+			this.displayColour = displayColour;
+		} else {
+			throw new IllegalArgumentException("Colour cannot be null");
+		}
 		this.isDefault = isDefault;
 	}
 
 	/**
 	 * Get the group's id.
+	 * 
 	 * @return
 	 */
 	public int getId() {
 		return id;
 	}
-	
+
 	/**
 	 * Get the groups name.
 	 * 
@@ -102,14 +117,14 @@ public class GroupInfo {
 	public Color getDisplayColour() {
 		return displayColour;
 	}
-	
+
 	/**
 	 * Check whether this is the default group.
+	 * 
 	 * @return Whether the group is default.
 	 */
 	public boolean getIsDefault() {
 		return isDefault;
 	}
-	
 
 }
