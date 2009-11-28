@@ -278,7 +278,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		psAddGroup.setString(1, rb.getString("guestGroupName"));
 		psAddGroup.setString(2, rb.getString("guestGroupDescription"));
 		psAddGroup.setInt(3, -16776961);
-		psAddGroup.setShort(4, (short) 1);
+		psAddGroup.setInt(4, 1);
 		psAddGroup.execute();
 		// Group: deleted
 		log.info("Deleted group.");
@@ -537,7 +537,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	/* (non-Javadoc)
 	 * @see org.ahunt.simpleRowLog.interfaces.Database#getMemberStatistics(short)
 	 */
-	public MemberStatistic getMemberStatistics(short key) {
+	public MemberStatistic getMemberStatistics(int key) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -584,17 +584,17 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 
 	/**
 	 * Add a new outing.
-	 * @see org.ahunt.simpleRowLog.interfaces.Database#addOuting(Date, short[],
-	 * short, Date, Date, String, String, String, int)
+	 * @see org.ahunt.simpleRowLog.interfaces.Database#addOuting(Date, int[],
+	 * int, Date, Date, String, String, String, int)
 	 */
-	public void addOuting(Date date, short[] rowers, short cox, Date timeOut,
+	public void addOuting(Date date, int[] rowers, int cox, Date timeOut,
 			Date timeIn, String comment, String dest, String boat, int distance)
 			throws DatabaseError {
 		outingManager.addOuting(date, rowers, cox, timeOut, timeIn,
 				comment, dest, boat, distance);
 	}
 
-	public MemberInfo getMember(short id) throws DatabaseError {
+	public MemberInfo getMember(int id) throws DatabaseError {
 		//TODO: Correct group.
 		log.entry("getMember(int)");
 		log.debug("Getting member " + id);
@@ -702,14 +702,14 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 					log.verbose("Processing outing with id=" + out_id);
 					MemberInfo[] seats = new MemberInfo[8];
 					for (int i = 0; i< 8; i++) {
-						short member_id = res.getShort("rower" + (i +1));
+						int member_id = res.getInt("rower" + (i +1));
 						if (member_id != 0) {
 							seats[i] = getMember(member_id);
 						}
 					}
 					Date day = res.getDate("day");
 					MemberInfo cox = null;
-					short coxID = res.getShort("cox");
+					int coxID = res.getInt("cox");
 					if (coxID != 0) {
 						cox = getMember(coxID);
 					}
@@ -735,8 +735,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		}
 		
 		
-		public void addOuting(Date date, short[] rowers,
-				short cox, Date timeOut, Date timeIn, String comment, String dest,
+		public void addOuting(Date date, int[] rowers,
+				int cox, Date timeOut, Date timeIn, String comment, String dest,
 				String boat, int distance) throws DatabaseError {
 			log.entry("OutingManager.getOutings()");
 			log.info("Adding outing");
@@ -941,7 +941,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 
 
 	
-	public short addMember(String surname, String forename, Date dob, short group) throws DatabaseError {
+	public int addMember(String surname, String forename, Date dob, short group) throws DatabaseError {
 		try {
 			psAddMember.setString(1, surname);
 			psAddMember.setString(2, forename);
@@ -950,7 +950,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			psAddMember.execute();
 			ResultSet rs = psAddMember.getGeneratedKeys();
 			rs.next();
-			return rs.getShort(1);			
+			return rs.getInt(1);			
 		} catch (SQLException e) {
 			log.errorException(e);
 			throw new DatabaseError(rb.getString("commandError"), e);

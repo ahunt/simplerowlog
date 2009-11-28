@@ -34,7 +34,7 @@ import java.awt.Color;
 public class GroupInfo {
 	
 	/** Stores the groups id. */
-	private short id;
+	private int id;
 
 	/** Stores the name of the group. */
 	private String name;
@@ -59,7 +59,7 @@ public class GroupInfo {
 	 * @param displayColour
 	 *            The highlighting colour for the group.
 	 */
-	public GroupInfo(short id, String name, String description, 
+	public GroupInfo(int id, String name, String description, 
 			Color displayColour, boolean isDefault) {
 		this.id = id;
 		this.name = name;
@@ -72,7 +72,7 @@ public class GroupInfo {
 	 * Get the group's id.
 	 * @return
 	 */
-	public short getId() {
+	public int getId() {
 		return id;
 	}
 	

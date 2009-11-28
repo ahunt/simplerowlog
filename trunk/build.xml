@@ -18,7 +18,10 @@
 -->
 <project name="simple rowLog" default="build">
   
-  
+  <condition property="isNix">
+    <os family="unix" />
+  </condition>
+ 
   <!-- set global properties -->
   <property name="src" value="src"/>
   <property name="bin" value="bin"/>
@@ -27,13 +30,14 @@
   <property name="version" value="0.1.0-pre-alpha"/>
   <property name="temp_derby" value="temp_getdep"/>
   <property name="externalsrc" value="${src}/external"/>
-  
+  <property name="doc" value="doc"/>
+
   <target name="init">
     <mkdir dir="${bin}"/>
     <mkdir dir="${lib}"/>
   </target>
   
-  <target name="clean">
+  <target name="clean" depends="doc-clean">
     <echo message="Cleaning output directories." />
     <delete dir="${lib}"/>
     <delete dir="${bin}"/>
@@ -165,5 +169,17 @@
     <get src="http://archive.apache.org/dist/db/derby/db-derby-10.5.1.1/db-derby-10.5.1.1-src.tar.gz" dest="${externalsrc}/db-derby-10.5.1.1-src.tar.gz"/>
     <get src="https://simple-log.dev.java.net/release/simple-log-2.0.1.zip" dest="${externalsrc}/simple-log-2.0.1.zip"/>
   </target>
-  
+
+ <target name="doc" if="isNix">
+  <echo message="Building documentation"/>
+  <exec dir="${doc}" executable="./make.sh">
+   <arg line="make"/>
+  </exec>
+ </target>
+
+ <target name="doc-clean" if="isNix">
+  <exec dir="${doc}" executable="./make.sh">
+   <arg line="clean"/>
+  </exec>
+ </target>  
 </project>

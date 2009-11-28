@@ -34,7 +34,7 @@ import java.util.Date;
 public class MemberInfo {
 
 	/* Stores the members key. */
-	private short key;
+	private int key;
 
 	/* Stores the members surname. */
 	private String surname;
@@ -62,7 +62,7 @@ public class MemberInfo {
 	 * @param groupInfo
 	 *            The Group Information for this member.
 	 */
-	public MemberInfo(short key, String surname, String forename, Date dob,
+	public MemberInfo(int key, String surname, String forename, Date dob,
 			GroupInfo groupInfo) {
 		this.key = key;
 		this.surname = surname;
@@ -76,7 +76,7 @@ public class MemberInfo {
 	 * 
 	 * @return The members key.
 	 */
-	public short getKey() {
+	public int getKey() {
 		return key;
 	}
 

@@ -68,7 +68,7 @@ public class MemberStatistic extends MemberInfo implements RowingStatistic {
 	 *            The number of kilometres the member has rowed in the previous
 	 *            year
 	 */
-	public MemberStatistic(short key, String surname, String forename,
+	public MemberStatistic(int key, String surname, String forename,
 			Date dob, GroupInfo groupInfo, int thisYearOutings, int thisYearKM,
 			int lastYearOutings, int lastYearKM) {
 		super(key, surname, forename, dob, groupInfo);

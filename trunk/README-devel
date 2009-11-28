@@ -4,6 +4,8 @@ use these since otherwise you'll have to download them again after every ant cle
 That said it isn't necessary to do a clean before commit, just make sure that the
 bin, dist and lib directories and *.jar are excluded for svn.
 
+[IMPORTANT: PLEASE READ THE TODO.]
+
 2. At the moment the language files are being written in British English. They will
 be checked before a release, so it doesn't matter if there are a few mistakes.
 Other languages will also be added leading up to a first release. (English, German,
@@ -24,11 +26,9 @@ files lacking endings (this file included). Too bad.
 	     
 6. Documentation:
 Documentation is written in latex, and can be found in the folder doc. The Ant
-commands are still to be added: now run 'doc/make.sh make' to create the documentation
-and 'doc/make.sh clean' to clean all the output files. You will probably only
-be able to do this on a *nix system, possibly under cygwin as well (but
-who would?).
-[TODO: add 'ant doc' which builds the doc, and add cleaning of doc to 'ant clean']
+commands are 'ant doc' to to create the documentation and 'ant doc-clean' to
+clean all the output files. You will probably only be able to do this on a *nix
+system, possibly under cygwin as well (but who would?).
 Note: This only concerns the user manual. The javadoc documentation is usually
 ignored: it is only of interest to developers, and if one is using an ide,
 it is automatically generated as necessary. However ant commands to generate
