@@ -23,7 +23,10 @@
 
 package org.ahunt.simpleRowLog.common;
 
+import java.text.MessageFormat;
 import java.util.Date;
+
+import org.ahunt.simpleRowLog.conf.Configuration;
 
 /**
  * All the information for a member. One of the possible uses is showing members
@@ -135,12 +138,15 @@ public class MemberInfo {
 	}
 
 	/**
-	 * Get the member's name. The name is formatted according to the settings. [not yet implemented]
+	 * Get the member's name. The name is formatted according to the format
+	 * string in main.conf[srl.name_format].
+	 * 
 	 * @return The member's name
 	 */
 	public String getName() {
-		return surname + ", " + forename;
-		// TODO: implement mechanism for name formatting.
+		Configuration c = Configuration.getConf("main"); // Get the conf.
+		return MessageFormat.format(c.getProperty("srl.name_format"), surname,
+				forename);
 	}
 
 }
