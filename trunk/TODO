@@ -1,8 +1,11 @@
 simple rowLog TODO file.
 
--- Do type checking on all "basic" object types.
-	[Done]: BoatInfo, BoatStatistic, DatabaseError, GroupInfo, GroupStatistic
-	
+-- Implement name formatting.
 -- Update the Database documentation to do the same type of checking.
 -- Update the error system, in the gui do the error catching and create an
 	appropriate user friendly warning. Log all error at database level though.
+	
+{lower}
+-- Do type checking on all "basic" object types.
+	[Done]: BoatInfo, BoatStatistic, DatabaseError, GroupInfo, GroupStatistic,
+	MemberStatistic, OutingInfo, MemberInfo

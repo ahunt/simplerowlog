@@ -17,6 +17,7 @@
  *
  *
  *	Changelog:
+ *  29/11/2009: Cleaned up. Not yet completed (formatting of name).
  *	23/08/2009:	Changelog added.
  */
 
@@ -25,50 +26,67 @@ package org.ahunt.simpleRowLog.common;
 import java.util.Date;
 
 /**
- * An object carrying all the information about a member. One of the possible
- * uses is showing members in the gui.
+ * All the information for a member. One of the possible uses is showing members
+ * in the gui.
  * 
  * @author Andrzej JR Hunt
- * @version 0.04 - 8. August 2008
+ * @version 0.05 - 29. November 2009
  */
 public class MemberInfo {
 
-	/* Stores the members key. */
+	/** Stores the members key. */
 	private int key;
 
-	/* Stores the members surname. */
+	/** Stores the members surname. */
 	private String surname;
 
-	/* Stores the members forename. */
+	/** Stores the members forename. */
 	private String forename;
 
-	/* Stores the members date of birth. */
+	/** Stores the members date of birth. */
 	private Date dob;
 
-	/* Stores the members group. */
+	/** Stores the members group. */
 	private GroupInfo groupInfo;
 
 	/**
-	 * Create a new MemberInfo.
+	 * Create the information for a member
 	 * 
 	 * @param key
 	 *            The members key.
 	 * @param surname
-	 *            The members surname.
+	 *            The members surname. Cannot be null or empty.
 	 * @param forename
-	 *            The members forename.
+	 *            The members forename. Can be empty or null.
 	 * @param dob
-	 *            The members date of birth.
+	 *            The members date of birth. Cannot be null.
 	 * @param groupInfo
-	 *            The Group Information for this member.
+	 *            The Group Information for this member. Cannot be null.
 	 */
 	public MemberInfo(int key, String surname, String forename, Date dob,
 			GroupInfo groupInfo) {
 		this.key = key;
-		this.surname = surname;
-		this.forename = forename;
-		this.dob = dob;
-		this.groupInfo = groupInfo;
+		if (surname != null && surname.length() != 0) {
+			this.surname = surname;
+		} else {
+			throw new IllegalArgumentException(
+					"Member surname cannot be null or empty.");
+		}
+		if (forename != null) {
+			this.forename = forename;
+		} else {
+			this.forename = "";
+		}
+		if (dob != null) {
+			this.dob = dob;
+		} else {
+			throw new IllegalArgumentException("Date of birth cannot be null.");
+		}
+		if (groupInfo != null) {
+			this.groupInfo = groupInfo;
+		} else {
+			throw new IllegalArgumentException("groupInfo cannot be null.");
+		}
 	}
 
 	/**
@@ -115,10 +133,14 @@ public class MemberInfo {
 	public GroupInfo getGroupInfo() {
 		return groupInfo;
 	}
-	
+
+	/**
+	 * Get the member's name. The name is formatted according to the settings. [not yet implemented]
+	 * @return The member's name
+	 */
 	public String getName() {
-		return surname + " " + forename;
-		//TODO: implement mechanism for name formatting.
+		return surname + ", " + forename;
+		// TODO: implement mechanism for name formatting.
 	}
 
 }
