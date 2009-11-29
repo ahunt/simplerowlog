@@ -17,6 +17,7 @@
 #
 #
 #	Changelog:
+#   29/11/2009: And now from INT to SMALLINT for space reasons.
 #   11/10/2009: Update inHouse from BIT to INT, now works.
 #	23/08/2009:	Changelog added.
 #
@@ -26,5 +27,5 @@
 CREATE TABLE boats (
 	name VARCHAR(32) NOT NULL CONSTRAINT WISH_PK PRIMARY KEY,
 	type VARCHAR(16),
-	inHouse INT
+	inHouse SMALLINT
 )

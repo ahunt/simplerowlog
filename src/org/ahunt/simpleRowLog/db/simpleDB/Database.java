@@ -57,107 +57,112 @@ import org.grlea.log.SimpleLogger;
 
 /**
  * @author Andrzej JR Hunt
- *
+ * 
  */
-public class Database implements org.ahunt.simpleRowLog.interfaces.Database  {
+public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 
 	private static final SimpleLogger log = new SimpleLogger(Database.class);
 
 	// The resource bundle for getting localised texts. (For error messages.)
 	private ResourceBundle rb;
 	// The driver to be used.
-    private String driver = "org.apache.derby.jdbc.EmbeddedDriver";
-    // The database name
-    private String dbName = "srl";
-    // The resulting url to be used when connecting to the database.
-    private String connectionURL = "jdbc:derby:" + dbName + ";create=true";
-    
-    // The connection that has been set up. Can then be used to gain statements
-    // for any methods needing them.
-    private Connection con = null;
-    
-    // various prepared statements for use.
-    private PreparedStatement psAddGroup;
-    private PreparedStatement psGetGroup;
-    private PreparedStatement psGetGroups;
-    private PreparedStatement psModifyGroup;
-    private PreparedStatement psAddMember;
-    private PreparedStatement psGetMember;
-    private PreparedStatement psGetBoat;
-    private PreparedStatement psGetBoats;
-    private PreparedStatement psGetBoatsSelection;
-    
-    //TODO: add others.
-    
-    /** The opened instance. null if none. */
-    private static Database db;
-    
-    /** Stores the outing tables for each year. */
-    private OutingManager outingManager;
-    
-    //Temporary testing method
-    // TODO: remove once finished class.
-    public static void main(String[] args) {
-    	try {
+	private String driver = "org.apache.derby.jdbc.EmbeddedDriver";
+	// The database name
+	private String dbName = "srl";
+	// The resulting url to be used when connecting to the database.
+	private String connectionURL = "jdbc:derby:" + dbName + ";create=true";
+
+	// The connection that has been set up. Can then be used to gain statements
+	// for any methods needing them.
+	private Connection con = null;
+
+	// various prepared statements for use.
+
+	private PreparedStatement psAddBoat;
+	private PreparedStatement psGetBoat;
+	private PreparedStatement psModifyBoat;
+
+	private PreparedStatement psAddGroup;
+	private PreparedStatement psGetGroup;
+	private PreparedStatement psGetGroups;
+	private PreparedStatement psModifyGroup;
+	private PreparedStatement psAddMember;
+	private PreparedStatement psGetMember;
+
+	private PreparedStatement psGetBoats;
+	private PreparedStatement psGetBoatsSelection;
+
+	// TODO: add others.
+
+	/** The opened instance. null if none. */
+	private static Database db;
+
+	/** Stores the outing tables for each year. */
+	private OutingManager outingManager;
+
+	// Temporary testing method
+	// TODO: remove once finished class.
+	public static void main(String[] args) {
+		try {
 			Runtime.getRuntime().exec("rm -rf ./database/srl");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-    	getInstance();
-    	System.exit(0);
-    }
-    
-    
-    //TODO: Implement a "locking" mechanism so that users can hold on to the db,
-    // and once everyone has released it it automatically closes.
-    /**
-     * Get an instance of the database.
-     * @return The database.
-     */
-    public static synchronized Database getInstance() {
-    	if (db != null) {
-    		return db;
-    	} else {
-    		return new Database();
-    	}
-    }
-    
-    /**
-     * Start the database.
-     */
+		getInstance();
+		System.exit(0);
+	}
+
+	// TODO: Implement a "locking" mechanism so that users can hold on to the
+	// db,
+	// and once everyone has released it it automatically closes.
+	/**
+	 * Get an instance of the database.
+	 * 
+	 * @return The database.
+	 */
+	public static synchronized Database getInstance() {
+		if (db != null) {
+			return db;
+		} else {
+			return new Database();
+		}
+	}
+
+	/**
+	 * Start the database.
+	 */
 	private Database() throws DatabaseError {
 		log.entry("Database()");
-		
+
 		// Set up derby properties.
 		System.setProperty("derby.system.home", new File(".").getAbsolutePath()
-				+"/database");
-		
-		
+				+ "/database");
+
 		// Set up the resourceBundle for use
 		rb = ResourceBundle.getBundle("db");
 		log.info("Resource Bundle loaded.");
-		
+
 		// Load the driver.
-        try {
-            Class.forName(driver).newInstance();
-            log.info("Loaded db driver.");
-        } catch(Exception e) {
-        	log.errorException(e);
-            throw new DatabaseError(rb.getString("driverError"),e);
-        }
-        
-        // Set up the connection to the Database
-        try {
-            con = DriverManager.getConnection(connectionURL);
-            log.info("Connected to db.");
-        }  catch (Throwable e)  {   
-        	log.errorException(e);
-            throw new DatabaseError(rb.getString("connectionError"),e);
-        }
-        
-        // Check if the Database already existed, or if it needs set up.
-        try {
+		try {
+			Class.forName(driver).newInstance();
+			log.info("Loaded db driver.");
+		} catch (Exception e) {
+			log.errorException(e);
+			throw new DatabaseError(rb.getString("driverError"), e);
+		}
+
+		// Set up the connection to the Database
+		try {
+			con = DriverManager.getConnection(connectionURL);
+			log.info("Connected to db.");
+		} catch (Throwable e) {
+			log.errorException(e);
+			throw new DatabaseError(rb.getString("connectionError"), e);
+		}
+
+		// Check if the Database already existed, or if it needs set up.
+		try {
 			if (con.getWarnings() == null) {
 				log.info("No database existed beforehand: setting up.");
 				createDatabase();
@@ -165,13 +170,13 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database  {
 				log.info("Database previously existed and will be used.");
 			}
 		} catch (SQLException e) {
-        	log.errorException(e);
+			log.errorException(e);
 			throw new DatabaseError(rb.getString("setupError"), e);
 		} catch (IOException e) {
-        	log.errorException(e);
+			log.errorException(e);
 			throw new DatabaseError(rb.getString("scriptError"), e);
 		}
-		
+
 		// Set up the outing manager.
 		try {
 			log.info("Creating OutingManager.");
@@ -182,10 +187,10 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database  {
 			log.errorException(e);
 			throw new DatabaseError(rb.getString("scriptError"), e);
 		} catch (IOException e) {
-        	log.errorException(e);
+			log.errorException(e);
 			throw new DatabaseError(rb.getString("scriptError"), e);
 		}
-		
+
 		// TODO: set up prepared statements.
 		try {
 			log.info("Beginning preparation of other prepared statements.");
@@ -194,9 +199,9 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database  {
 		} catch (SQLException e) {
 			log.error("Problem creating prepared statements..");
 			log.errorException(e);
-			throw new DatabaseError(rb.getString("dbError"),e);
+			throw new DatabaseError(rb.getString("dbError"), e);
 		}
-		
+
 		try {
 			log.info("Beginning creation of default data.");
 			createDefaultData();
@@ -204,22 +209,25 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database  {
 		} catch (SQLException e) {
 			log.error("Problem creating default data.");
 			log.errorException(e);
-			throw new DatabaseError(rb.getString("dbError"),e);
+			throw new DatabaseError(rb.getString("dbError"), e);
 		}
-		//TODO: complete
+		// TODO: complete
 
-//Test code:
+		// Test code:
 		outingManager.getOutings(new Date());
-		
+
 		// Store this database as the running db.
-		db=this;
+		db = this;
 		log.exit("Database()");
 	}
-	
+
 	/**
 	 * Run the scripts setting up the database.
-	 * @throws SQLException If there are problems running the scripts.
-	 * @throws IOException If there are problems loading the scripts.
+	 * 
+	 * @throws SQLException
+	 *             If there are problems running the scripts.
+	 * @throws IOException
+	 *             If there are problems loading the scripts.
 	 */
 	private void createDatabase() throws SQLException, IOException {
 		log.entry("createDatabase()");
@@ -240,37 +248,44 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database  {
 		s.execute(Util.loadScript("setupBoats"));
 		log.exit("createDatabase()");
 	}
-	
+
 	/**
 	 * Create all the prepared statements necessary for functionining.
-	 * @throws SQLException If there are problems running the statements.
+	 * 
+	 * @throws SQLException
+	 *             If there are problems running the statements.
 	 */
 	private void createPreparedStatements() throws SQLException {
-		//TODO: remove once all implemented in methods.
+		// TODO: remove once all implemented in methods.
 		log.entry("createPreparedStatements()");
 		// Group adding prepared statement
 		log.info("creating psAddGroup");
+		// Boats [AGM]
+
 		psAddGroup = con.prepareStatement("INSERT INTO "
-				+"groups(name, description, colour, isDefault)"
-				+" VALUES (?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+				+ "groups(name, description, colour, isDefault)"
+				+ " VALUES (?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
 		psGetGroup = con.prepareStatement("SELECT * FROM groups WHERE id = ?");
-		psModifyGroup = con.prepareStatement("UPDATE groups name = ?," +
-				"description = ?, colour = ?, isDefault = ? WHERE id = ?");
+		psModifyGroup = con.prepareStatement("UPDATE groups name = ?,"
+				+ "description = ?, colour = ?, isDefault = ? WHERE id = ?");
 		psAddMember = con.prepareStatement("INSERT INTO members (surname, "
 				+ "forename, dob, usergroup) VALUES (?, ?, ?, ?)",
 				Statement.RETURN_GENERATED_KEYS);
-		psGetMember = con.prepareStatement("SELECT * FROM members WHERE id = ?");
-		psGetBoat = con.prepareStatement("SELECT * FROM boats WHERE name = ?");
+		psGetMember = con
+				.prepareStatement("SELECT * FROM members WHERE id = ?");
+
 		log.exit("createPreparedStatements()");
 	}
-	
+
 	/**
 	 * Create the default data for the database.
-	 * @throws SQLException If there are problems creating the data.
+	 * 
+	 * @throws SQLException
+	 *             If there are problems creating the data.
 	 */
 	private void createDefaultData() throws SQLException {
-		//TODO: check colours here.
-		log.entry("createDefaultData()");	
+		// TODO: check colours here.
+		log.entry("createDefaultData()");
 		// Add the default groups and members.
 		log.info("Setting up default groups and users.");
 		// Group: guest (Is default group as such)
@@ -293,55 +308,125 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database  {
 		psAddGroup.execute();
 
 		// Member: Guest
-	    psAddMember.setString(1,rb.getString("guestMemberName"));
-	    psAddMember.setString(2,"");
+		psAddMember.setString(1, rb.getString("guestMemberName"));
+		psAddMember.setString(2, "");
 		psAddMember.setDate(3, new java.sql.Date(0));
 		psAddMember.setInt(4, 1);
 		psAddMember.execute();
-		
+
 		// Member: deleted
-	    psAddMember.setString(1,rb.getString("deletedMemberName"));
+		psAddMember.setString(1, rb.getString("deletedMemberName"));
 		psAddMember.setInt(4, 2);
 		psAddMember.execute();
-		
+
 		log.exit("createDefaultData()");
 	}
-	
-	/* (non-Javadoc)
-	 * @see org.ahunt.simpleRowLog.interfaces.Database#getBoatStatistic(java.lang.String)
+
+	/*
+	 * Note: In the "categories below: The square bracketed code is to tell you
+	 * what type of methods are included: A is add, G is get, M is modify.
+	 * Additionally, a + sign indicated that the operation is for multiple
+	 * objects. (Just a help when designing the interface. Can be pretty much
+	 * ignored.)
 	 */
-	
-	public BoatStatistic getBoatStatistic(String name) {
-		// TODO Auto-generated method stub
-		return null;
+	/* -------------------- BOATS (INDIVIDUAL) [AGM] ------------------- */
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public void addBoat(String name, String type, boolean inHouse)
+			throws DatabaseError {
+		log.verbose("addBoat(...)");
+		// Do data checking.
+		if (name == null | name.length() == 0) {
+			throw new IllegalArgumentException("Boat name cannot be null or "
+					+ "empty");
+		}
+		try {
+			if (psAddBoat == null) { // Check if ps exists, create if necessary.
+				psAddBoat = con
+						.prepareStatement("INSERT INTO boats (name, type,"
+								+ "inHouse) VALUES (?,?,?)");
+			}
+			// Set the data
+			psAddBoat.setString(1, name);
+			psAddBoat.setString(2, type);
+			psAddBoat.setBoolean(3, inHouse);
+			psAddBoat.execute();
+		} catch (SQLException e) {
+			log.errorException(e);
+			throw new DatabaseError(rb.getString("commandError"), e);
+		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.ahunt.simpleRowLog.interfaces.Database#getBoatStatistics()
+	/**
+	 * {@inheritDoc}
 	 */
-	
-	public BoatStatistic[] getBoatStatistics() {
-		// TODO Auto-generated method stub
-		return null;
+	public BoatInfo getBoat(String name) throws DatabaseError {
+		log.verbose("getBoat(String)");
+		try {
+			if (psGetBoat == null) {
+				psGetBoat = con.prepareStatement("SELECT * FROM boats WHERE"
+						+ " name = ?");
+			}
+			psGetBoat.setString(1, name);
+			psGetBoat.execute();
+			ResultSet rs = psGetBoat.getResultSet();
+			// TODO: check whether there is a boat of this name. -> return null
+			rs.next();
+			return new BoatInfo(rs.getString("name"), rs.getString("type"),
+					rs.getBoolean("inHouse"));
+		} catch (SQLException e) {
+			log.error("Failed to get boat: " + name);
+			log.errorException(e);
+			throw new DatabaseError(rb.getString("commandError"), e);
+		}
 	}
-
-	/* (non-Javadoc)
-	 * @see org.ahunt.simpleRowLog.interfaces.Database#getBoatStatistics(int)
+	
+	/**
+	 * {@inheritDoc}
 	 */
-	
-	public BoatStatistic[] getBoatStatistics(int sorting) {
-		// TODO Auto-generated method stub
-		return null;
+	public void modifyBoat(BoatInfo old, String name, String type,
+			boolean inHouse) throws DatabaseError {
+		log.verbose("modifyBoat(...)");
+		// Check the data
+		if (old == null) {
+			throw new IllegalArgumentException("old cannot be null");
+		}
+		if (name == null | name.length() == 0) {
+			throw new IllegalArgumentException("Boat name cannot be null or "
+					+ "empty");
+		}
+		// Do the actual work
+		try {
+			if (psModifyBoat == null) {
+				psModifyBoat = con.prepareStatement("UPDATE boats SET name=?," +
+						" type=?, inHouse=? WHERE name = ?");
+			}
+			psModifyBoat.setString(4, old.getName()); // Old name
+			psModifyBoat.setString(1, name);
+			psModifyBoat.setString(2, type);
+			psModifyBoat.setBoolean(3, inHouse);
+			// TODO: complete
+		} catch (SQLException e) {
+			log.error("Failed to modify boat: " + name);
+			log.errorException(e);
+			throw new DatabaseError(rb.getString("commandError"), e);
+		}
+
 	}
-
-
-	public BoatInfo[] getBoats()  throws DatabaseError{
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	public BoatInfo[] getBoats() throws DatabaseError {
 		log.verbose("getBoats()");
 		try {
 			// Check whether prepared statement exists. Create if necessary.
 			if (psGetBoats == null) {
-				psGetBoats = con.prepareStatement("SELECT name FROM boats ORDER"
-						+ " BY name");
+				psGetBoats = con
+						.prepareStatement("SELECT name FROM boats ORDER"
+								+ " BY name");
 			}
 			// Get the data.
 			psGetBoats.execute();
@@ -363,17 +448,22 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database  {
 	}
 
 	public BoatInfo[] getBoats(boolean inHouse) throws DatabaseError {
-		//TODO: change all these to entry.
+		// TODO: change all these to entry.
 		log.verbose("getBoats(boolean)");
 		try {
 			// Check whether prepared statement exists. Create if necessary.
 			if (psGetBoatsSelection == null) {
-				psGetBoatsSelection = con.prepareStatement("SELECT name FROM" +
-						"boats WHERE inHouse = ? ORDER BY name");
+				psGetBoatsSelection = con.prepareStatement("SELECT name FROM"
+						+ "boats WHERE inHouse = ? ORDER BY name");
 			}
-			//Set up
+			// Set up
 			short s;
-			if (inHouse) {s=1;} else {s=0;};
+			if (inHouse) {
+				s = 1;
+			} else {
+				s = 0;
+			}
+			;
 			psGetBoatsSelection.setShort(1, s);
 			// Get the data.
 			psGetBoatsSelection.execute();
@@ -395,17 +485,17 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database  {
 	}
 
 	// TODO: comment the next three.
-	
-	public short addGroup(String name, String description, Color colour,
+
+	public int addGroup(String name, String description, Color colour,
 			boolean isDefault) throws DatabaseError {
 		log.verbose("addGroup(...)");
 		try {
 			// Check whether prepared statement exists. Create if necessary.
 			if (psAddGroup == null) {
 				psAddGroup = con.prepareStatement("INSERT INTO "
-							+"groups(name, description, colour, isDefault)"
-							+" VALUES (?, ?, ?, ?)",
-							Statement.RETURN_GENERATED_KEYS);
+						+ "groups(name, description, colour, isDefault)"
+						+ " VALUES (?, ?, ?, ?)",
+						Statement.RETURN_GENERATED_KEYS);
 			}
 			// Set up data.
 			psAddGroup.setString(1, name);
@@ -427,14 +517,14 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database  {
 			throw new DatabaseError(rb.getString("commandError"), e);
 		}
 	}
-	
+
 	public GroupInfo getGroup(short id) throws DatabaseError {
-		log.verbose("getGroup(" + id +")");
+		log.verbose("getGroup(" + id + ")");
 		try {
 			// Check whether prepared statement exists. Create if necessary.
 			if (psGetGroup == null) {
-				psGetGroup = con.prepareStatement("SELECT * FROM groups " +
-						"WHERE id = ?");
+				psGetGroup = con.prepareStatement("SELECT * FROM groups "
+						+ "WHERE id = ?");
 			}
 			// Set the data
 			psGetGroup.setShort(1, id);
@@ -461,7 +551,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database  {
 			throw new DatabaseError(rb.getString("commandError"), e);
 		}
 	}
-	
+
 	public void modifyGroup(short id, String name, String description,
 			Color colour, boolean isDefault) throws DatabaseError {
 		log.verbose("Modifying group " + id);
@@ -469,8 +559,9 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database  {
 		try {
 			// Check whether prepared statement exists. Create if necessary.
 			if (psModifyGroup == null) {
-				psModifyGroup = con.prepareStatement("UPDATE groups name = ?," +
-				"description = ?, colour = ?, isDefault = ? WHERE id = ?");
+				psModifyGroup = con
+						.prepareStatement("UPDATE groups name = ?,"
+								+ "description = ?, colour = ?, isDefault = ? WHERE id = ?");
 			}
 			// Check what data is null (i.e. unchanged) and retrieve.
 			if (name == null) {
@@ -500,13 +591,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database  {
 			throw new DatabaseError(rb.getString("commandError"), e);
 		}
 	}
-	
-	
-	public GroupStatistic getGroupStatistic(String name) {
-		// TODO Auto-generated method stub. Low priority.
-		return null;
-	}
-	
+
 	public GroupInfo[] getGroups() throws DatabaseError {
 		log.verbose("getGroups()");
 		try {
@@ -533,62 +618,30 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database  {
 		}
 	}
 
-
-	/* (non-Javadoc)
-	 * @see org.ahunt.simpleRowLog.interfaces.Database#getMemberStatistics(short)
-	 */
-	public MemberStatistic getMemberStatistics(int key) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.ahunt.simpleRowLog.interfaces.Database#getMemberStatistics()
-	 */
-	public MemberStatistic[] getMemberStatistics() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-
-	/* (non-Javadoc)
-	 * @see org.ahunt.simpleRowLog.interfaces.Database#getMembers()
-	 */
-	public MemberInfo[] getMembers() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.ahunt.simpleRowLog.interfaces.Database#getMembers(int)
-	 */
-	public MemberInfo[] getMembers(int sorting) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	/**
 	 * Get outings for the date specified.
+	 * 
 	 * @see org.ahunt.simpleRowLog.interfaces.Database#getOutings(Date)
 	 */
-	public OutingInfo[] getOutings(Date date) throws SQLException {
+	public OutingInfo[] getOutings(Date date) throws DatabaseError {
 		return outingManager.getOutings(date);
 	}
 
 	/**
 	 * Add a new outing.
+	 * 
 	 * @see org.ahunt.simpleRowLog.interfaces.Database#addOuting(Date, int[],
-	 * int, Date, Date, String, String, String, int)
+	 *      int, Date, Date, String, String, String, int)
 	 */
-	public void addOuting(Date date, int[] rowers, int cox, Date timeOut,
+	public long addOuting(Date date, int[] rowers, int cox, Date timeOut,
 			Date timeIn, String comment, String dest, String boat, int distance)
 			throws DatabaseError {
-		outingManager.addOuting(date, rowers, cox, timeOut, timeIn,
+		return outingManager.addOuting(date, rowers, cox, timeOut, timeIn,
 				comment, dest, boat, distance);
 	}
 
 	public MemberInfo getMember(int id) throws DatabaseError {
-		//TODO: Correct group.
+		// TODO: Correct group.
 		log.entry("getMember(int)");
 		log.debug("Getting member " + id);
 		MemberInfo ret;
@@ -598,9 +651,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database  {
 			log.verbose("Got ResultSet for that date, now processing.");
 			// Process the member. There should only be one row returned.
 			res.next();
-			ret =  new MemberInfo(id, res.getString("surname"),
-					res.getString("forename"), res.getDate("dob"),
-					null);
+			ret = new MemberInfo(id, res.getString("surname"), res
+					.getString("forename"), res.getDate("dob"), null);
 		} catch (SQLException e) {
 			log.errorException(e);
 			throw new DatabaseError(rb.getString("commandError"), e);
@@ -608,11 +660,17 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database  {
 		log.exit("OutingManager.getOutings()");
 		return ret;
 	}
-	
-	/* (non-Javadoc)
-	 * @see org.ahunt.simpleRowLog.interfaces.Database#modifyOuting(long, org.ahunt.simpleRowLog.common.MemberInfo, org.ahunt.simpleRowLog.common.MemberInfo[], java.util.Date, java.util.Date, java.lang.String, java.lang.String, org.ahunt.simpleRowLog.common.BoatInfo, short)
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.ahunt.simpleRowLog.interfaces.Database#modifyOuting(long,
+	 * org.ahunt.simpleRowLog.common.MemberInfo,
+	 * org.ahunt.simpleRowLog.common.MemberInfo[], java.util.Date,
+	 * java.util.Date, java.lang.String, java.lang.String,
+	 * org.ahunt.simpleRowLog.common.BoatInfo, short)
 	 */
-	
+
 	public void modifyOuting(long created, MemberInfo cox, MemberInfo[] seat,
 			Date out, Date in, String comment, String destination,
 			BoatInfo boat, int distance) {
@@ -620,53 +678,49 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database  {
 
 	}
 
-
-	
 	public MemberStatistic[] getMembersStatistics() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-
-	
 	public MemberStatistic[] getMembersStatistics(int sorting) {
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
+
 	private PreparedStatement getOutingPreparedPStatement(int year) {
 		return null;
 		// TODO: O:implement;
 	}
-	
+
 	/**
 	 * 
 	 * Inner class responsible for outings.
+	 * 
 	 * @author Andrzej JR Hunt
-	 *
+	 * 
 	 */
 	private class OutingManager implements Runnable {
-		//TODO: add a thread periodically checking last usage of a particlar
+		// TODO: add a thread periodically checking last usage of a particlar
 		// statement set.
-		
+
 		// Stores the various tables.
-		private Hashtable<Integer, OutingStatementSet> statementCache =
-				new Hashtable<Integer, OutingStatementSet>();
-		
+		private Hashtable<Integer, OutingStatementSet> statementCache = new Hashtable<Integer, OutingStatementSet>();
+
 		public OutingManager() throws SQLException, IOException {
 			log.entry("OutingManager.OutingManager()");
 			try {
 				log.info("Trying to create a new table for this year.");
-				String year = new Integer(Calendar.getInstance().
-						get(Calendar.YEAR)).toString();
-				log.db(org.grlea.log.DebugLevel.L6_VERBOSE,
+				String year = new Integer(Calendar.getInstance().get(
+						Calendar.YEAR)).toString();
+				log.db(org.grlea.log.DebugLevel.L6_VERBOSE, MessageFormat
+						.format(Util.loadScript("createOutings"), year));
+				con.createStatement().execute(
 						MessageFormat.format(Util.loadScript("createOutings"),
-						year));
-				con.createStatement().execute(MessageFormat.format(
-						Util.loadScript("createOutings"), year));
+								year));
 				log.info("New Outings table for year " + year + " created.");
 			} catch (SQLException e) {
-			// Just ignore. Not worrying. This means the table exists.
+				// Just ignore. Not worrying. This means the table exists.
 				log.info("Outings table for this year already exists.");
 				log.dbe(org.grlea.log.DebugLevel.L6_VERBOSE, e);
 			}
@@ -674,7 +728,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database  {
 			new Thread(this).start();
 			log.exit("OutingManager.OutingManager()");
 		}
-		
+
 		public OutingInfo[] getOutings(Date date) throws DatabaseError {
 			log.entry("OutingManager.getOutings()");
 			log.info("Getting outings for " + date.toString());
@@ -694,8 +748,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database  {
 					long out_id = res.getLong("id");
 					log.verbose("Processing outing with id=" + out_id);
 					MemberInfo[] seats = new MemberInfo[8];
-					for (int i = 0; i< 8; i++) {
-						int member_id = res.getInt("rower" + (i +1));
+					for (int i = 0; i < 8; i++) {
+						int member_id = res.getInt("rower" + (i + 1));
 						if (member_id != 0) {
 							seats[i] = getMember(member_id);
 						}
@@ -726,16 +780,15 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database  {
 			log.exit("OutingManager.getOutings()");
 			return array.toArray(new OutingInfo[0]);
 		}
-		
-		
-		public void addOuting(Date date, int[] rowers,
-				int cox, Date timeOut, Date timeIn, String comment, String dest,
-				String boat, int distance) throws DatabaseError {
+
+		public long addOuting(Date date, int[] rowers, int cox, Date timeOut,
+				Date timeIn, String comment, String dest, String boat,
+				int distance) throws DatabaseError {
 			log.entry("OutingManager.getOutings()");
 			log.info("Adding outing");
 			Calendar cal = new GregorianCalendar();
 			cal.setTime(date);
-			try  {
+			try {
 				PreparedStatement ps = getOutingStatementSet(
 						cal.get(GregorianCalendar.YEAR)).getPreparedStatement(
 						OutingStatementType.ADD_OUTING);
@@ -744,18 +797,18 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database  {
 				// Go through all rowers and set to null if inexistant
 				short i;
 				for (i = 0; i < rowers.length - 1; i++) {
-					if (rowers[i+1] != 0) {
-						ps.setInt(i+3,rowers[i+1]);
+					if (rowers[i + 1] != 0) {
+						ps.setInt(i + 3, rowers[i + 1]);
 					} else {
-						ps.setNull(i+3, java.sql.Types.SMALLINT);
+						ps.setNull(i + 3, java.sql.Types.SMALLINT);
 					}
 				}
 				while (i < 7) {
-					ps.setNull(i+3, java.sql.Types.SMALLINT);
+					ps.setNull(i + 3, java.sql.Types.SMALLINT);
 					i++;
 				}
 				if (cox != 0) {
-					ps.setInt(10,cox);
+					ps.setInt(10, cox);
 				} else {
 					ps.setNull(10, java.sql.Types.INTEGER);
 				}
@@ -764,7 +817,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database  {
 				if (timeIn != null) {
 					ps.setLong(12, timeIn.getTime());
 				} else {
-					ps.setNull(12,java.sql.Types.BIGINT);
+					ps.setNull(12, java.sql.Types.BIGINT);
 				}
 				// Comment
 				if (comment != null) {
@@ -782,7 +835,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database  {
 				ps.setString(15, boat);
 				// Distance
 				if (distance != 0) {
-					ps.setInt(16,distance);
+					ps.setInt(16, distance);
 				} else {
 					ps.setNull(16, java.sql.Types.INTEGER);
 				}
@@ -792,16 +845,20 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database  {
 				throw new DatabaseError(rb.getString("commandError"), e);
 			}
 			log.exit("OutingManager.getOutings()");
+			return 0;
+			// TODO: get the id returned.
 		}
-		
+
 		/**
-		 * Get the OutingStatementSet for a particular year. Automatically
-		 * loads the set if required.
-		 * @param year The year for which you want the set.
+		 * Get the OutingStatementSet for a particular year. Automatically loads
+		 * the set if required.
+		 * 
+		 * @param year
+		 *            The year for which you want the set.
 		 * @return The OutingStatementSet.
 		 */
-		private OutingStatementSet getOutingStatementSet(int year) throws
-				SQLException {
+		private OutingStatementSet getOutingStatementSet(int year)
+				throws SQLException {
 			int y = new Integer(year);
 			if (statementCache.contains(y)) {
 				return statementCache.get(y);
@@ -809,7 +866,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database  {
 				return new OutingStatementSet(y, statementCache);
 			}
 		}
-		
+
 		/**
 		 * The thread method checking every so often through the cache to see
 		 * when an object was last used.
@@ -824,8 +881,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database  {
 					// We don't care if the thread is interrupted.
 				}
 				// Data to check;
-				Integer year = GregorianCalendar.getInstance().
-						get(GregorianCalendar.YEAR);
+				Integer year = GregorianCalendar.getInstance().get(
+						GregorianCalendar.YEAR);
 				long now = new Date().getTime();
 				// Now go through the cache:
 				Enumeration<OutingStatementSet> e = statementCache.elements();
@@ -833,60 +890,66 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database  {
 					OutingStatementSet os = e.nextElement();
 					// If the set is older than 20 mins and not for the current
 					// year then delete it.
-					if ((os.getLastUsed() + 1200000 < now) &&
-							!os.getYear().equals(year)) {
+					if ((os.getLastUsed() + 1200000 < now)
+							&& !os.getYear().equals(year)) {
 						statementCache.remove(os.getYear());
 						os.close();
 					}
 				}
 			}
 		}
-		
+
 	}
-	
-	private enum OutingStatementType {GET_OUTINGS, ADD_OUTING, MODIFY_OUTING};
-	
-	
-	
+
+	private enum OutingStatementType {
+		GET_OUTINGS, ADD_OUTING, MODIFY_OUTING
+	};
+
 	private class OutingStatementSet {
-		
-		/** The last time that this set was used.*/
+
+		/** The last time that this set was used. */
 		private long lastUsed;
-		
+
 		/** The year for which this set is defined. */
 		private Integer year;
-		
+
 		// The various prepared statements.
 		private PreparedStatement psGetOutings;
 		private PreparedStatement psAddOuting;
-		
+
 		/**
 		 * Set up an outingstatement set for a given year.
-		 * @param year The year for which the set is needed.
-		 * @param statementCache The statement cache in use.
+		 * 
+		 * @param year
+		 *            The year for which the set is needed.
+		 * @param statementCache
+		 *            The statement cache in use.
 		 */
-		public OutingStatementSet(Integer year, Hashtable<Integer,
-				OutingStatementSet> statementCache) throws SQLException {
+		public OutingStatementSet(Integer year,
+				Hashtable<Integer, OutingStatementSet> statementCache)
+				throws SQLException {
 			this.year = year;
 			log.entry("OutingStatementSet(Integer, HashTable");
 			log.info("creating psGetOutings");
-			psGetOutings = con.prepareStatement(MessageFormat
-					.format("SELECT * FROM outings_{0} WHERE day = ? ORDER BY time_out",
-					year.toString()));
-			psAddOuting = con.prepareStatement(MessageFormat
-					.format("INSERT INTO outings_{0} (day, rower1, rower2,"+
-							" rower3, rower4, rower5, rower6, rower7, rower8, "+
-							"cox, time_out, time_in, comment, destination," +
-							"boat, distance) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?"
-							+",?,?,?)",
-					year.toString()));			
+			psGetOutings = con
+					.prepareStatement(MessageFormat
+							.format(
+									"SELECT * FROM outings_{0} WHERE day = ? ORDER BY time_out",
+									year.toString()));
+			psAddOuting = con
+					.prepareStatement(MessageFormat
+							.format(
+									"INSERT INTO outings_{0} (day, rower1, rower2,"
+											+ " rower3, rower4, rower5, rower6, rower7, rower8, "
+											+ "cox, time_out, time_in, comment, destination,"
+											+ "boat, distance) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?"
+											+ ",?,?,?)", year.toString()));
 			// We want the last used time set.
 			updateTime();
 			// TODO: implement.
 			log.exit("OutingStatementSet(Integer, HashTable");
 		}
-		
-		
+
 		public PreparedStatement getPreparedStatement(OutingStatementType typ) {
 			// TODO: implement.
 			updateTime();
@@ -897,31 +960,37 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database  {
 			}
 			return null;
 		}
-		
+
 		/**
 		 * Get when this set was last accessed.
+		 * 
 		 * @return The time the object was last used.
 		 */
-		public long getLastUsed() {return lastUsed;}
-		
+		public long getLastUsed() {
+			return lastUsed;
+		}
+
 		/**
-		 * Get the year for  which the set is defined.
+		 * Get the year for which the set is defined.
+		 * 
 		 * @return The year for which this set is defined.
 		 */
-		public Integer getYear() {return year;}
-		
+		public Integer getYear() {
+			return year;
+		}
+
 		/**
-		 * Update the last used time. Should be called by any method of
-		 * the class.
+		 * Update the last used time. Should be called by any method of the
+		 * class.
 		 */
 		private void updateTime() {
 			lastUsed = new Date().getTime();
 		}
-		
+
 		public void close() {
 			log.info("Closing OutingStatementSet for year " + year.toString());
 			try {
-				//TODO : close all statements.
+				// TODO : close all statements.
 				psGetOutings.close();
 				psAddOuting.close();
 			} catch (SQLException e) {
@@ -931,10 +1000,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database  {
 		}
 	}
 
-
-
-	
-	public int addMember(String surname, String forename, Date dob, short group) throws DatabaseError {
+	public int addMember(String surname, String forename, Date dob, short group)
+			throws DatabaseError {
 		try {
 			psAddMember.setString(1, surname);
 			psAddMember.setString(2, forename);
@@ -943,39 +1010,82 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database  {
 			psAddMember.execute();
 			ResultSet rs = psAddMember.getGeneratedKeys();
 			rs.next();
-			return rs.getInt(1);			
+			return rs.getInt(1);
 		} catch (SQLException e) {
 			log.errorException(e);
 			throw new DatabaseError(rb.getString("commandError"), e);
 		}
 	}
-	
-	public void addBoat(String name, String type, boolean inHouse)
+
+
+
+	@Override
+	public int addMember(String surname, String forename, Date dob, int group)
 			throws DatabaseError {
-		try {
-			//TODO:change to ps.
-			con.createStatement().execute("INSERT INTO boats (name, type, inHouse)" +
-					"VALUES ('" + name + "','" + type + "',1)");
-		} catch (SQLException e) {
-			log.errorException(e);
-			throw new DatabaseError(rb.getString("commandError"), e);
-		}
+		// TODO Auto-generated method stub
+		return 0;
 	}
 
+	@Override
+	public BoatStatistic getBoatStatistic(String name) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
-	public BoatInfo getBoat(String name) throws DatabaseError {
-		try {
-			psGetBoat.setString(1, name);
-			psGetBoat.execute();
-			ResultSet rs = psGetBoat.getResultSet();
-			rs.next();
-			// TODO: implement boolean inHouse.
-			return new BoatInfo(rs.getString("name"),rs.getString("type"), true);
-		} catch (SQLException e) {
-			log.error("Failed to get boat: " + name);
-			log.errorException(e);
-			throw new DatabaseError(rb.getString("commandError"),e);
-		}
+	@Override
+	public BoatStatistic[] getBoatsStatistics() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public GroupInfo getGroup(int id) throws DatabaseError {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public GroupStatistic getGroupStatistic(int id) throws DatabaseError {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public GroupStatistic[] getGroupsStatistics() throws DatabaseError {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public MemberStatistic getMemberStatistics(int id) throws DatabaseError {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public MemberInfo[] getMembers() throws DatabaseError {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public MemberInfo[] getMembers(int sorting) throws DatabaseError {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void modifyGroup(int id, String name, String description,
+			Color colour, boolean isDefault) throws DatabaseError {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void modifyMember(int id, String surname, String forename, Date dob,
+			int group) throws DatabaseError {
+		// TODO Auto-generated method stub
+
 	}
 
 }
