@@ -17,6 +17,7 @@
  *
  *
  *	Changelog:
+ *  29/11/2009: Completed.
  *  24/11/2009: Major restructuring, almost finalised now.
  *	23/08/2009:	Changelog added.
  */
@@ -29,7 +30,6 @@ import java.lang.IllegalArgumentException;
 
 import org.ahunt.simpleRowLog.common.*;
 
-//TODO: Update all methods doc to return null if necessary, + IllegalArgumentExceptions.
 /**
  * The interface to connect to database engines used in simple rowLog. This
  * interface should be implemented in any database engines intended to be used
@@ -38,7 +38,7 @@ import org.ahunt.simpleRowLog.common.*;
  * Engine to extract information from the database as requred.
  * 
  * @author Andrzej JR Hunt
- * @version draft4 - 24. November 2009
+ * @version draft5 - 29. November 2009
  */
 public interface Database {
 
@@ -70,13 +70,12 @@ public interface Database {
 	/*
 	 * Note: In the "categories below: The square bracketed code is to tell you
 	 * what type of methods are included: A is add, G is get, M is modify.
-	 * Additionaly, a + sign indicated that the operation is for multiple
+	 * Additionally, a + sign indicated that the operation is for multiple
 	 * objects. (Just a help when designing the interface. Can be pretty much
 	 * ignored.)
 	 */
 	/* -------------------- BOATS (INDIVIDUAL) [AGM] ------------------- */
 
-	// TODO: link to the BoatInfo class where necessary. Complete the doc.
 	/**
 	 * Add a new boat to the list of boats.
 	 * 
@@ -101,7 +100,7 @@ public interface Database {
 	 * 
 	 * @param name
 	 *            The name of the boat.
-	 * @return The information about htis boat. <code>null</code> if there is no
+	 * @return The information about this boat. <code>null</code> if there is no
 	 *         boat named such.
 	 * @throws DatabaseError
 	 *             If there is a problem connecting to or reading from the
@@ -110,22 +109,32 @@ public interface Database {
 	public BoatInfo getBoat(String name) throws DatabaseError;
 
 	/**
+	 * Modify a boat entry in the database.
 	 * 
+	 * @param old
+	 *            The old BoatInfo object to be modified. (Note this itself
+	 *            isn't modified.) Cannot be null.
+	 * @param name
+	 *            The new name. Cannot be null.
+	 * @param type
+	 *            The type of boat.
+	 * @param inHouse
+	 *            Whether the boat is in the boathouse.
 	 * @throws DatabaseError
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
 	 * @see BoatInfo
 	 */
 	public void modifyBoat(BoatInfo old, String name, String type,
-			boolean inHouse) throws DatabaseError, IllegalArgumentException;
+			boolean inHouse) throws DatabaseError;
 
 	/* -------------------- BOATS (GROUP) [G+] ------------------- */
 
 	/**
-	 * Get a list of the boats. This returns all boats.
+	 * Get a list of the boats.
 	 * 
-	 * @return A list of the boats, alphabetically sorted. Null if there are no
-	 *         boats.
+	 * @return A list of all the boats, alphabetically sorted. Null if there are
+	 *         no boats.
 	 * @throws DatabaseError
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
@@ -136,7 +145,8 @@ public interface Database {
 	 * Get a list of boats either in or without the boathouse.
 	 * 
 	 * @param inHouse
-	 *            Whether you want the boats in the boathouse.
+	 *            Whether you want the boats that are available, or those that
+	 *            are away.
 	 * @return A list of boats.
 	 * @throws DatabaseError
 	 *             If there is a problem connecting to or reading from the
@@ -172,8 +182,18 @@ public interface Database {
 	/* -------------------- MEMBERS (INDIVIDUAL) [AGM] ----------------- */
 
 	/**
-	 * Returns new members id.
 	 * 
+	 * Add a new member to the database.
+	 * 
+	 * @return The new member's id.
+	 * @param surname
+	 *            The person's surname. Cannot be null or empty.
+	 * @param forename
+	 *            The person's forname.
+	 * @param dob
+	 *            The date of birth. Cannot be null.
+	 * @param The
+	 *            person's group. Must be a valid group id.
 	 * @throws DatabaseError
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
@@ -185,7 +205,7 @@ public interface Database {
 	 * Get the information for a certain member.
 	 * 
 	 * @param id
-	 *            The id for the member.
+	 *            The member's id.
 	 * @return The member info.
 	 * @throws DatabaseError
 	 *             If there is a problem connecting to or reading from the
@@ -194,12 +214,22 @@ public interface Database {
 	public MemberInfo getMember(int id) throws DatabaseError;
 
 	/**
+	 * Modify the details for a member in the database.
+	 * 
+	 * Note: All details must be filled in: if you aren't changing a detail,
+	 * then use the information currently available. Leaving an argument empty
+	 * means that that property will be set as empty.
 	 * 
 	 * @param id
+	 *            The member's id.
 	 * @param surname
+	 *            The member's new surname. Cannot be null or empty.
 	 * @param forename
+	 *            The member's new forename.
 	 * @param dob
+	 *            The member's new date of birth.
 	 * @param group
+	 *            The member's new group.
 	 * @throws DatabaseError
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
@@ -228,19 +258,21 @@ public interface Database {
 	 * @throws DatabaseError
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
+	 * @see #SORT_ALPHABETICALLY_FORENAME
+	 * @see #SORTED_ALPHABETICALLY_SURNAME
+	 * @see #SORTED_GROUP
+	 * @see #SORTED_INDIVIDUAL
 	 */
 	public MemberInfo[] getMembers(int sorting) throws DatabaseError;
-
-	// TODO: update description
 
 	/* -------------------- MEMBERS - STATISTICS [G,G+] ----------------- */
 
 	/**
 	 * Get the statistics for a given member.
 	 * 
-	 * @param key
-	 *            The members key.
-	 * @return The members statistics.
+	 * @param id
+	 *            The member's id.
+	 * @return The member's statistics.
 	 * @throws DatabaseError
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
@@ -248,9 +280,9 @@ public interface Database {
 	public MemberStatistic getMemberStatistics(int id) throws DatabaseError;
 
 	/**
-	 * Get the statistics for all the members
+	 * Get the statistics for all the members.
 	 * 
-	 * @return A list of members statistics.
+	 * @return A list of members' statistics.
 	 * @throws DatabaseError
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
@@ -275,11 +307,11 @@ public interface Database {
 	 * Add a group to the database.
 	 * 
 	 * @param name
-	 *            The group's name.
+	 *            The group's name. Cannot be null or empty.
 	 * @param description
 	 *            The description.
 	 * @param colour
-	 *            The highlighting colour for the group.
+	 *            The highlighting colour for the group. Cannot be null.
 	 * @return The group's id.
 	 * @throws DatabaseError
 	 *             If there is a problem connecting to or reading from the
@@ -292,7 +324,7 @@ public interface Database {
 	 * Get the group information for a specific group
 	 * 
 	 * @param id
-	 *            The group's id
+	 *            The group's id.
 	 * @return The group information.
 	 * @throws DatabaseError
 	 *             If there is a problem connecting to or reading from the
@@ -301,16 +333,17 @@ public interface Database {
 	public GroupInfo getGroup(int id) throws DatabaseError;
 
 	/**
-	 * Modify the group of given id.
+	 * Modify the group of given id. Also, all fields are overwritten using the
+	 * data here, so explicitly supply the old data if you don't modify it.
 	 * 
 	 * @param id
 	 *            The group's id.
 	 * @param name
-	 *            The new name. If null the old name will be used.
+	 *            The new name. Cannot be null or empty.
 	 * @param description
-	 *            The new description. If null the old description will be used.
+	 *            The new description.
 	 * @param colour
-	 *            The new colour. If null the old colour will be used.
+	 *            The new colour.
 	 * @throws DatabaseError
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
@@ -344,8 +377,9 @@ public interface Database {
 	public GroupStatistic getGroupStatistic(int id) throws DatabaseError;
 
 	/**
+	 * Get the statistics for all the groups.
 	 * 
-	 * @return
+	 * @return The statistics for all the groups.
 	 * @throws DatabaseError
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
@@ -380,11 +414,12 @@ public interface Database {
 	 *            a boat from <code>getBoats()</code>.
 	 * @param distance
 	 *            The distance rowed. Can be 0 to denote no distance.
+	 * @return The outing's creation time (id).
 	 * @throws DatabaseError
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
 	 */
-	public void addOuting(Date date, int[] rowers, int cox, Date timeOut,
+	public long addOuting(Date date, int[] rowers, int cox, Date timeOut,
 			Date timeIn, String comment, String dest, String boat, int distance)
 			throws DatabaseError;
 
@@ -405,14 +440,30 @@ public interface Database {
 	 * Modify an outing.
 	 * 
 	 * @param created
+	 *            The creation time (id).
+	 * @param date
+	 *            The date on which the outing exists. Only the day/month/year
+	 *            values are used from this.
+	 * @param rowers
+	 *            An array of the ids rowers in the boat. The element
+	 *            <code>rowers[0]</code> must be a valid reference, all other
+	 *            elements may be 0, or ommited. Only the first eight elements
+	 *            will be considered.
 	 * @param cox
-	 * @param seat
-	 * @param out
-	 * @param in
+	 *            The id of the cox. 0 denotes no cox.
+	 * @param timeOut
+	 *            The time of starting the outing.
+	 * @param timeIn
+	 *            The time of finishing the outing. Can be <code>null</null>.
 	 * @param comment
-	 * @param destination
+	 *            A comment. Can be <code>null</null>.
+	 * @param dest
+	 *            The destination. Can be <code>null</null>.
 	 * @param boat
+	 *            The name of the boat. Must be a valid reference to the name of
+	 *            a boat from <code>getBoats()</code>.
 	 * @param distance
+	 *            The distance rowed. Can be 0 to denote no distance.
 	 * @throws DatabaseError
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
