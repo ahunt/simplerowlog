@@ -11,6 +11,7 @@ be checked before a release, so it doesn't matter if there are a few mistakes.
 Other languages will also be added leading up to a first release. (English, German,
 Polish are definite since the main developer can write them, possibly also French.)
 IMPORTANT: All dates are in British format with DD/MM/YYYY (All leading zeros please.)
+
 3. The first release date is currently unknown. [Full Stop]...
 
 4. If developing using a DOS based OS you might have problems reading various text
@@ -34,3 +35,6 @@ ignored: it is only of interest to developers, and if one is using an ide,
 it is automatically generated as necessary. However ant commands to generate
 the javadoc will be made in the future, e.g. for developers not using an ide.
 (A move to emacs is also being considered.)
+
+7. Configuration
+Look at org.ahunt.simpleRowLog.conf.Configuration for details.
