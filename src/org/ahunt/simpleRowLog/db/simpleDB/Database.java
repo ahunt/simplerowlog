@@ -59,7 +59,7 @@ import org.grlea.log.SimpleLogger;
  * @author Andrzej JR Hunt
  *
  */
-public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
+public class Database implements org.ahunt.simpleRowLog.interfaces.Database  {
 
 	private static final SimpleLogger log = new SimpleLogger(Database.class);
 
@@ -550,13 +550,6 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.ahunt.simpleRowLog.interfaces.Database#getMemberStatistics(int)
-	 */
-	public MemberStatistic getMemberStatistics(int key) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
 	/* (non-Javadoc)
 	 * @see org.ahunt.simpleRowLog.interfaces.Database#getMembers()
@@ -747,12 +740,12 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 						cal.get(GregorianCalendar.YEAR)).getPreparedStatement(
 						OutingStatementType.ADD_OUTING);
 				ps.setDate(1, new java.sql.Date(date.getTime()));
-				ps.setShort(2, rowers[0]);
+				ps.setInt(2, rowers[0]);
 				// Go through all rowers and set to null if inexistant
 				short i;
 				for (i = 0; i < rowers.length - 1; i++) {
 					if (rowers[i+1] != 0) {
-						ps.setShort(i+3,rowers[i+1]);
+						ps.setInt(i+3,rowers[i+1]);
 					} else {
 						ps.setNull(i+3, java.sql.Types.SMALLINT);
 					}
@@ -762,7 +755,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 					i++;
 				}
 				if (cox != 0) {
-					ps.setShort(10,cox);
+					ps.setInt(10,cox);
 				} else {
 					ps.setNull(10, java.sql.Types.INTEGER);
 				}
@@ -977,11 +970,12 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			ResultSet rs = psGetBoat.getResultSet();
 			rs.next();
 			// TODO: implement boolean inHouse.
-			return new BoatInfo(rs.getString("name"),rs.getString("type"));
+			return new BoatInfo(rs.getString("name"),rs.getString("type"), true);
 		} catch (SQLException e) {
 			log.error("Failed to get boat: " + name);
 			log.errorException(e);
 			throw new DatabaseError(rb.getString("commandError"),e);
 		}
 	}
+
 }

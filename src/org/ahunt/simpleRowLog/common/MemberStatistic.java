@@ -17,6 +17,7 @@
  *
  *
  *	Changelog:
+ *  29/11/2009: Cleaned up.
  *	23/08/2009:	Changelog added.
  */
 
@@ -26,23 +27,25 @@ import java.util.Date;
 
 import org.ahunt.simpleRowLog.interfaces.RowingStatistic;
 
-
 /**
+ * The stastics for a member. This is a simple extension of MemberInfo and can
+ * be used in the same way.
+ * 
  * @author Andrzej JR Hunt
- * @version 0.04 - 24. August 2008
+ * @version 0.05 - 29. November 2009
  */
 public class MemberStatistic extends MemberInfo implements RowingStatistic {
 
-	/* Stores the number of outings in this year. */
+	/** Stores the number of outings in this year. */
 	private int thisYearOutings;
 
-	/* Stores the number of kilometres rowed in this year. */
+	/** Stores the number of kilometres rowed in this year. */
 	private int thisYearKM;
 
-	/* Stores the number of outings in the last year. */
+	/** Stores the number of outings in the last year. */
 	private int lastYearOutings;
 
-	/* Stores the number of kilometres rowed in the last year. */
+	/** Stores the number of kilometres rowed in the last year. */
 	private int lastYearKM;
 
 	/**
@@ -51,13 +54,13 @@ public class MemberStatistic extends MemberInfo implements RowingStatistic {
 	 * @param key
 	 *            The members key.
 	 * @param surname
-	 *            The members surname.
+	 *            The members surname. Cannot be null or empty.
 	 * @param forename
 	 *            The members forename.
 	 * @param dob
-	 *            The members date of birth.
+	 *            The members date of birth. Cannot be null.
 	 * @param groupInfo
-	 *            The Group Information for this member.
+	 *            The Group Information for this member. Cannot be null.
 	 * @param thisYearOutings
 	 *            The number of outings the member has made in this year.
 	 * @param thisYearKM
@@ -68,8 +71,8 @@ public class MemberStatistic extends MemberInfo implements RowingStatistic {
 	 *            The number of kilometres the member has rowed in the previous
 	 *            year
 	 */
-	public MemberStatistic(int key, String surname, String forename,
-			Date dob, GroupInfo groupInfo, int thisYearOutings, int thisYearKM,
+	public MemberStatistic(int key, String surname, String forename, Date dob,
+			GroupInfo groupInfo, int thisYearOutings, int thisYearKM,
 			int lastYearOutings, int lastYearKM) {
 		super(key, surname, forename, dob, groupInfo);
 		this.thisYearOutings = thisYearOutings;

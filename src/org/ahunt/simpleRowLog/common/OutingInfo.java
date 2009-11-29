@@ -17,6 +17,7 @@
  *
  *
  *	Changelog:
+ *  29/11/2009: Cleaned up and added checking in the constructor.
  *	23/08/2009:	Changelog added.
  */
 
@@ -28,7 +29,7 @@ import java.util.Date;
  * Create the information for a specific outing.
  * 
  * @author Andrzej JR Hunt
- * @version 0.01 - 04. November 2008
+ * @version 0.02 - 29. November 2009
  */
 
 public class OutingInfo {
@@ -64,20 +65,23 @@ public class OutingInfo {
 	private int distance;
 
 	/**
-	 * Creating a new outing info.
+	 * Creating a new outing info. Unless otherwise noted below, arguments can
+	 * be null.
 	 * 
 	 * @param created
 	 *            Time of creation of this outing: Is made at time of entering
 	 *            into database, and used as a reference to this particular
 	 *            outing.
 	 * @param day
-	 *            The day that this outing is logged as being in.
+	 *            The day that this outing is logged as being in. Cannot be
+	 *            null.
 	 * @param seat
-	 *            Array of Members in the outing.
+	 *            Array of Members in the outing. Must be an array of length 8,
+	 *            with member 0 not null.
 	 * @param cox
 	 *            The Member coxing the outing.
 	 * @param out
-	 *            Time the outing was started at.
+	 *            Time the outing was started at. Cannot be null.
 	 * @param in
 	 *            Time the outing finished at.
 	 * @param destination
@@ -85,23 +89,61 @@ public class OutingInfo {
 	 * @param comment
 	 *            A comment.
 	 * @param boat
-	 *            The Boat used.
+	 *            The Boat used. Cannot be null.
 	 * @param distance
 	 *            The distance rowed.
 	 */
 
-	public OutingInfo(long id, Date day, MemberInfo[] seat,
-			MemberInfo cox, Date out, Date in, String comment,
-			String destination, BoatInfo boat, int distance) {
+	public OutingInfo(long id, Date day, MemberInfo[] seat, MemberInfo cox,
+			Date out, Date in, String comment, String destination,
+			BoatInfo boat, int distance) {
 		this.id = id;
-		this.day = day;
-		this.seat = seat;
+		// Day of outing
+		if (day != null) {
+			this.day = day;
+		} else {
+			throw new IllegalArgumentException("Day cannot be null.");
+		}
+		// The array of members
+		if (seat == null) { // Various checking for seat[]
+			throw new IllegalArgumentException("seat[] cannot be null.");
+		} else if (seat.length != 8) {
+			throw new IllegalArgumentException("seat[] must have length 8");
+		} else if (seat[0] == null) {
+			throw new IllegalArgumentException(
+					"seat[0] (member 0) cannot be null");
+		} else {
+			this.seat = seat;
+		}
+		// cox
 		this.cox = cox;
-		this.out = out;
+		// Time out.
+		if (this.out != null) {
+			this.out = out;
+		} else {
+			throw new IllegalArgumentException("out cannot be null");
+		}
+		// Time in
 		this.in = in;
-		this.comment = comment;
-		this.destination = destination;
-		this.boat = boat;
+		// Comment
+		if (this.comment != null) {
+			this.comment = comment;
+		} else {
+			this.comment = ""; // Empty string if null is given as comment
+		}
+		// destination
+		if (this.destination != null) {
+			this.destination = comment;
+		} else {
+			this.destination = ""; // Empty string if null is given as comment
+		}
+		// boat
+		if (boat != null) {
+			this.boat = boat;
+		} else {
+			throw new IllegalArgumentException("Boat cannot be null.");
+		}
+		// distance
 		this.distance = distance;
 	}
 
@@ -126,7 +168,7 @@ public class OutingInfo {
 	/**
 	 * Get the coxwain of the boat.
 	 * 
-	 * @return The cox.
+	 * @return The cox. null if there is none.
 	 */
 	public MemberInfo getCox() {
 		return cox;
@@ -173,7 +215,7 @@ public class OutingInfo {
 	/**
 	 * Get the arrival time.
 	 * 
-	 * @return The arrival time.
+	 * @return The arrival time. null if no time has been filled in.
 	 */
 	public Date getIn() {
 		return in;
