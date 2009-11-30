@@ -64,44 +64,72 @@ import org.grlea.log.SimpleLogger;
  */
 public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 
-	private static final SimpleLogger log = new SimpleLogger(Database.class);
-
-	// The resource bundle for getting localised texts. (For error messages.)
-	private ResourceBundle rb;
-	// The driver to be used.
-	private String driver = "org.apache.derby.jdbc.EmbeddedDriver";
-	// The database name
-	private String dbName = "srl";
-	// The resulting url to be used when connecting to the database.
-	private String connectionURL = "jdbc:derby:" + dbName + ";create=true";
-
-	// The connection that has been set up. Can then be used to gain statements
-	// for any methods needing them.
-	private Connection con = null;
-
-	// various prepared statements for use.
-
-	private PreparedStatement psAddBoat;
-	private PreparedStatement psGetBoat;
-	private PreparedStatement psModifyBoat;
-
-	private PreparedStatement psAddGroup;
-	private PreparedStatement psGetGroup;
-	private PreparedStatement psGetGroups;
-	private PreparedStatement psModifyGroup;
-	private PreparedStatement psAddMember;
-	private PreparedStatement psGetMember;
-
-	private PreparedStatement psGetBoats;
-	private PreparedStatement psGetBoatsSelection;
-
-	// TODO: add others.
-
+	
 	/** The opened instance. null if none. */
 	private static Database db;
+	
+	/** Logging mechanism. */
+	private static final SimpleLogger log = new SimpleLogger(Database.class);
 
-	/** Stores the outing tables for each year. */
+	/** Resource bundle for databases texts. */
+	private ResourceBundle rb;
+
+	/** Stores the outing tables for each year and deals with them. */
 	private OutingManager outingManager;
+	
+	/*-------------------- Connection Settings ------------->
+	/** Driver to use. */
+	private String driver = "org.apache.derby.jdbc.EmbeddedDriver";
+	/** Database name. */
+	private String dbName = "srl";
+	/** Connection url in use. */
+	private String connectionURL = "jdbc:derby:" + dbName + ";create=true";
+
+	/** The connection the db is using. null if none. */
+	private Connection con;
+	
+	/* -------------- Prepared Statements for use -----------------*/
+	/** To add a boat. */
+	private PreparedStatement psAddBoat;
+	/** To get a boat. */
+	private PreparedStatement psGetBoat;
+	/** To modify a boat. */
+	private PreparedStatement psModifyBoat;
+	
+	/** To get all the boats. */
+	private PreparedStatement psGetBoats;
+	/** To get the boats that are either available, or unavailable. */
+	private PreparedStatement psGetBoatsSelection;
+	
+	/** To get statistics for one boat. */
+	private PreparedStatement psGetBoatStat;
+	/** To get statistics for all boats. */
+	private PreparedStatement psGetBoatsStats;
+	
+	/** To add a member. */
+	private PreparedStatement psAddMember;
+	/** To get a member. */
+	private PreparedStatement psGetMember;
+	/** To modify a member. */
+	private PreparedStatement psModifyMember;
+	
+	/** To get all members. */
+	private PreparedStatement psGetMembers;
+	/** TO get some members (e.g. group) */
+	private PreparedStatement psGetMembersSelection;
+	
+	private PreparedStatement psGetMemberStat;
+	private PreparedStatement psGetMembersStats;
+	private PreparedStatement psGetMembersStatsSelection;
+	
+	private PreparedStatement psAddGroup;
+	private PreparedStatement psGetGroup;
+	private PreparedStatement psModifyGroup;
+	
+	private PreparedStatement psGetGroups;
+	private PreparedStatement psGetGroupStat;
+	private PreparedStatement psGetGroupsStats;
+	
 
 	// Temporary testing method
 	// TODO: remove once finished class.
@@ -198,6 +226,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		db = this;
 		log.exit("Database()");
 	}
+
 
 	/**
 	 * Run the scripts setting up the database.
