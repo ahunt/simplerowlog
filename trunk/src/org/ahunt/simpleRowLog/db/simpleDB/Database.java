@@ -64,10 +64,9 @@ import org.grlea.log.SimpleLogger;
  */
 public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 
-	
 	/** The opened instance. null if none. */
 	private static Database db;
-	
+
 	/** Logging mechanism. */
 	private static final SimpleLogger log = new SimpleLogger(Database.class);
 
@@ -76,7 +75,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 
 	/** Stores the outing tables for each year and deals with them. */
 	private OutingManager outingManager;
-	
+
 	/*-------------------- Connection Settings ------------->
 	/** Driver to use. */
 	private String driver = "org.apache.derby.jdbc.EmbeddedDriver";
@@ -87,49 +86,48 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 
 	/** The connection the db is using. null if none. */
 	private Connection con;
-	
-	/* -------------- Prepared Statements for use -----------------*/
+
+	/* -------------- Prepared Statements for use ----------------- */
 	/** To add a boat. */
 	private PreparedStatement psAddBoat;
 	/** To get a boat. */
 	private PreparedStatement psGetBoat;
 	/** To modify a boat. */
 	private PreparedStatement psModifyBoat;
-	
+
 	/** To get all the boats. */
 	private PreparedStatement psGetBoats;
 	/** To get the boats that are either available, or unavailable. */
 	private PreparedStatement psGetBoatsSelection;
-	
+
 	/** To get statistics for one boat. */
 	private PreparedStatement psGetBoatStat;
 	/** To get statistics for all boats. */
 	private PreparedStatement psGetBoatsStats;
-	
+
 	/** To add a member. */
 	private PreparedStatement psAddMember;
 	/** To get a member. */
 	private PreparedStatement psGetMember;
 	/** To modify a member. */
 	private PreparedStatement psModifyMember;
-	
+
 	/** To get all members. */
 	private PreparedStatement psGetMembers;
 	/** TO get some members (e.g. group) */
 	private PreparedStatement psGetMembersSelection;
-	
+
 	private PreparedStatement psGetMemberStat;
 	private PreparedStatement psGetMembersStats;
 	private PreparedStatement psGetMembersStatsSelection;
-	
+
 	private PreparedStatement psAddGroup;
 	private PreparedStatement psGetGroup;
 	private PreparedStatement psModifyGroup;
-	
+
 	private PreparedStatement psGetGroups;
 	private PreparedStatement psGetGroupStat;
 	private PreparedStatement psGetGroupsStats;
-	
 
 	// Temporary testing method
 	// TODO: remove once finished class.
@@ -226,7 +224,6 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		db = this;
 		log.exit("Database()");
 	}
-
 
 	/**
 	 * Run the scripts setting up the database.
@@ -458,19 +455,107 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 
 	/* -------------------- BOATS - STATISTICS [G,G+] ------------------- */
 
+	/**
+	 * Not yet implemented.
+	 */
 	@Override
 	public BoatStatistic getBoatStatistic(String name) {
-		// TODO Auto-generated method stub
+		// TODO: implement (low priority)
 		return null;
 	}
+
+	/**
+	 * Not yet implemented.
+	 */
 
 	@Override
 	public BoatStatistic[] getBoatsStatistics() {
-		// TODO Auto-generated method stub
+		// TODO: implement (low priority)
 		return null;
 	}
 
-	// TODO: comment the next three.
+	/* -------------------- MEMBERS (INDIVIDUAL) [AGM] ----------------- */
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public int addMember(String surname, String forename, Date dob, int group)
+			throws DatabaseError {
+		log.verbose("addMember(...)");
+		if (surname == null | surname.length() == 0) {
+			throw new IllegalArgumentException("Surname cannot be null or"
+					+ " zero length");
+		}
+		if (dob == null) {
+			throw new IllegalArgumentException("dob cannot be null");
+		}
+		if (getGroup(group) == null) { // Check for valid group
+			throw new IllegalArgumentException(
+					"group must correspond to an existing group.");
+		}
+		try {
+			if (psAddMember == null) { // Check whether already made.
+				psAddMember = con
+						.prepareStatement(
+								"INSERT INTO members (surname, "
+										+ "forename, dob, usergroup) VALUES (?, ?, ?, ?)",
+								Statement.RETURN_GENERATED_KEYS);
+			}
+			psAddMember.setString(1, surname);
+			psAddMember.setString(2, forename);
+			psAddMember.setDate(3, new java.sql.Date(dob.getTime()));
+			psAddMember.setInt(4, group);
+			psAddMember.execute();
+			ResultSet rs = psAddMember.getGeneratedKeys();
+			return rs.getInt(1);
+		} catch (SQLException e) {
+			log.errorException(e);
+			throw new DatabaseError(rb.getString("commandError"), e);
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public MemberInfo getMember(int id) throws DatabaseError {
+		// TODO: Correct group.
+		log.verbose("getMember(int)");
+		try {
+			if (psGetMember == null) { // Ensure the ps is available
+				psGetMember = con
+						.prepareStatement("SELECT * FROM members WHERE id = ?");
+			}
+			psGetMember.setInt(1, id);
+			ResultSet res = psGetMember.executeQuery();
+			if (res.next()) { // Check whether there are results
+				return new MemberInfo(id, res.getString("surname"), res
+					.getString("forename"), res.getDate("dob"), null);
+			} else { // No such member
+				return null;
+			}
+		} catch (SQLException e) {
+			log.errorException(e);
+			throw new DatabaseError(rb.getString("commandError"), e);
+		}
+	}
+
+	/**
+	 * Not yet implemented.
+	 */
+	@Override
+	public void modifyMember(int id, String surname, String forename, Date dob,
+			int group) throws DatabaseError {
+		// TODO: implement (medium).
+
+	}
+
+	/* -------------------- MEMBERS (GROUP) [G+] ----------------- */
+	
+	
+	
+	/* UNCLEAN --------------___----____!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
 
 	@Override
 	public int addGroup(String name, String description, Color colour,
@@ -603,9 +688,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	}
 
 	/**
-	 * Get outings for the date specified.
-	 * 
-	 * @see org.ahunt.simpleRowLog.interfaces.Database#getOutings(Date)
+	 * {@inheritDoc}
 	 */
 	@Override
 	public OutingInfo[] getOutings(Date date) throws DatabaseError {
@@ -613,10 +696,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	}
 
 	/**
-	 * Add a new outing.
-	 * 
-	 * @see org.ahunt.simpleRowLog.interfaces.Database#addOuting(Date, int[],
-	 *      int, Date, Date, String, String, String, int)
+	 * {@inheritDoc}
 	 */
 	@Override
 	public long addOuting(Date date, int[] rowers, int cox, Date timeOut,
@@ -626,58 +706,32 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 				comment, dest, boat, distance);
 	}
 
-	@Override
-	// TODO: cleanup
-	public MemberInfo getMember(int id) throws DatabaseError {
-		// TODO: Correct group.
-		log.entry("getMember(int)");
-		log.debug("Getting member " + id);
-		MemberInfo ret;
-		try {
-			psGetMember = con
-					.prepareStatement("SELECT * FROM members WHERE id = ?");
-
-			psGetMember.setInt(1, id);
-			ResultSet res = psGetMember.executeQuery();
-			log.verbose("Got ResultSet for that date, now processing.");
-			// Process the member. There should only be one row returned.
-			res.next();
-			ret = new MemberInfo(id, res.getString("surname"), res
-					.getString("forename"), res.getDate("dob"), null);
-		} catch (SQLException e) {
-			log.errorException(e);
-			throw new DatabaseError(rb.getString("commandError"), e);
-		}
-		log.exit("OutingManager.getOutings()");
-		return ret;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.ahunt.simpleRowLog.interfaces.Database#modifyOuting(long,
-	 * org.ahunt.simpleRowLog.common.MemberInfo,
-	 * org.ahunt.simpleRowLog.common.MemberInfo[], java.util.Date,
-	 * java.util.Date, java.lang.String, java.lang.String,
-	 * org.ahunt.simpleRowLog.common.BoatInfo, short)
+	/**
+	 * {@inheritDoc}
 	 */
 	@Override
 	public void modifyOuting(long created, MemberInfo cox, MemberInfo[] seat,
 			Date out, Date in, String comment, String destination,
 			BoatInfo boat, int distance) {
-		// TODO Auto-generated method stub
+		// TODO Implement (medium priority)
 
 	}
 
+	/**
+	 * Not yet implemented.
+	 */
 	@Override
 	public MemberStatistic[] getMembersStatistics() {
-		// TODO Auto-generated method stub
+		// TODO: implement (low priority)
 		return null;
 	}
 
+	/**
+	 * Not yet implemented.
+	 */
 	@Override
 	public MemberStatistic[] getMembersStatistics(int sorting) {
-		// TODO Auto-generated method stub
+		// TODO: implement (low priority)
 		return null;
 	}
 
@@ -988,63 +1042,43 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		}
 	}
 
-	@Override
-	// TODO: cleanup
-	public int addMember(String surname, String forename, Date dob, int group)
-			throws DatabaseError {
-		try {
-			psAddMember = con.prepareStatement("INSERT INTO members (surname, "
-					+ "forename, dob, usergroup) VALUES (?, ?, ?, ?)",
-					Statement.RETURN_GENERATED_KEYS);
-			psAddMember.setString(1, surname);
-			psAddMember.setString(2, forename);
-			psAddMember.setDate(3, new java.sql.Date(dob.getTime()));
-			psAddMember.setInt(4, group);
-			psAddMember.execute();
-			ResultSet rs = psAddMember.getGeneratedKeys();
-			rs.next();
-			return rs.getInt(1);
-		} catch (SQLException e) {
-			log.errorException(e);
-			throw new DatabaseError(rb.getString("commandError"), e);
-		}
-	}
-
+	/**
+	 * Not yet implemented.
+	 */
 	@Override
 	public GroupStatistic getGroupStatistic(int id) throws DatabaseError {
-		// TODO Auto-generated method stub
+		// TODO: implement (low priority)
 		return null;
 	}
 
+	/**
+	 * Not yet implemented.
+	 */
 	@Override
 	public GroupStatistic[] getGroupsStatistics() throws DatabaseError {
-		// TODO Auto-generated method stub
+		// TODO: implement (low priority)
 		return null;
 	}
 
+	/**
+	 * Not yet implemented.
+	 */
 	@Override
 	public MemberStatistic getMemberStatistics(int id) throws DatabaseError {
-		// TODO Auto-generated method stub
+		// TODO: implement (low priority)
 		return null;
 	}
 
 	@Override
 	public MemberInfo[] getMembers() throws DatabaseError {
-		// TODO Auto-generated method stub
+		// TODO: implement (high).
 		return null;
 	}
 
 	@Override
 	public MemberInfo[] getMembers(int sorting) throws DatabaseError {
-		// TODO Auto-generated method stub
+		// TODO: implement (medium).
 		return null;
-	}
-
-	@Override
-	public void modifyMember(int id, String surname, String forename, Date dob,
-			int group) throws DatabaseError {
-		// TODO Auto-generated method stub
-
 	}
 
 }

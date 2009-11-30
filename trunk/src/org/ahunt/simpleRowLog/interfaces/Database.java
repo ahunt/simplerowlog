@@ -38,11 +38,10 @@ import org.ahunt.simpleRowLog.common.*;
  * Engine to extract information from the database as requred.
  * 
  * If you are wanting certain results, it is recommended to statically import
- * the constants here as such:
- * <code>
+ * the constants here as such: <code>
  * import static org.ahunt.simpleRowLog.interfaces.Database.*;
- * </code>
- * Meaning you can now directly reference the SORTING_* constants.
+ * </code> Meaning you can now directly reference
+ * the SORTING_* constants.
  * 
  * 
  * @author Andrzej JR Hunt
@@ -200,8 +199,8 @@ public interface Database {
 	 *            The person's forname.
 	 * @param dob
 	 *            The date of birth. Cannot be null.
-	 * @param The
-	 *            person's group. Must be a valid group id.
+	 * @param group
+	 *            The person's group. Must be a valid group id.
 	 * @throws DatabaseError
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
@@ -214,7 +213,8 @@ public interface Database {
 	 * 
 	 * @param id
 	 *            The member's id.
-	 * @return The member info.
+	 * @return The member info. null if there is no member with the specified
+	 *         id.
 	 * @throws DatabaseError
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
@@ -333,7 +333,7 @@ public interface Database {
 	 * 
 	 * @param id
 	 *            The group's id.
-	 * @return The group information.
+	 * @return The group information. Null if there is no such group.
 	 * @throws DatabaseError
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
