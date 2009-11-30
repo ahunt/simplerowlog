@@ -311,6 +311,7 @@ public interface Database {
 			throws DatabaseError;
 
 	/* -------------------- GROUPS [AGM,G+] ----------------- */
+	
 	/**
 	 * Add a group to the database.
 	 * 

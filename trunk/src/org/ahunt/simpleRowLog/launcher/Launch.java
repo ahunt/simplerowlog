@@ -89,7 +89,6 @@ public class Launch {
 	        log.info(javax.swing.UIManager.getLookAndFeel().getID()
 	        		+ " set as toolkit.");
 	    } catch (Exception e) {
-			// TODO: Add error info (log), but keep running with Motif etc.
 	    	System.out.println(rb.getString("noGTK"));
 	    	log.info("GTK unavailable, default used.");
 	    }
