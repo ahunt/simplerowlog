@@ -21,7 +21,6 @@
  */
 package org.ahunt.simpleRowLog.gui.simpleGUI;
 
-import java.util.Properties;
 import java.util.ResourceBundle;
 
 import javax.swing.JButton;

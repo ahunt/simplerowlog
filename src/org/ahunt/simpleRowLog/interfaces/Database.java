@@ -37,6 +37,14 @@ import org.ahunt.simpleRowLog.common.*;
  * user, boat and outing information. This interface is used by the UI's and
  * Engine to extract information from the database as requred.
  * 
+ * If you are wanting certain results, it is recommended to statically import
+ * the constants here as such:
+ * <code>
+ * import static org.ahunt.simpleRowLog.interfaces.Database.*;
+ * </code>
+ * Meaning you can now directly reference the SORTING_* constants.
+ * 
+ * 
  * @author Andrzej JR Hunt
  * @version draft5 - 29. November 2009
  */
