@@ -135,7 +135,6 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		try {
 			Runtime.getRuntime().exec("rm -rf ./database/srl");
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		getInstance();
@@ -412,6 +411,9 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			}
 			log.verbose("Data gotten, returning groups");
 			// Return a GroupInfo.
+			if (a.size() == 0) {
+				return null;
+			}
 			return a.toArray(new BoatInfo[0]);
 		} catch (SQLException e) {
 			log.error("Error getting groups");
@@ -445,6 +447,9 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			}
 			log.verbose("Data gotten, returning groups");
 			// Return a GroupInfo.
+			if (a.size() == 0) {
+				return null;
+			}
 			return a.toArray(new BoatInfo[0]);
 		} catch (SQLException e) {
 			log.error("Error getting groups");
@@ -531,7 +536,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			ResultSet res = psGetMember.executeQuery();
 			if (res.next()) { // Check whether there are results
 				return new MemberInfo(id, res.getString("surname"), res
-					.getString("forename"), res.getDate("dob"), null);
+						.getString("forename"), res.getDate("dob"), null);
 			} else { // No such member
 				return null;
 			}
@@ -552,11 +557,79 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	}
 
 	/* -------------------- MEMBERS (GROUP) [G+] ----------------- */
-	
-	
-	
-	/* UNCLEAN --------------___----____!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
 
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public MemberInfo[] getMembers() throws DatabaseError {
+		log.verbose("getMembers()");
+		try {
+			if (psGetMembers == null) {
+				psGetMembers = con.prepareStatement("SELECT * from members");
+			}
+			psGetMembers.execute();
+			ResultSet rs = psGetMembers.getResultSet();
+			ArrayList<MemberInfo> a = new ArrayList<MemberInfo>();
+			// TODO: caching of groups to save call of getGroup for each group.
+			while (rs.next()) {
+				a.add(new MemberInfo(rs.getInt("id"), rs.getString("surname"),
+						rs.getString("forename"), new Date(0), getGroup(rs
+								.getInt("usergroup"))));
+			}
+			if (a.size() == 0) {
+				return null;
+			}
+			return a.toArray(new MemberInfo[0]);
+		} catch (SQLException e) {
+			log.errorException(e);
+			throw new DatabaseError(rb.getString("commandError"), e);
+		}
+	}
+
+	/**
+	 * Not yet implemented
+	 */
+	@Override
+	public MemberInfo[] getMembers(int sorting) throws DatabaseError {
+		// TODO: implement (medium).
+		return null;
+	}
+
+	/* -------------------- MEMBERS - STATISTICS [G,G+] ----------------- */
+
+	/**
+	 * Not yet implemented.
+	 */
+	@Override
+	public MemberStatistic getMemberStatistics(int id) throws DatabaseError {
+		// TODO: implement (low priority)
+		return null;
+	}
+
+	/**
+	 * Not yet implemented.
+	 */
+	@Override
+	public MemberStatistic[] getMembersStatistics() {
+		// TODO: implement (low priority)
+		return null;
+	}
+
+	/**
+	 * Not yet implemented.
+	 */
+	@Override
+	public MemberStatistic[] getMembersStatistics(int sorting) {
+		// TODO: implement (low priority)
+		return null;
+	}
+
+	/* -------------------- GROUPS [AGM,G+] ----------------- */
+
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public int addGroup(String name, String description, Color colour,
 			boolean isDefault) throws DatabaseError {
@@ -586,6 +659,9 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public GroupInfo getGroup(int id) throws DatabaseError {
 		log.verbose("getGroup(" + id + ")");
@@ -617,33 +693,28 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
-	// TODO: cleanup
 	public void modifyGroup(int id, String name, String description,
 			Color colour, boolean isDefault) throws DatabaseError {
 		log.verbose("Modifying group " + id);
-		GroupInfo old = getGroup(id);
+		if (getGroup(id) == null) { // if no such group
+			throw new IllegalArgumentException("id must be a valid group");
+		}
+		if (name == null | name.length() == 0) {
+			throw new IllegalArgumentException("name cannot be null or zero"
+					+ " length");
+		}
+		if (colour == null) {
+			throw new IllegalArgumentException("colour cannot be null");
+		}
 		try {
-
-			psModifyGroup = con
-					.prepareStatement("UPDATE groups name = ?,"
-							+ "description = ?, colour = ?, isDefault = ? WHERE id = ?");
-
-			// Check whether prepared statement exists. Create if necessary.
 			if (psModifyGroup == null) {
-				psModifyGroup = con
-						.prepareStatement("UPDATE groups name = ?,"
-								+ "description = ?, colour = ?, isDefault = ? WHERE id = ?");
-			}
-			// Check what data is null (i.e. unchanged) and retrieve.
-			if (name == null) {
-				name = old.getName();
-			}
-			if (description == null) {
-				description = old.getDescription();
-			}
-			if (colour == null) {
-				colour = old.getDisplayColour();
+				psModifyGroup = con.prepareStatement("UPDATE groups name = ?,"
+						+ "description = ?, colour = ?, isDefault = ?"
+						+ " WHERE id = ?");
 			}
 			// Setup data.
 			psModifyGroup.setString(1, name);
@@ -660,6 +731,9 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public GroupInfo[] getGroups() throws DatabaseError {
 		log.verbose("getGroups()");
@@ -672,6 +746,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			psGetGroups.execute();
 			// Get results.
 			ResultSet rs = psGetGroups.getResultSet();
+			// Check that there are any groups
 			ArrayList<MemberInfo> a = new ArrayList<MemberInfo>();
 			// Go through the groups.
 			while (rs.next()) {
@@ -679,6 +754,9 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			}
 			log.verbose("Data gotten, returning groups");
 			// Return a GroupInfo.
+			if (a.size() == 0) {
+				return null; // If there are no groups.
+			}
 			return a.toArray(new GroupInfo[0]);
 		} catch (SQLException e) {
 			log.error("Error getting groups");
@@ -687,13 +765,27 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		}
 	}
 
+	/* -------------------- GROUPS - STATISTICS [G,G+] ----------------- */
+
 	/**
-	 * {@inheritDoc}
+	 * Not yet implemented.
 	 */
 	@Override
-	public OutingInfo[] getOutings(Date date) throws DatabaseError {
-		return outingManager.getOutings(date);
+	public GroupStatistic getGroupStatistic(int id) throws DatabaseError {
+		// TODO: implement (low priority)
+		return null;
 	}
+
+	/**
+	 * Not yet implemented.
+	 */
+	@Override
+	public GroupStatistic[] getGroupsStatistics() throws DatabaseError {
+		// TODO: implement (low priority)
+		return null;
+	}
+
+	/* -------------------- Outings [AG+M] ----------------- */
 
 	/**
 	 * {@inheritDoc}
@@ -710,30 +802,22 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	 * {@inheritDoc}
 	 */
 	@Override
+	public OutingInfo[] getOutings(Date date) throws DatabaseError {
+		return outingManager.getOutings(date);
+	}
+
+	/**
+	 * Not yet implemented.
+	 */
+	@Override
 	public void modifyOuting(long created, MemberInfo cox, MemberInfo[] seat,
 			Date out, Date in, String comment, String destination,
 			BoatInfo boat, int distance) {
-		// TODO Implement (medium priority)
+		// TODO Implement (high priority)
 
 	}
 
-	/**
-	 * Not yet implemented.
-	 */
-	@Override
-	public MemberStatistic[] getMembersStatistics() {
-		// TODO: implement (low priority)
-		return null;
-	}
-
-	/**
-	 * Not yet implemented.
-	 */
-	@Override
-	public MemberStatistic[] getMembersStatistics(int sorting) {
-		// TODO: implement (low priority)
-		return null;
-	}
+	/* -------------------- OutingManager (INTERNAL) ----------------- */
 
 	/**
 	 * 
@@ -743,8 +827,6 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	 * 
 	 */
 	private class OutingManager implements Runnable {
-		// TODO: add a thread periodically checking last usage of a particlar
-		// statement set.
 
 		// Stores the various tables.
 		private Hashtable<Integer, OutingStatementSet> statementCache = new Hashtable<Integer, OutingStatementSet>();
@@ -916,9 +998,9 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		public void run() {
 			// We want this to run indefinitely.
 			while (true) {
-				// Wait for half an hour.
+				// Wait for 15 minutes
 				try {
-					Thread.sleep(1800000l);
+					Thread.sleep(900000l);
 				} catch (Exception e) {
 					// We don't care if the thread is interrupted.
 				}
@@ -943,6 +1025,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 
 	}
 
+	/* -------------------- OutingStatementSet (INTERNAL) ----------------- */
+
 	private enum OutingStatementType {
 		GET_OUTINGS, ADD_OUTING, MODIFY_OUTING
 	};
@@ -958,6 +1042,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		// The various prepared statements.
 		private PreparedStatement psGetOutings;
 		private PreparedStatement psAddOuting;
+		private PreparedStatement psModifyOuting;
 
 		/**
 		 * Set up an outingstatement set for a given year.
@@ -1032,53 +1117,15 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		public void close() {
 			log.info("Closing OutingStatementSet for year " + year.toString());
 			try {
-				// TODO : close all statements.
 				psGetOutings.close();
 				psAddOuting.close();
+				psModifyOuting.close();
 			} catch (SQLException e) {
 				log.errorException(e);
+			} finally {
 			}
 			year = null;
 		}
-	}
-
-	/**
-	 * Not yet implemented.
-	 */
-	@Override
-	public GroupStatistic getGroupStatistic(int id) throws DatabaseError {
-		// TODO: implement (low priority)
-		return null;
-	}
-
-	/**
-	 * Not yet implemented.
-	 */
-	@Override
-	public GroupStatistic[] getGroupsStatistics() throws DatabaseError {
-		// TODO: implement (low priority)
-		return null;
-	}
-
-	/**
-	 * Not yet implemented.
-	 */
-	@Override
-	public MemberStatistic getMemberStatistics(int id) throws DatabaseError {
-		// TODO: implement (low priority)
-		return null;
-	}
-
-	@Override
-	public MemberInfo[] getMembers() throws DatabaseError {
-		// TODO: implement (high).
-		return null;
-	}
-
-	@Override
-	public MemberInfo[] getMembers(int sorting) throws DatabaseError {
-		// TODO: implement (medium).
-		return null;
 	}
 
 }

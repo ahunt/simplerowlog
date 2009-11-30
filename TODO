@@ -2,7 +2,8 @@ simple rowLog TODO file.
 
 -- Implement Database: (remember to put prepared statements locally.)
 	[Done] addBoat(), getBoat(), modifyBoat(), getBoats(), getBoats(boolean)
-			addMember(...), getMember(int)
+			addMember(...), getMember(int), getMembers(), addGroup(...),
+			getGroup(int), modifyGroup(...), getGroups()
 
 -- Update the Database documentation to do the same type of checking.
 	[COMP] --> Now do the implementation
@@ -12,4 +13,7 @@ simple rowLog TODO file.
 	
 	--checking for no member, no group etc.
 
+-- In the database, for all getGroups etc, extract data directly from one request
+	(instead of simply getting ids, then single groups).
 	
+-- Cache and cache checking in db.
