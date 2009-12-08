@@ -118,7 +118,7 @@ public class OutingInfo {
 		// cox
 		this.cox = cox;
 		// Time out.
-		if (this.out != null) {
+		if (out != null) {
 			this.out = out;
 		} else {
 			throw new IllegalArgumentException("out cannot be null");
@@ -126,13 +126,13 @@ public class OutingInfo {
 		// Time in
 		this.in = in;
 		// Comment
-		if (this.comment != null) {
+		if (comment != null) {
 			this.comment = comment;
 		} else {
 			this.comment = ""; // Empty string if null is given as comment
 		}
 		// destination
-		if (this.destination != null) {
+		if (destination != null) {
 			this.destination = comment;
 		} else {
 			this.destination = ""; // Empty string if null is given as comment

@@ -252,7 +252,6 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		s.execute(Util.loadScript("setupBoats"));
 
 		// The default data.
-		// TODO: only if this is a new database.
 		log.info("Beginning creation of default data.");
 		createDefaultData();
 		log.info("Default data created successfully.");
@@ -376,6 +375,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			psModifyBoat.setString(1, name);
 			psModifyBoat.setString(2, type);
 			psModifyBoat.setBoolean(3, inHouse);
+			psModifyBoat.execute();
 			// TODO: complete
 		} catch (SQLException e) {
 			log.error("Failed to modify boat: " + name);
@@ -427,7 +427,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	 */
 	@Override
 	public BoatInfo[] getBoats(boolean inHouse) throws DatabaseError {
-		// TODO: change all these to entry.
+		// TODO: change all these to entry. (Direct getting of data.)
 		log.verbose("getBoats(boolean)");
 		try {
 			// Check whether prepared statement exists. Create if necessary.
@@ -487,7 +487,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	@Override
 	public int addMember(String surname, String forename, Date dob, int group)
 			throws DatabaseError {
-		log.verbose("addMember(...)");
+		log.verbose("addMember(... "+group+")");
 		if (surname == null | surname.length() == 0) {
 			throw new IllegalArgumentException("Surname cannot be null or"
 					+ " zero length");
@@ -513,7 +513,11 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			psAddMember.setInt(4, group);
 			psAddMember.execute();
 			ResultSet rs = psAddMember.getGeneratedKeys();
-			return rs.getInt(1);
+			if (rs.next()) {
+				return rs.getInt(1);
+			} else {
+				throw new DatabaseError(rb.getString("commandError"), null);
+			}
 		} catch (SQLException e) {
 			log.errorException(e);
 			throw new DatabaseError(rb.getString("commandError"), e);
@@ -536,7 +540,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			ResultSet res = psGetMember.executeQuery();
 			if (res.next()) { // Check whether there are results
 				return new MemberInfo(id, res.getString("surname"), res
-						.getString("forename"), res.getDate("dob"), null);
+						.getString("forename"), res.getDate("dob"),
+						getGroup(res.getInt("usergroup")));
 			} else { // No such member
 				return null;
 			}
@@ -547,12 +552,46 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	}
 
 	/**
-	 * Not yet implemented.
+	 * {@inheritDoc}
 	 */
 	@Override
 	public void modifyMember(int id, String surname, String forename, Date dob,
 			int group) throws DatabaseError {
-		// TODO: implement (medium).
+		log.verbose("modifyMember(...)");
+		// Check the data
+		if (getMember(id) == null) {
+			throw new IllegalArgumentException("member must already exist");
+		}
+		if (surname == null | surname.length() == 0) {
+			throw new IllegalArgumentException("surname cannot be null or"
+					+ " zero length");
+		}
+		if (dob == null) {
+			throw new IllegalArgumentException("dob cannot be null");
+		}
+		if (getGroup(group) == null) { // Check for valid group
+			throw new IllegalArgumentException(
+					"group must correspond to an existing group.");
+		}
+		// Do the actual work
+		try {
+			if (psModifyMember == null) {
+				psModifyMember = con.prepareStatement("UPDATE members SET" +
+						" surname=?, forename=?, dob=?, usergroup=? WHERE" +
+						" id = ?");
+			}
+			psModifyMember.setString(1, surname); // Old name
+			psModifyMember.setString(2, forename);
+			psModifyMember.setDate(3, new java.sql.Date(dob.getTime()));
+			psModifyMember.setInt(4, group);
+			psModifyMember.setInt(5, id);
+			psModifyMember.execute();
+		} catch (SQLException e) {
+			log.error("Failed to modify member.");
+			log.errorException(e);
+			throw new DatabaseError(rb.getString("commandError"), e);
+		}
+
 
 	}
 
@@ -650,8 +689,11 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			psAddGroup.execute();
 			// Get the generated id.
 			ResultSet rs = psAddGroup.getGeneratedKeys();
-			rs.next();
-			return rs.getInt(1);
+			if (rs.next()) {
+				return rs.getInt(1);
+			} else {
+				throw new DatabaseError(rb.getString("commandError"), null);
+			}
 		} catch (SQLException e) {
 			log.error("Error setting up group.");
 			log.errorException(e);
@@ -676,7 +718,9 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			psGetGroup.execute();
 			// Get results.
 			ResultSet rs = psGetGroup.getResultSet();
-			rs.next();
+			if(!rs.next()) {
+				throw new IllegalArgumentException("No such group " + id);
+			}
 			// Extract data.
 			String name = rs.getString("name");
 			String description = rs.getString("description");
@@ -747,10 +791,10 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			// Get results.
 			ResultSet rs = psGetGroups.getResultSet();
 			// Check that there are any groups
-			ArrayList<MemberInfo> a = new ArrayList<MemberInfo>();
+			ArrayList<GroupInfo> a = new ArrayList<GroupInfo>();
 			// Go through the groups.
 			while (rs.next()) {
-				a.add(getMember(rs.getInt("id")));
+				a.add(getGroup(rs.getInt("id")));
 			}
 			log.verbose("Data gotten, returning groups");
 			// Return a GroupInfo.

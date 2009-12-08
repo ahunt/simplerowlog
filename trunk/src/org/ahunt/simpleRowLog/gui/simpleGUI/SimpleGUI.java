@@ -47,6 +47,8 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 
+import org.ahunt.simpleRowLog.common.BoatInfo;
+import org.ahunt.simpleRowLog.common.GroupInfo;
 import org.ahunt.simpleRowLog.common.MemberInfo;
 import org.ahunt.simpleRowLog.common.OutingInfo;
 import org.ahunt.simpleRowLog.conf.Configuration;
@@ -113,6 +115,7 @@ public class SimpleGUI extends JFrame {
 	public static void main(String[] args) throws Exception {
 		Runtime.getRuntime().exec("rm -rf ./database/srl");
 		Database bc = org.ahunt.simpleRowLog.db.simpleDB.Database.getInstance();
+		GroupInfo[] bl = bc.getGroups();
 		bc.addBoat("Anna", "8+", true);
 		bc.addBoat("Bob", "1x", true);
 		System.out.println();
@@ -126,6 +129,7 @@ public class SimpleGUI extends JFrame {
 				new Date(), 1) }, 0, new Date(), new Date(
 				new Date().getTime() + 3600000), "Middle Earth", "Fun trip!",
 				"Bob", 12);
+		bc.modifyMember(3,"Hunt","Andrzej", new Date(), 1);
 		new SimpleGUI(bc);
 	}
 
@@ -136,6 +140,7 @@ public class SimpleGUI extends JFrame {
 	 *            The database from which data is to be requested.
 	 */
 	public SimpleGUI(Database db) {
+		System.out.println("Starting gui");
 		try {
 			conf = Configuration.getConf("simpleGUI");
 		} catch (FileNotFoundException e) {
