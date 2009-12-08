@@ -32,6 +32,8 @@ public class ErrorHandler {
 
 	
 	public static void handleError(Throwable t) {
+		System.out.println("Error -- major");
+		t.printStackTrace();
 		// TODO: implement.
 	}
 }

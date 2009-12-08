@@ -3,7 +3,7 @@ simple rowLog TODO file.
 -- Implement Database: (remember to put prepared statements locally.)
 	[Done] addBoat(), getBoat(), modifyBoat(), getBoats(), getBoats(boolean)
 			addMember(...), getMember(int), getMembers(), addGroup(...),
-			getGroup(int), modifyGroup(...), getGroups()
+			getGroup(int), modifyGroup(...), getGroups(), modifyMember(...)
 
 -- Update the Database documentation to do the same type of checking.
 	[COMP] --> Now do the implementation
