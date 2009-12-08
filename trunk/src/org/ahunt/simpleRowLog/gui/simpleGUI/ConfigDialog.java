@@ -21,6 +21,7 @@
  */
 package org.ahunt.simpleRowLog.gui.simpleGUI;
 
+import java.io.FileNotFoundException;
 import java.util.ResourceBundle;
 
 import javax.swing.JButton;
@@ -55,7 +56,11 @@ class ConfigDialog extends JDialog {
 	 * created if this is null.
 	 */
 	public ConfigDialog() {
-		config = Configuration.getConf("simpleGUI");
+		try {
+			config = Configuration.getConf("simpleGUI");
+		} catch (FileNotFoundException e) {
+			ErrorHandler.handleError(e);
+		}
 		//TODO: the rest of the dialog.
 		
 		updateLabels();

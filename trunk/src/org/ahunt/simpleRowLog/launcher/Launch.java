@@ -23,6 +23,7 @@
 package org.ahunt.simpleRowLog.launcher;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 
 import java.text.MessageFormat;
 import java.util.ResourceBundle;
@@ -78,9 +79,9 @@ public class Launch {
 				+ Info.getVersion() + " (" + Info.getBuildType() + ")]\n"
 				+ Info.getCopyright() + "\n" + Info.getLicence());
 		// Load the configuration.
-		Configuration conf = Configuration.getConf("main");
-		// Set the desired toolkit.
-	    try {
+		Configuration conf;
+		try {
+			conf = Configuration.getConf("main");
 		    // Set Desired L&F
 	        javax.swing.UIManager.setLookAndFeel(conf.getProperty("gui.toolkit"));
 	        // Tell the user it is loaded
@@ -88,7 +89,10 @@ public class Launch {
 	        		javax.swing.UIManager.getLookAndFeel().getID()));
 	        log.info(javax.swing.UIManager.getLookAndFeel().getID()
 	        		+ " set as toolkit.");
-	    } catch (Exception e) {
+		} catch (FileNotFoundException e) {
+			// TODO: Error dialog.
+			System.exit(0);
+		} catch (Exception e) {
 	    	System.out.println(rb.getString("noGTK"));
 	    	log.info("GTK unavailable, default used.");
 	    }
