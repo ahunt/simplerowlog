@@ -2,16 +2,24 @@ package org.ahunt.simpleRowLog.gui.simpleGUI;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Insets;
+import java.awt.KeyboardFocusManager;
+import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.text.DateFormat;
 import java.text.FieldPosition;
 import java.text.MessageFormat;
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.ResourceBundle;
 
 import javax.swing.GroupLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
@@ -28,10 +36,14 @@ import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.MenuKeyEvent;
+import javax.swing.event.MenuKeyListener;
 import javax.swing.text.DateFormatter;
 import javax.swing.text.InternationalFormatter;
 import javax.swing.text.MaskFormatter;
 
+import org.ahunt.simpleRowLog.common.BoatInfo;
+import org.ahunt.simpleRowLog.common.MemberInfo;
 import org.ahunt.simpleRowLog.interfaces.Database;
 
 public class OutingDialog extends JDialog {
@@ -39,15 +51,27 @@ public class OutingDialog extends JDialog {
 	// TEMPORARY Method
 	public static void main(String[] args) {
 		System.out.println("test");
-		OutingDialog od = new OutingDialog(null);
+		
+		Database d = org.ahunt.simpleRowLog.db.simpleDB.Database.getInstance();
+		d.addBoat("Andy", "4x+", true);
+		d.addBoat("Andrew","4x+", true);
+		
+		OutingDialog od = new OutingDialog(d);
 		od.doNewOuting();
 		System.out.println(od.getSize());
 		od.doNewOuting();
 		System.exit(0);
 	}
 
+	/** A list of boats the Dialog is to use. */
+	private BoatInfo[] boats;
+	/** A list of members. */
+	private MemberInfo[] members;
+	
+	
 	private JTextField boatEntry = new JTextField(16);
 	private JLabel boatEntryLabel = new JLabel();
+	private JPopupMenu boatEntryPopup = new JPopupMenu();
 	
 	private JTextField[] rowerEntry = new JTextField[8];
 	private JLabel[] rowerEntryLabel = new JLabel[8];
@@ -99,7 +123,9 @@ public class OutingDialog extends JDialog {
 		// Boat input
 		boatEntryLabel.setText("<html><b>" + rb.getString("outing.boat") 
 				+ ":</b></html>");
-		boatEntry.getDocument().addDocumentListener(new BoatEntryListener());
+		BoatEntryListener boatListener = new BoatEntryListener(this,
+				boatEntry);
+		boatEntry.getDocument().addDocumentListener(boatListener);
 
 		
 		// Bottom buttons
@@ -343,7 +369,10 @@ public class OutingDialog extends JDialog {
 	public void doNewOuting() {
 		this.setTitle(rb.getString("outingDialog.title.newOuting"));
 		cancelButton.setText(rb.getString("outing.cancel_new"));
-
+		
+		boats = db.getBoats(true);
+		members = db.getMembers();
+		
 		this.setVisible(true);
 	}
 
@@ -360,26 +389,100 @@ public class OutingDialog extends JDialog {
 
 	}
 
-	private class BoatEntryListener implements DocumentListener {
+	private class BoatEntryListener implements DocumentListener, MenuKeyListener {
 
+		private JDialog dialog;
+		private JComponent textEntry;
+		private Point popupLocation;
+		
+		public BoatEntryListener(JDialog dialog, JComponent textEntry) {
+			this.dialog = dialog;
+			this.textEntry = textEntry;
+			boatEntryPopup.addMenuKeyListener(this);
+		}
+		
+		private void setupLocation() {
+			Point textLocation = textEntry.getLocation();
+			System.out.println(textLocation);
+			Dimension textSize =  textEntry.getSize();
+			System.out.println(textSize);
+			Insets insets = dialog.getInsets();
+			System.out.println(insets);
+			popupLocation = new Point(textLocation.x + insets.left,
+					textLocation.y + textSize.height + insets.top);
+		}
+		
 		@Override
 		public void changedUpdate(DocumentEvent arg0) {
-			// TODO Auto-generated method stub
+			insertUpdate(arg0);
 
 		}
 
 		@Override
 		public void insertUpdate(DocumentEvent arg0) {
-			// TODO Auto-generated method stub
+			if (popupLocation == null) {
+				setupLocation();
+			}
+			boatEntryPopup.setVisible(false);
+			boatEntryPopup.removeAll();
+			// TODO  Auto-generated method stub
 			System.out.println(boatEntry.getText());
-			// JPopupMenu jp = new JPopupMenu();
-			// jp.add(new JMenuItem("Hi"));
-			// jp.setVisible(true);
+			String entry = boatEntry.getText();
+			int entryLength = entry.length();
+			for (int i = 0; i < boats.length; i++) {
+				if (boats[i].getName().length() >= entryLength && 
+						boats[i].getName().substring(0, entryLength).compareToIgnoreCase(entry) == 0) {
+					boatEntryPopup.add(new JMenuItem(boats[i].getName()));
+				}
+			}
+			if (boatEntryPopup.getComponentCount() != 0) {
+				boatEntryPopup.show(dialog, popupLocation.x, popupLocation.y);
+//				boatEntryPopup.setSelected(boatEntryPopup);
+			}
+			System.out.println("Focus:" +dialog.getFocusOwner());
+
 		}
 
 		@Override
 		public void removeUpdate(DocumentEvent arg0) {
+			insertUpdate(arg0);
+		}
+
+		@Override
+		public void menuKeyPressed(MenuKeyEvent arg0) {
+
+			
+		}
+
+		@Override
+		public void menuKeyReleased(MenuKeyEvent arg0) {
 			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void menuKeyTyped(MenuKeyEvent arg0) {
+//			char[] c = new char[1];
+//			c[0] = arg0.getKeyChar();
+//			if (c[0] != KeyEvent.CHAR_UNDEFINED) {
+//				boatEntry.setText(boatEntry.getText() + new String(c));
+//			}
+			boatEntryPopup.setEnabled(false);
+			boatEntryPopup.setSelected(boatEntry);
+			boatEntryPopup.setVisible(false);
+			boatEntry.requestFocus();
+//			while (!boatEntry.hasFocus()) {
+//			}
+			System.out.println("hasFocus:"+boatEntry.hasFocus());
+			System.out.println(dialog.getFocusOwner());
+			
+			KeyboardFocusManager.getCurrentKeyboardFocusManager().redispatchEvent(boatEntry, arg0);
+			
+			// TODO: now enable selection of single items
+			
+//			boatEntry.dispatchEvent(new KeyEvent(dialog, 
+//					KeyEvent.KEY_TYPED, new Date().getTime(), 0, 
+//					KeyEvent.VK_UNDEFINED, arg0.getKeyChar()));
 
 		}
 

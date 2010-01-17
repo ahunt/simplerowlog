@@ -409,14 +409,14 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			while (rs.next()) {
 				a.add(getBoat(rs.getString("name")));
 			}
-			log.verbose("Data gotten, returning groups");
+			log.verbose("Data gotten, returning boats");
 			// Return a GroupInfo.
 			if (a.size() == 0) {
 				return null;
 			}
 			return a.toArray(new BoatInfo[0]);
 		} catch (SQLException e) {
-			log.error("Error getting groups");
+			log.error("Error getting boats");
 			log.errorException(e);
 			throw new DatabaseError(rb.getString("commandError"), e);
 		}
@@ -433,13 +433,13 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			// Check whether prepared statement exists. Create if necessary.
 			if (psGetBoatsSelection == null) {
 				psGetBoatsSelection = con.prepareStatement("SELECT name FROM"
-						+ "boats WHERE inHouse = ? ORDER BY name");
+						+ " boats WHERE inHouse = ? ORDER BY name");
 			}
 			psGetBoatsSelection.setBoolean(1, inHouse);
 			// Get the data.
 			psGetBoatsSelection.execute();
 			// Get results.
-			ResultSet rs = psGetBoats.getResultSet();
+			ResultSet rs = psGetBoatsSelection.getResultSet();
 			ArrayList<BoatInfo> a = new ArrayList<BoatInfo>();
 			// Go through the groups.
 			while (rs.next()) {
