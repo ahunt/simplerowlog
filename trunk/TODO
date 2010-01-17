@@ -16,4 +16,7 @@ simple rowLog TODO file.
 -- In the database, for all getGroups etc, extract data directly from one request
 	(instead of simply getting ids, then single groups).
 	
--- Cache and cache checking in db.
+-- Cache and cache checking in db, and in things like OutingDialog to check for
+	last update.
+	
+-- Error cleaning on opening of database, closing of db.
