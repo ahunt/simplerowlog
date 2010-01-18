@@ -22,10 +22,13 @@
 package org.ahunt.simpleRowLog.gui.simpleGUI;
 
 import java.awt.Color;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.KeyboardFocusManager;
 import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.text.MessageFormat;
@@ -84,7 +87,11 @@ public class OutingDialog extends JDialog {
 		Database d = org.ahunt.simpleRowLog.db.simpleDB.Database.getInstance();
 		d.addBoat("Andy", "4x+", true);
 		d.addBoat("Andrew", "4x+", true);
+		d.addMember("Hunt", "Andrew", new Date(), 1);
+		d.addMember("Hunt", "James", new Date(), 1);
+		d.addMember("Cricket", "Andrew", new Date(), 1);
 
+		System.out.println("2");
 		OutingDialog od = new OutingDialog(d);
 		od.doNewOuting();
 		System.out.println(od.getSize());
@@ -99,7 +106,6 @@ public class OutingDialog extends JDialog {
 
 	private JTextField boatEntry = new JTextField(16);
 	private JLabel boatEntryLabel = new JLabel();
-	private JPopupMenu boatEntryPopup = new JPopupMenu();
 
 	private JTextField[] rowerEntry = new JTextField[8];
 	private JLabel[] rowerEntryLabel = new JLabel[8];
@@ -151,8 +157,7 @@ public class OutingDialog extends JDialog {
 		// Boat input
 		boatEntryLabel.setText("<html><b>" + rb.getString("outing.boat")
 				+ ":</b></html>");
-		BoatEntryListener boatListener = new BoatEntryListener();
-		boatEntry.getDocument().addDocumentListener(boatListener);
+		new BoatEntryListener(boatEntry); // For the popup.
 
 		// Bottom buttons
 		confirmButton.setText(rb.getString("outing.confirm"));
@@ -198,17 +203,19 @@ public class OutingDialog extends JDialog {
 	 * @return
 	 */
 	private JPanel setupRowerPanel() {
+		JPanel rowerPanel = new JPanel(); // Holding all the items
 		// Rower input
 		for (int i = 0; i < 8; i++) { // Create and fill the entries
 			rowerEntry[i] = new JTextField(32);
 			rowerEntryLabel[i] = new JLabel("<html><b>"
 					+ MessageFormat.format(rb.getString("outing.rowerNum")
 							+ ":</b></html>", i + 1));
+			new EntryListener(rowerPanel, rowerEntry[i]);
 		}
 		coxEntry = new JTextField(32);
 		coxEntryLabel = new JLabel("<html><b><i>" + rb.getString("outing.cox")
 				+ ":</i></b></html>");
-		JPanel rowerPanel = new JPanel(); // Holding all the items
+		new EntryListener(rowerPanel, coxEntry);
 		rowerPanel.setBorder(new TitledBorder(new LineBorder(Color.BLACK), rb
 				.getString("outing.rowers")));
 		GroupLayout r = new GroupLayout(rowerPanel); // Layouting
@@ -412,13 +419,19 @@ public class OutingDialog extends JDialog {
 
 	}
 
-	private class BoatEntryListener implements DocumentListener,
-			MenuKeyListener {
+	private class EntryListener implements DocumentListener, MenuKeyListener,
+			ActionListener {
 
+		private JTextField entry;
 		private Point popupLocation;
+		private JPopupMenu popup = new JPopupMenu();
+		private Container container;
 
-		public BoatEntryListener() {
-			boatEntryPopup.addMenuKeyListener(this);
+		public EntryListener(Container container, JTextField entry) {
+			this.container = container;
+			this.entry = entry;
+			entry.getDocument().addDocumentListener(this);
+			popup.addMenuKeyListener(this);
 		}
 
 		/**
@@ -428,12 +441,16 @@ public class OutingDialog extends JDialog {
 		 */
 		private void calculateLocation() {
 			// Get locations and dimensions.
-			Point textLocation = boatEntry.getLocation();
-			Dimension textSize = boatEntry.getSize();
+			System.out.println(entry.getLocation());
+			Point textLocation = entry.getLocation();
+			Dimension textSize = entry.getSize();
 			Insets insets = getInsets();
+			Insets cIset = container.getInsets();
 			// Position popup at bottom left corner of the entry.
-			popupLocation = new Point(textLocation.x + insets.left,
-					textLocation.y + textSize.height + insets.top);
+			popupLocation = new Point(textLocation.x + insets.left + cIset.left,
+					textLocation.y + textSize.height + insets.top + cIset.top);
+			popupLocation = new Point(textLocation.x,
+					textLocation.y + textSize.height);
 		}
 
 		@Override
@@ -441,20 +458,23 @@ public class OutingDialog extends JDialog {
 			if (popupLocation == null) { // Check that location is done.
 				calculateLocation();
 			}
-			boatEntryPopup.removeAll(); // Clear previous items
-			String entry = boatEntry.getText(); // User input
-			int entryLength = entry.length();
-			for (int i = 0; i < boats.length; i++) { // Go through all boats.
+			popup.removeAll(); // Clear previous items
+			String entryText = entry.getText(); // User input
+			int entryLength = entryText.length();
+
+			for (int i = 0; i < members.length; i++) { // Go through all.
 				// Match what has been typed so far:
-				if (boats[i].getName().length() >= entryLength
-						&& boats[i].getName().substring(0, entryLength)
-								.compareToIgnoreCase(entry) == 0) {
-					boatEntryPopup.add(new JMenuItem(boats[i].getName())); // Add
+				if (members[i].getName().length() >= entryLength
+						&& members[i].getName().substring(0, entryLength)
+								.compareToIgnoreCase(entryText) == 0) {
+					JMenuItem jm = new JMenuItem(members[i].getName());
+					jm.addActionListener(this);
+					popup.add(jm); // Add
 				}
 			}
 			// If one item + then show.
-			if (boatEntryPopup.getComponentCount() != 0) {
-				boatEntryPopup.show(dialog, popupLocation.x, popupLocation.y);
+			if (popup.getComponentCount() != 0) {
+				popup.show(container, popupLocation.x, popupLocation.y);
 			}
 		}
 
@@ -472,16 +492,15 @@ public class OutingDialog extends JDialog {
 
 		@Override
 		public void menuKeyPressed(MenuKeyEvent arg0) {
-			System.out.println("Pressed:" + arg0);
 			if ((arg0.getKeyCode() == KeyEvent.VK_ENTER | arg0.getKeyCode() == KeyEvent.VK_TAB)
-					&& boatEntryPopup.getComponentCount() == 1) {
-				JMenuItem c = (JMenuItem) boatEntryPopup.getComponents()[0];
-				boatEntry.setText(c.getText());
-				boatEntryPopup.setEnabled(false); // Disable
-				boatEntryPopup.setVisible(false); // And hide
-				boatEntry.dispatchEvent(new KeyEvent(boatEntry,
-						KeyEvent.KEY_PRESSED, new Date().getTime(), 0,
-						KeyEvent.VK_TAB, KeyEvent.CHAR_UNDEFINED));
+					&& popup.getComponentCount() == 1) {
+				JMenuItem c = (JMenuItem) popup.getComponents()[0];
+				entry.setText(c.getText());
+				popup.setEnabled(false); // Disable
+				popup.setVisible(false); // And hide
+				entry.dispatchEvent(new KeyEvent(entry, KeyEvent.KEY_PRESSED,
+						new Date().getTime(), 0, KeyEvent.VK_TAB,
+						KeyEvent.CHAR_UNDEFINED));
 			} else if (arg0.getKeyCode() == KeyEvent.VK_BACK_SPACE
 					| arg0.getKeyCode() == KeyEvent.VK_TAB) {
 				menuKeyTyped(arg0); // Pass on to text field as usual
@@ -497,19 +516,133 @@ public class OutingDialog extends JDialog {
 		@Override
 		public void menuKeyTyped(MenuKeyEvent arg0) {
 			System.out.println(arg0);
-			boatEntryPopup.setEnabled(false); // Disable
-			boatEntryPopup.setVisible(false); // And hide
+			popup.setEnabled(false); // Disable
+			popup.setVisible(false); // And hide
 			// Pass on to the text entry.
 			KeyboardFocusManager.getCurrentKeyboardFocusManager()
-					.redispatchEvent(boatEntry, arg0);
+					.redispatchEvent(entry, arg0);
+		}
 
-			// TODO: now enable selection of single items
-
-			// boatEntry.dispatchEvent(new KeyEvent(dialog,
-			// KeyEvent.KEY_TYPED, new Date().getTime(), 0,
-			// KeyEvent.VK_UNDEFINED, arg0.getKeyChar()));
-
+		@Override
+		public void actionPerformed(ActionEvent arg0) {
+			entry.setText(arg0.getActionCommand());
+			popup.setEnabled(false); // Disable
+			popup.setVisible(false); // And hide
+			entry.dispatchEvent(new KeyEvent(entry, KeyEvent.KEY_PRESSED,
+					new Date().getTime(), 0, KeyEvent.VK_TAB,
+					KeyEvent.CHAR_UNDEFINED));
 		}
 
 	}
+
+	private class BoatEntryListener implements DocumentListener,
+			MenuKeyListener, ActionListener {
+
+		private JTextField entry;
+		private Point popupLocation;
+		private JPopupMenu popup = new JPopupMenu();
+
+		public BoatEntryListener(JTextField entry) {
+			this.entry = entry;
+			entry.getDocument().addDocumentListener(this);
+			popup.addMenuKeyListener(this);
+		}
+
+		/**
+		 * Calculate the position of the popup. Only call this AFTER you are
+		 * sure that the dialog is packed, since the positions won't be set
+		 * otherwise.
+		 */
+		private void calculateLocation() {
+			// Get locations and dimensions.
+			Point textLocation = entry.getLocation();
+			Dimension textSize = entry.getSize();
+			Insets insets = getInsets();
+			// Position popup at bottom left corner of the entry.
+			popupLocation = new Point(textLocation.x + insets.left,
+					textLocation.y + textSize.height + insets.top);
+		}
+
+		@Override
+		public void changedUpdate(DocumentEvent arg0) {
+			if (popupLocation == null) { // Check that location is done.
+				calculateLocation();
+			}
+			popup.removeAll(); // Clear previous items
+			String entryText = entry.getText(); // User input
+			int entryLength = entryText.length();
+			for (int i = 0; i < boats.length; i++) { // Go through all.
+				// Match what has been typed so far:
+				if (boats[i].getName().length() >= entryLength
+						&& boats[i].getName().substring(0, entryLength)
+								.compareToIgnoreCase(entryText) == 0) {
+					JMenuItem jm = new JMenuItem(boats[i].getName());
+					jm.addActionListener(this);
+					popup.add(jm); // Add
+				}
+			}
+
+			// If one item + then show.
+			if (popup.getComponentCount() != 0) {
+				popup.show(dialog, popupLocation.x, popupLocation.y);
+			}
+		}
+
+		@Override
+		public void insertUpdate(DocumentEvent arg0) {
+			// Treat the same as a modification.
+			changedUpdate(arg0);
+		}
+
+		@Override
+		public void removeUpdate(DocumentEvent arg0) {
+			// Treat the same as a modification.
+			changedUpdate(arg0);
+		}
+
+		@Override
+		public void menuKeyPressed(MenuKeyEvent arg0) {
+			if ((arg0.getKeyCode() == KeyEvent.VK_ENTER | arg0.getKeyCode() == KeyEvent.VK_TAB)
+					&& popup.getComponentCount() == 1) {
+				JMenuItem c = (JMenuItem) popup.getComponents()[0];
+				entry.setText(c.getText());
+				popup.setEnabled(false); // Disable
+				popup.setVisible(false); // And hide
+				entry.dispatchEvent(new KeyEvent(entry, KeyEvent.KEY_PRESSED,
+						new Date().getTime(), 0, KeyEvent.VK_TAB,
+						KeyEvent.CHAR_UNDEFINED));
+			} else if (arg0.getKeyCode() == KeyEvent.VK_BACK_SPACE
+					| arg0.getKeyCode() == KeyEvent.VK_TAB) {
+				menuKeyTyped(arg0); // Pass on to text field as usual
+			}
+			// Nothing, we only want typed keys.
+		}
+
+		@Override
+		public void menuKeyReleased(MenuKeyEvent arg0) {
+			// Nothing, we only want typed keys.
+		}
+
+		@Override
+		public void menuKeyTyped(MenuKeyEvent arg0) {
+			System.out.println(arg0);
+			popup.setEnabled(false); // Disable
+			popup.setVisible(false); // And hide
+			// Pass on to the text entry.
+			KeyboardFocusManager.getCurrentKeyboardFocusManager()
+					.redispatchEvent(entry, arg0);
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent arg0) {
+			entry.setText(arg0.getActionCommand());
+			popup.setEnabled(false); // Disable
+			popup.setVisible(false); // And hide
+			entry.dispatchEvent(new KeyEvent(entry, KeyEvent.KEY_PRESSED,
+					new Date().getTime(), 0, KeyEvent.VK_TAB,
+					KeyEvent.CHAR_UNDEFINED));
+		}
+
+	}
+
 }
