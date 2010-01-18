@@ -20,3 +20,5 @@ simple rowLog TODO file.
 	last update.
 	
 -- Error cleaning on opening of database, closing of db.
+
+-- Colouring of entries in OutingDialog and similar.
