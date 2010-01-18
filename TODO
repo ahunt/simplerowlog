@@ -22,3 +22,5 @@ simple rowLog TODO file.
 -- Error cleaning on opening of database, closing of db.
 
 -- Colouring of entries in OutingDialog and similar.
+
+-- Admin error log for minor messages, e.g. MemberInfo.getName etc.

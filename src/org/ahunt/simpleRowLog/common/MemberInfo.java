@@ -144,9 +144,18 @@ public class MemberInfo {
 	 * @return The member's name
 	 */
 	public String getName() {
-		Configuration c = Configuration.getConf("main"); // Get the conf.
-		return MessageFormat.format(c.getProperty("srl.name_format"), surname,
-				forename);
+		if (forename.length() == 0) { // If only a surname (e.g. Guest)
+			return surname;
+		} else {
+			try {
+				Configuration c = Configuration.getConf("main"); // Get the conf.
+				return MessageFormat.format(c.getProperty("srl.name_format"), surname,
+						forename);
+			} catch (Exception e) {
+				// TODO: error checking
+			}
+			return surname + "," + forename;
+		}
 	}
 
 }
