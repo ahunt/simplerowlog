@@ -21,6 +21,12 @@ simple rowLog TODO file.
 	
 -- Error cleaning on opening of database, closing of db.
 
--- Colouring of entries in OutingDialog and similar.
+-- Colouring of entries in OutingDialog and similar. (Validation!)
+	-- Update to display what field are incomplete in error dialog.
+
 
 -- Admin error log for minor messages, e.g. MemberInfo.getName etc.
+
+-- Database: cleanup  date / day / time for outings
+
+-- Choosing of highlighting colours for the gui.

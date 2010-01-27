@@ -1,6 +1,6 @@
 /*
  *    This file is part of simple rowLog: the open rowing logbook.
- *    Copyright (C) 2009  Andrzej JR Hunt
+ *    Copyright (C) 2009, 2010  Andrzej JR Hunt
  *    
  *    simple rowLog is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -69,10 +69,15 @@ public final class Info {
 	/**
 	 * Get the copyright information.
 	 * 
+	 * @param basicText Whether only terminal-friendly symbols should be used.
 	 * @return Copyright string.
 	 */
-	public static String getCopyright() {
-		return "Copyright \u00a9 2009 Andrzej JR Hunt";
+	public static String getCopyright(boolean basicText) {
+		if (basicText) {
+			return "Copyright (C) 2009, 2010 Andrzej JR Hunt";
+		} else {
+			return "Copyright \u00a9 2009, 2010 Andrzej JR Hunt";
+		}
 	}
 
 	/**

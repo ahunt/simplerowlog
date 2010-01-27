@@ -1,6 +1,6 @@
 /*
  *    This file is part of simple rowLog: the open rowing logbook.
- *    Copyright (C) 2009  Andrzej JR Hunt
+ *    Copyright (C) 2009, 2010  Andrzej JR Hunt
  *    
  *    simple rowLog is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -17,6 +17,8 @@
  *
  *
  *	Changelog:
+ *  25/01/2010: Cleaned up again, bug-fix where comment and destination were
+ *  			mixed up.
  *  29/11/2009: Cleaned up and added checking in the constructor.
  *	23/08/2009:	Changelog added.
  */
@@ -29,7 +31,7 @@ import java.util.Date;
  * Create the information for a specific outing.
  * 
  * @author Andrzej JR Hunt
- * @version 0.02 - 29. November 2009
+ * @version 0.03 - 25. January 2010
  */
 
 public class OutingInfo {
@@ -133,7 +135,7 @@ public class OutingInfo {
 		}
 		// destination
 		if (destination != null) {
-			this.destination = comment;
+			this.destination = destination;
 		} else {
 			this.destination = ""; // Empty string if null is given as comment
 		}
