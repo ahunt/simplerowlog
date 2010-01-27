@@ -1,6 +1,6 @@
 /*
  *    This file is part of simple rowLog: the open rowing logbook.
- *    Copyright (C) 2009  Andrzej JR Hunt
+ *    Copyright (C) 2009, 2010  Andrzej JR Hunt
  *    
  *    simple rowLog is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
  *
  *
  *	Changelog:
+ *  24/01/2010: Added splash info, other changes.
  *	23/08/2009:	Changelog added.
  */
 
@@ -28,16 +29,19 @@ import java.io.FileNotFoundException;
 import java.text.MessageFormat;
 import java.util.ResourceBundle;
 
+import javax.swing.JOptionPane;
+
 import org.ahunt.simpleRowLog.Info;
 import org.ahunt.simpleRowLog.conf.Configuration;
 import org.ahunt.simpleRowLog.db.simpleDB.Database;
+import org.ahunt.simpleRowLog.gui.simpleGUI.SimpleGUI;
 import org.grlea.log.SimpleLogger;
 
 /**
  * The launcher for simple rowLog.
  * 
  * @author Andrzej JR Hunt
- * @version 0.04 - 10. September 2009
+ * @version 0.05 - 24. January 2010
  */
 public class Launch {
 
@@ -77,7 +81,7 @@ public class Launch {
 		System.out.println(rb.getString("welcome") + "\n"
 				+ rb.getString("starting") + "\n[simple rowLog "
 				+ Info.getVersion() + " (" + Info.getBuildType() + ")]\n"
-				+ Info.getCopyright() + "\n" + Info.getLicence());
+				+ Info.getCopyright(true) + "\n" + Info.getLicence());
 		// Load the configuration.
 		Configuration conf;
 		try {
@@ -85,19 +89,39 @@ public class Launch {
 		    // Set Desired L&F
 	        javax.swing.UIManager.setLookAndFeel(conf.getProperty("gui.toolkit"));
 	        // Tell the user it is loaded
-	        System.out.println(MessageFormat.format(rb.getString("tkLoaded"),
+	        System.out.println(MessageFormat.format(">> " + rb.getString("tkLoaded"),
 	        		javax.swing.UIManager.getLookAndFeel().getID()));
 	        log.info(javax.swing.UIManager.getLookAndFeel().getID()
 	        		+ " set as toolkit.");
 		} catch (FileNotFoundException e) {
-			// TODO: Error dialog.
+			JOptionPane.showMessageDialog(null, rb
+					.getString("Configuration not found. simple rowLog cannot start. Please ensure that you have an undamaged installation before restarting."), rb
+					.getString("Fatal error!"),
+					JOptionPane.ERROR_MESSAGE);
 			System.exit(0);
 		} catch (Exception e) {
 	    	System.out.println(rb.getString("noGTK"));
 	    	log.info("GTK unavailable, default used.");
 	    }
-		
+		SplashManager sm = new SplashManager(10); 	// Splash: 10%
+		Database db = Database.getInstance();
+		sm.setProgress(30);							// Splash: 30%
+		SimpleGUI gui = new SimpleGUI(db);
+		sm.setProgress(60);
+		gui.setVisible(true);
+//		sm.setProgress(50);
+//
+//		try{Thread.sleep(500);}catch(Exception e){}
+//		sm.setProgress(80);
+//		try{Thread.sleep(500);}catch(Exception e){}
+//		sm.setProgress(90);
+//		try{Thread.sleep(500);}catch(Exception e){}
+//		sm.setProgress(100);
+//		try{Thread.sleep(500);}catch(Exception e){}
+
 		//TODO: Do stuff. (Splash, Load DB, start GUI) Remember the data dir.
+
+		
 	}
 
 	/**
@@ -136,8 +160,8 @@ public class Launch {
 	 * 
 	 */
 	private static void printUsage() {
-		System.out.println("Usage:\n\tsimplerowlog DATADIRECTORY");
-		//TODO: Print a whole load more.
+//		System.out.println("Usage:\n\tsimplerowlog DATADIRECTORY");
+		System.out.println("Simply run simplerowlog to use.");
 	}
 	
 

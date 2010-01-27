@@ -1,6 +1,6 @@
 /*
  *    This file is part of simple rowLog: the open rowing logbook.
- *    Copyright (C) 2009  Andrzej JR Hunt
+ *    Copyright (C) 2009, 2010  Andrzej JR Hunt
  *    
  *    simple rowLog is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -128,18 +128,6 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	private PreparedStatement psGetGroups;
 	private PreparedStatement psGetGroupStat;
 	private PreparedStatement psGetGroupsStats;
-
-	// Temporary testing method
-	// TODO: remove once finished class.
-	public static void main(String[] args) {
-		try {
-			Runtime.getRuntime().exec("rm -rf ./database/srl");
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		getInstance();
-		System.exit(0);
-	}
 
 	// TODO: Implement a "locking" mechanism so that users can hold on to the
 	// db,
@@ -283,7 +271,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 				guestGroup);
 		addMember(rb.getString("deletedMemberName"), "", new java.sql.Date(0),
 				deletedGroup);
-
+		addBoat(rb.getString("otherBoat"), "", true);
 		log.exit("createDefaultData()");
 	}
 
@@ -487,7 +475,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	@Override
 	public int addMember(String surname, String forename, Date dob, int group)
 			throws DatabaseError {
-		log.verbose("addMember(... "+group+")");
+		log.verbose("addMember(... " + group + ")");
 		if (surname == null | surname.length() == 0) {
 			throw new IllegalArgumentException("Surname cannot be null or"
 					+ " zero length");
@@ -576,9 +564,9 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		// Do the actual work
 		try {
 			if (psModifyMember == null) {
-				psModifyMember = con.prepareStatement("UPDATE members SET" +
-						" surname=?, forename=?, dob=?, usergroup=? WHERE" +
-						" id = ?");
+				psModifyMember = con.prepareStatement("UPDATE members SET"
+						+ " surname=?, forename=?, dob=?, usergroup=? WHERE"
+						+ " id = ?");
 			}
 			psModifyMember.setString(1, surname); // Old name
 			psModifyMember.setString(2, forename);
@@ -591,7 +579,6 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			log.errorException(e);
 			throw new DatabaseError(rb.getString("commandError"), e);
 		}
-
 
 	}
 
@@ -718,7 +705,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			psGetGroup.execute();
 			// Get results.
 			ResultSet rs = psGetGroup.getResultSet();
-			if(!rs.next()) {
+			if (!rs.next()) {
 				throw new IllegalArgumentException("No such group " + id);
 			}
 			// Extract data.
@@ -854,10 +841,11 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	 * Not yet implemented.
 	 */
 	@Override
-	public void modifyOuting(long created, MemberInfo cox, MemberInfo[] seat,
-			Date out, Date in, String comment, String destination,
-			BoatInfo boat, int distance) {
-		// TODO Implement (high priority)
+	public void modifyOuting(long id, long created, int[] rowers, int cox, Date out,
+			Date in, String comment, String destination, String boat,
+			int distance) {
+		outingManager.modifyOuting(id, created, rowers, cox, out, in, comment,
+				destination, boat, distance);
 
 	}
 
@@ -952,7 +940,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		public long addOuting(Date date, int[] rowers, int cox, Date timeOut,
 				Date timeIn, String comment, String dest, String boat,
 				int distance) throws DatabaseError {
-			log.entry("OutingManager.getOutings()");
+			log.entry("OutingManager.addOuting(...)");
 			log.info("Adding outing");
 			Calendar cal = new GregorianCalendar();
 			cal.setTime(date);
@@ -1012,9 +1000,75 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 				log.errorException(e);
 				throw new DatabaseError(rb.getString("commandError"), e);
 			}
-			log.exit("OutingManager.getOutings()");
+			log.exit("OutingManager.addOuting(...)");
 			return 0;
 			// TODO: get the id returned.
+		}
+
+		public void modifyOuting(long id, long day, int[] rowers, int cox,
+				Date timeOut, Date timeIn, String comment, String destination,
+				String boat, int distance) {
+			log.entry("OutingManager.modifyOuting(...)");
+			log.info("Adding outing");
+			Calendar cal = new GregorianCalendar();
+			cal.setTime(new Date(day));
+			try {
+				PreparedStatement ps = getOutingStatementSet(
+						cal.get(GregorianCalendar.YEAR)).getPreparedStatement(
+						OutingStatementType.MODIFY_OUTING);
+				ps.setLong(16, id);
+				ps.setInt(1, rowers[0]);
+				// Go through all rowers and set to null if inexistant
+				short i;
+				for (i = 0; i < rowers.length - 1; i++) {
+					if (rowers[i + 1] != 0) {
+						ps.setInt(i + 2, rowers[i + 1]);
+					} else {
+						ps.setNull(i + 2, java.sql.Types.SMALLINT);
+					}
+				}
+				while (i < 7) {
+					ps.setNull(i + 2, java.sql.Types.SMALLINT);
+					i++;
+				}
+				if (cox != 0) {
+					ps.setInt(9, cox);
+				} else {
+					ps.setNull(9, java.sql.Types.INTEGER);
+				}
+				// Time in/out
+				ps.setLong(10, timeOut.getTime());
+				if (timeIn != null) {
+					ps.setLong(11, timeIn.getTime());
+				} else {
+					ps.setNull(11, java.sql.Types.BIGINT);
+				}
+				// Comment
+				if (comment != null) {
+					ps.setString(12, comment);
+				} else {
+					ps.setNull(12, java.sql.Types.VARCHAR);
+				}
+				// Destination
+				if (destination != null) {
+					ps.setString(13, destination);
+				} else {
+					ps.setNull(13, java.sql.Types.VARCHAR);
+				}
+				// Boat
+				ps.setString(14, boat);
+				// Distance
+				if (distance != 0) {
+					ps.setInt(15, distance);
+				} else {
+					ps.setNull(15, java.sql.Types.INTEGER);
+				}
+				ps.execute();
+			} catch (SQLException e) {
+				log.errorException(e);
+				throw new DatabaseError(rb.getString("commandError"), e);
+			}
+			log.exit("OutingManager.addOuting(...)");
 		}
 
 		/**
@@ -1115,6 +1169,16 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 											+ "cox, time_out, time_in, comment, destination,"
 											+ "boat, distance) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?"
 											+ ",?,?,?)", year.toString()));
+			psModifyOuting = con.prepareStatement(MessageFormat.format(
+			// "UPDATE boats SET name=?,"
+					// + " type=?, inHouse=? WHERE name = ?"
+					"UPDATE outings_{0} SET rower1 = ?, "
+							+ "rower2 = ?, rower3 = ?, rower4 = ?, "
+							+ "rower5 = ?, rower6 = ?, rower7 = ?, "
+							+ "rower8 = ?, cox = ?, time_out = ?, "
+							+ "time_in = ?, comment = ?, "
+							+ "destination = ?, boat = ?, distance = ?"
+							+ " WHERE id = ?", year.toString()));
 			// We want the last used time set.
 			updateTime();
 			// TODO: implement.
@@ -1128,6 +1192,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 				return psGetOutings;
 			} else if (typ == OutingStatementType.ADD_OUTING) {
 				return psAddOuting;
+			} else if (typ == OutingStatementType.MODIFY_OUTING) {
+				return psModifyOuting;
 			}
 			return null;
 		}

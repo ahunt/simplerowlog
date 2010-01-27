@@ -1,5 +1,5 @@
-This file outlines the copyright information for the image splash.png and
-splash_progressBarOn.png
+This file outlines the copyright information for the image splash.png,
+splash_progressBarOn.png and splash_progressBarOff.png
 
 This file is part of simple rowLog: the open rowing logbook.
 Copyright (C) 2009  Andrzej JR Hunt
@@ -20,3 +20,4 @@ along with simple rowLog.  If not, see <http://www.gnu.org/licenses/>.
 
 Changelog:
 23/08/2009:	Changelog added.
+24/01/2010: Updated splash: progress bar is now completely separate.

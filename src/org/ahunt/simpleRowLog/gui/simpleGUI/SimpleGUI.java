@@ -1,6 +1,6 @@
 /*
  *    This file is part of simple rowLog: the open rowing logbook.
- *    Copyright (C) 2009  Andrzej JR Hunt
+ *    Copyright (C) 2009, 2010  Andrzej JR Hunt
  *    
  *    simple rowLog is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -27,6 +27,10 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.FileNotFoundException;
@@ -58,7 +62,6 @@ import org.ahunt.simpleRowLog.interfaces.Database;
  * A simple graphical user Interface for simple rowLog.
  * 
  * @author Andrzej JR Hunt
- * @version 0.01 - 03. November 2008
  */
 public class SimpleGUI extends JFrame {
 
@@ -66,7 +69,7 @@ public class SimpleGUI extends JFrame {
 
 	// Get the language file
 	private ResourceBundle rb = ResourceBundle.getBundle("gui");
-	
+
 	private Configuration conf;
 
 	// File Menu
@@ -101,37 +104,14 @@ public class SimpleGUI extends JFrame {
 	private JButton editOutingButton = new JButton();
 	private JButton newOutingButton = new JButton();
 
+	private OutingDialog outingDialog;
+	private AboutDialog aboutDialog = new AboutDialog();
+
 	// The database
 	private Database db;
 
 	// The current date selected in the window. (Not specifically today's date.)
 	private Date current = new Date();
-
-	/**
-	 * Temporary test method.
-	 * 
-	 * @param args
-	 */
-	public static void main(String[] args) throws Exception {
-		Runtime.getRuntime().exec("rm -rf ./database/srl");
-		Database bc = org.ahunt.simpleRowLog.db.simpleDB.Database.getInstance();
-		GroupInfo[] bl = bc.getGroups();
-		bc.addBoat("Anna", "8+", true);
-		bc.addBoat("Bob", "1x", true);
-		System.out.println();
-		bc.addOuting(new Date(), new int[] {
-				bc.addMember("Blog", "James", new Date(), 1),
-				bc.addMember("Blog", "Mike", new Date(), 1),
-				bc.addMember("Blog", "Jane", new Date(), 1), 1, 1, 1, 1, 1 },
-				bc.addMember("Blog", "May", new Date(), 1), new Date(), null,
-				"Blogtown", null, "Anna", 0);
-		bc.addOuting(new Date(), new int[] { bc.addMember("Bump", "John",
-				new Date(), 1) }, 0, new Date(), new Date(
-				new Date().getTime() + 3600000), "Middle Earth", "Fun trip!",
-				"Bob", 12);
-		bc.modifyMember(3,"Hunt","Andrzej", new Date(), 1);
-		new SimpleGUI(bc);
-	}
 
 	/**
 	 * Create the gui.
@@ -150,7 +130,10 @@ public class SimpleGUI extends JFrame {
 		setupMenus();
 		updateLanguages();
 		reloadConfig();
+		outingDialog = new OutingDialog(db);
 
+		newOutingButton.addActionListener(new ButtonListener());
+		editOutingButton.addActionListener(new ButtonListener());
 		// Set up the table. TODO: check whether height is correct.
 		outingTableManager = new OutingTableManager();
 		outingTable = new JTable(outingTableManager) {
@@ -163,7 +146,7 @@ public class SimpleGUI extends JFrame {
 				if (!c.getBackground().equals(getSelectionBackground())) {
 					Object timeOut = getModel().getValueAt(row, 3);
 					// Sets colours for completed rows.
-					c.setBackground(timeOut == null ? Color.RED : Color.WHITE);
+					c.setBackground(timeOut == null ? Color.LIGHT_GRAY : Color.WHITE);
 				}
 				return c;
 			}
@@ -183,8 +166,9 @@ public class SimpleGUI extends JFrame {
 				.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 		outingTablePane
 				.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		outingTable.addMouseListener(new ClickListener());
+		outingTablePane.addMouseListener(new ClickListener());
 		setupLayout();
-		setVisible(true);
 	}
 
 	/**
@@ -202,18 +186,17 @@ public class SimpleGUI extends JFrame {
 		l.setVerticalGroup(l.createSequentialGroup().addComponent(
 				outingTablePane, 300, d.height, d.height).addGroup(
 				l.createParallelGroup(GroupLayout.Alignment.BASELINE)
-						.addComponent(editOutingButton).addComponent(
-								newOutingButton)));
+						.addComponent(newOutingButton).addComponent(
+								editOutingButton)));
 		l.setHorizontalGroup(l.createParallelGroup(
 				GroupLayout.Alignment.TRAILING).addComponent(outingTablePane,
 				400, d.width, d.width).addGroup(
-				l.createSequentialGroup().addComponent(editOutingButton)
-						.addComponent(newOutingButton)));
-		// TODO: implement.
+				l.createSequentialGroup().addComponent(newOutingButton)
+						.addComponent(editOutingButton)));
 	}
 
 	/**
-	 * Tells the window to take all chaged settings into account.
+	 * Tells the window to take all changed settings into account.
 	 * 
 	 */
 	private void reloadConfig() {
@@ -229,17 +212,28 @@ public class SimpleGUI extends JFrame {
 	private void setupMenus() {
 		setJMenuBar(new JMenuBar());
 		JMenuBar mb = getJMenuBar();
+		
+		// Listener:
+		MenuListener ml = new MenuListener();
+		
 		// File menu
 		mb.add(menuFile);
-		menuFile.add(menuFileExit);
 		menuFile.add(menuFileNewMember);
+		menuFileNewMember.addActionListener(ml);
+		menuFile.add(menuFileExit);
+		menuFileExit.addActionListener(ml);
 		// Options menu
 		mb.add(menuOptions);
 		menuOptions.add(menuOptionsAdmin);
+		menuOptionsAdmin.addActionListener(ml);
 		// Help menu
 		mb.add(menuHelp);
 		menuHelp.add(menuHelpHelp);
+		menuHelpHelp.addActionListener(ml);
 		menuHelp.add(menuHelpAbout);
+		menuHelpAbout.addActionListener(ml);
+		
+
 	}
 
 	/**
@@ -285,7 +279,21 @@ public class SimpleGUI extends JFrame {
 				+ append);
 	}
 
-	class ExitListener extends WindowAdapter {
+	private class ButtonListener implements ActionListener {
+
+		@Override
+		public void actionPerformed(ActionEvent arg0) {
+			if (arg0.getSource() == newOutingButton) {
+				outingDialog.doNewOuting();
+			} else if (arg0.getSource() == editOutingButton) {
+				outingTableManager.editOutingAt(outingTable.getSelectedRow());
+			}
+			outingTableManager.updateOutings();
+		}
+
+	}
+
+	private class ExitListener extends WindowAdapter {
 		// TODO: Also implement exit button + behaviour
 		public void windowClosing(WindowEvent e) {
 			onClose();
@@ -343,6 +351,17 @@ public class SimpleGUI extends JFrame {
 					+ columnNameAppend;
 		}
 
+		/**
+		 * Modify the outing at the specified row, as seen by the outingTable.
+		 * 
+		 * @param row
+		 *            The row number, from 0 to n-1 where n is the number of
+		 *            rows.
+		 */
+		public void editOutingAt(int row) {
+			outingDialog.doModifyOuting(outings[row]);
+		}
+
 		public Object getValueAt(int row, int col) {
 			if (col == 0) {
 				// TODO: implement in DB.
@@ -375,7 +394,6 @@ public class SimpleGUI extends JFrame {
 							+ "</i></td</tr");
 				}
 				buff.append("</table></html>");
-				System.out.println(buff.toString());
 				return buff.toString();
 			} else if (col == 2) { // Time out
 				SimpleDateFormat df = new SimpleDateFormat(conf
@@ -400,7 +418,7 @@ public class SimpleGUI extends JFrame {
 					return null;
 				}
 			} else {
-				System.out.println("col " + row + " --null");
+				// No other columns.
 			}
 			return null;
 		}
@@ -420,5 +438,58 @@ public class SimpleGUI extends JFrame {
 			// db.getOutings(current);
 		}
 
+	}
+
+	private class ClickListener implements MouseListener {
+
+		@Override
+		public void mouseClicked(MouseEvent arg0) {
+			if (arg0.getClickCount() != 2) {
+				return; // Return unless we have a double click
+			}
+			if (arg0.getSource() == outingTablePane) { // Click on blank area
+				outingDialog.doNewOuting();
+			} else if (arg0.getSource() == outingTable) {
+				outingTableManager.editOutingAt(outingTable.getSelectedRow());
+			}
+			outingTableManager.updateOutings();
+		}
+
+		@Override
+		public void mouseEntered(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+
+		}
+
+		@Override
+		public void mouseExited(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+
+		}
+
+		@Override
+		public void mousePressed(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+
+		}
+
+		@Override
+		public void mouseReleased(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+
+		}
+
+	}
+	
+	private class MenuListener implements ActionListener {
+
+		@Override
+		public void actionPerformed(ActionEvent arg0) {
+			if (arg0.getSource() == menuHelpAbout) {
+				aboutDialog.setVisible(true);
+			}
+			
+		}
+		
 	}
 }

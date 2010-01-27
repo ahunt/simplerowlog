@@ -64,7 +64,7 @@ public class AboutDialog extends JDialog implements ActionListener {
 	private String srlVersion = Info.getVersion();
 	private String srlBuildType = Info.getBuildType();
 	private String srlWebSite = Info.getWebSite();
-	private String srlCopyright = Info.getCopyright();
+	private String srlCopyright = Info.getCopyright(false);
 	
 	// Get the java version.
 	private String javaVersion = System.getProperty("java.vm.version");
@@ -136,7 +136,6 @@ public class AboutDialog extends JDialog implements ActionListener {
 		this.setBounds(screenSize.width/2-this.getSize().width/2,
 				screenSize.height/2-this.getSize().height/2, 590, 450);
 		this.setAlwaysOnTop(true);
-		this.setVisible(true);
 	}
 
 	/**

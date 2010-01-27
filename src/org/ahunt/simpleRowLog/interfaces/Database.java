@@ -1,6 +1,6 @@
 /*
  *    This file is part of simple rowLog: the open rowing logbook.
- *    Copyright (C) 2009  Andrzej JR Hunt
+ *    Copyright (C) 2009, 2010  Andrzej JR Hunt
  *    
  *    simple rowLog is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
  *
  *
  *	Changelog:
+ *  25/01/2010: Modified modifyOuting to use ints of members.
  *  29/11/2009: Completed.
  *  24/11/2009: Major restructuring, almost finalised now.
  *	23/08/2009:	Changelog added.
@@ -45,7 +46,7 @@ import org.ahunt.simpleRowLog.common.*;
  * 
  * 
  * @author Andrzej JR Hunt
- * @version draft5 - 29. November 2009
+ * @version draft6 - 25. November 2010
  */
 public interface Database {
 
@@ -311,7 +312,7 @@ public interface Database {
 			throws DatabaseError;
 
 	/* -------------------- GROUPS [AGM,G+] ----------------- */
-	
+
 	/**
 	 * Add a group to the database.
 	 * 
@@ -448,8 +449,10 @@ public interface Database {
 	/**
 	 * Modify an outing.
 	 * 
+	 * @param id
+	 *            The outing's id.
 	 * @param created
-	 *            The creation time (id).
+	 *            The creation time / day.
 	 * @param date
 	 *            The date on which the outing exists. Only the day/month/year
 	 *            values are used from this.
@@ -477,8 +480,8 @@ public interface Database {
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
 	 */
-	public void modifyOuting(long created, MemberInfo cox, MemberInfo[] seat,
-			Date out, Date in, String comment, String destination,
-			BoatInfo boat, int distance);
+	public void modifyOuting(long id, long day, int[] rowers, int cox,
+			Date out, Date in, String comment, String destination, String boat,
+			int distance);
 
 }
