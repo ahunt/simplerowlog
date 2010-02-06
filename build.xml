@@ -32,6 +32,7 @@
 	<property name="externalsrc" value="${src}/external" />
 	<property name="doc" value="doc" />
 	<property name="splashimage" value="img/splash/splash.png" />
+	<property name="testcases" value="test" />
 
 	<target name="init">
 		<mkdir dir="${bin}" />
@@ -58,6 +59,12 @@
 				<pathelement location="${lib}/simple-log.jar" />
 			</classpath>
 		</javac>
+		<javac srcdir="${testcases}" destdir="${bin}" debug="on" source="1.6">
+			<classpath>
+				<pathelement path="${lib}/derby.jar" />
+				<pathelement location="${lib}/simple-log.jar" />
+			</classpath>
+		</javac>
 	</target>
 
 	<target name="jar" depends="build">
@@ -67,7 +74,7 @@
 				<include name="${splashimage}" />
 			</fileset>
 		</copy>
-		<jar destfile="${lib}/srl.jar" basedir="${bin}">
+		<jar destfile="${lib}/srl.jar" basedir="${bin}" excludes="**/**Test.class" >
 			<manifest>
 				<attribute name="Main-Class" value="org.ahunt.simpleRowLog.launcher.Launch" />
 				<attribute name="Class-Path" value="derby.jar simple-log-rollover.jar simple-log.jar ../conf/ .. ../loc/" />
