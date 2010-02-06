@@ -30,3 +30,5 @@ simple rowLog TODO file.
 -- Database: cleanup  date / day / time for outings
 
 -- Choosing of highlighting colours for the gui.
+
+-- Verify that the test classes AREN'T included in the ant jar command.
