@@ -9,5 +9,6 @@
 	<classpathentry kind="lib" path="conf"/>
 	<classpathentry kind="lib" path="loc"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/3"/>
+	<classpathentry kind="lib" path="lib/jcal.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
