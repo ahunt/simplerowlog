@@ -28,7 +28,7 @@
 	<property name="lib" value="lib" />
 	<property name="dist" value="dist" />
 	<property name="version" value="0.1.0-pre-alpha" />
-	<property name="temp_derby" value="temp_getdep" />
+	<property name="temp_getdep" value="temp_getdep" />
 	<property name="externalsrc" value="${src}/external" />
 	<property name="doc" value="doc" />
 	<property name="splashimage" value="img/splash/splash.png" />
@@ -46,7 +46,7 @@
 		<delete dir="${dist}" />
 		<delete file="${src}derby.tar.gz" />
 		<delete file="${src}/simple-log-2.0.1.zip" />
-		<delete dir="${temp_derby}" />
+		<delete dir="${temp_getdep}" />
 		<delete dir="${externalsrc}" />
 		<delete file="srl.jar" />
 	</target>
@@ -55,14 +55,16 @@
 		<echo message="Compiling sources to .class files." />
 		<javac srcdir="${src}" destdir="${bin}" debug="on" source="1.6">
 			<classpath>
-				<pathelement path="${lib}/derby.jar" />
+				<pathelement location="${lib}/derby.jar" />
 				<pathelement location="${lib}/simple-log.jar" />
+				<pathelement location="${lib}/jcal.jar" />
 			</classpath>
 		</javac>
 		<javac srcdir="${testcases}" destdir="${bin}" debug="on" source="1.6">
 			<classpath>
-				<pathelement path="${lib}/derby.jar" />
+				<pathelement location="${lib}/derby.jar" />
 				<pathelement location="${lib}/simple-log.jar" />
+				<pathelement location="${lib}/jcal.jar" />
 			</classpath>
 		</javac>
 	</target>
@@ -77,7 +79,7 @@
 		<jar destfile="${lib}/srl.jar" basedir="${bin}" excludes="**/**Test.class" >
 			<manifest>
 				<attribute name="Main-Class" value="org.ahunt.simpleRowLog.launcher.Launch" />
-				<attribute name="Class-Path" value="derby.jar simple-log-rollover.jar simple-log.jar ../conf/ .. ../loc/" />
+				<attribute name="Class-Path" value="derby.jar simple-log-rollover.jar simple-log.jar jcal.jar ../conf/ .. ../loc/" />
 				<attribute name="Built-By" value="${user.name}" />
 				<attribute name="SplashScreen-Image" value="${splashimage}" />
 			</manifest>
@@ -98,7 +100,7 @@
 				<exclude name="**/${dist}/**" />
 				<exclude name="**/${src}/**" />
 				<exclude name="**/${bin}/**" />
-				<exclude name="**/${temp_derby}/**" />
+				<exclude name="**/${temp_getdep}/**" />
 				<exclude name="**/.**" />
 				<exclude name="**/.settings/**" />
 				<exclude name="**/build.xml" />
@@ -130,7 +132,7 @@
 				<exclude name="**/${dist}/**" />
 				<exclude name="**/${lib}/**" />
 				<exclude name="**/${bin}/**" />
-				<exclude name="**/${temp_derby}/**" />
+				<exclude name="**/${temp_getdep}/**" />
 			</fileset>
 		</copy>
 		<!-- Make .tar.gz, .tar.bz2 and .zip, plus .tar.gz source -->
@@ -144,8 +146,10 @@
 			<and>
 				<available file="${lib}/simple-log.jar" />
 				<available file="${lib}/derby.jar" />
+				<available file="${lib}/jcal.jar" />
 				<available file="${externalsrc}/simple-log-2.0.1.zip" />
 				<available file="${externalsrc}/derby.tar.gz" />
+				<available file="${externalsrc}/jcalendar-1.3.3.zip" />
 			</and>
 		</condition>
 	</target>
@@ -153,22 +157,30 @@
 	<target name="getdep" depends="getdep-src,getdep-bin" />
 
 	<target name="derby-download" depends="checkdep" unless="dep">
-		<mkdir dir="${temp_derby}" />
-		<get src="http://archive.apache.org/dist/db/derby/db-derby-10.5.1.1/db-derby-10.5.1.1-lib.tar.gz" dest="${temp_derby}/derby.tar.gz" />
+		<mkdir dir="${temp_getdep}" />
+		<get src="http://archive.apache.org/dist/db/derby/db-derby-10.5.1.1/db-derby-10.5.1.1-lib.tar.gz" dest="${temp_getdep}/derby.tar.gz" />
 	</target>
 
-	<target name="getdep-bin" depends="checkdep,init,derby-download" unless="dep">
+	<target name="jcal-download" depends="checkdep" unless="dep">
+		<mkdir dir="${temp_getdep}" />
+		<get src="http://www.toedter.com/download/jcalendar-1.3.3.zip" dest="${temp_getdep}/jcal.zip" />
+	</target>
+		
+	<target name="getdep-bin" depends="checkdep,init,derby-download,jcal-download" unless="dep">
 		<get src="https://simple-log.dev.java.net/release/simple-log.jar" dest="${lib}/simple-log.jar" />
 		<get src="https://simple-log.dev.java.net/release/simple-log-rollover.jar" dest="${lib}/simple-log-rollover.jar" />
-		<gunzip src="${temp_derby}/derby.tar.gz" />
-		<untar src="${temp_derby}/derby.tar" dest="${temp_derby}" />
-		<move file="${temp_derby}/db-derby-10.5.1.1-lib/lib/derby.jar" tofile="${lib}/derby.jar" />
+		<gunzip src="${temp_getdep}/derby.tar.gz" />
+		<untar src="${temp_getdep}/derby.tar" dest="${temp_getdep}" />
+		<move file="${temp_getdep}/db-derby-10.5.1.1-lib/lib/derby.jar" tofile="${lib}/derby.jar" />
+		<unzip src="${temp_getdep}/jcal.zip" dest="${temp_getdep}/jcal"/>
+		<move file="${temp_getdep}/jcal/lib/jcalendar-1.3.3.jar" tofile="${lib}/jcal.jar" />
 	</target>
 
 	<target name="getdep-src" depends="checkdep" unless="dep">
 		<mkdir dir="${externalsrc}" />
 		<get src="http://archive.apache.org/dist/db/derby/db-derby-10.5.1.1/db-derby-10.5.1.1-src.tar.gz" dest="${externalsrc}/db-derby-10.5.1.1-src.tar.gz" />
 		<get src="https://simple-log.dev.java.net/release/simple-log-2.0.1.zip" dest="${externalsrc}/simple-log-2.0.1.zip" />
+		<get src="http://www.toedter.com/download/jcalendar-1.3.3.zip" dest="${externalsrc}/jcalendar-1.3.3.zip" />
 	</target>
 
 	<target name="doc" if="isNix">

@@ -491,6 +491,8 @@ public class SimpleGUI extends JFrame {
 				aboutDialog.setVisible(true);
 			} else if (arg0.getSource() == menuFileNewMember) {
 				addMemberDialog.addMember();
+			} else if (arg0.getSource() == menuFileExit) {
+				System.exit(0);
 			}
 		}
 		

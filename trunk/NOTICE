@@ -1,14 +1,18 @@
 The following libraries are used by simple rowLog, which are under GNU GPL v3
-compatible licenses:
+compatible licenses (simple rowLog as a whole is distributed as one package
+under GNU GPL v.3):
 
 -- simple-log (lib/simple-log.jar), Apache License, Version 2.0:
 https://simple-log.dev.java.net/
+
+-- JCalendar (lib/jcal.jar), GNU LESSER GENERAL PUBLIC LICENSE, version 2.1:
+http://www.toedter.com/en/jcalendar
 
 -- Apache Derby (lib/derby.jar), Apache License, Version 2.0:
 http://db.apache.org/derby/
 
 A copy of the Apache License, Version 2.0 can be found under LICENSE-APACHE,
-not under LICENSE as stated below.a
+not under LICENSE as stated below.
 
 Note: In the source distribution of simple rowLog, the sources for the above
 can be found in src/external. In the binary distribution the libraries are
