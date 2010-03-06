@@ -106,6 +106,7 @@ public class SimpleGUI extends JFrame {
 
 	private OutingDialog outingDialog;
 	private AboutDialog aboutDialog = new AboutDialog();
+	private AddMemberDialog addMemberDialog;
 
 	// The database
 	private Database db;
@@ -131,6 +132,7 @@ public class SimpleGUI extends JFrame {
 		updateLanguages();
 		reloadConfig();
 		outingDialog = new OutingDialog(db);
+		addMemberDialog = new AddMemberDialog(db);
 
 		newOutingButton.addActionListener(new ButtonListener());
 		editOutingButton.addActionListener(new ButtonListener());
@@ -487,8 +489,9 @@ public class SimpleGUI extends JFrame {
 		public void actionPerformed(ActionEvent arg0) {
 			if (arg0.getSource() == menuHelpAbout) {
 				aboutDialog.setVisible(true);
+			} else if (arg0.getSource() == menuFileNewMember) {
+				addMemberDialog.addMember();
 			}
-			
 		}
 		
 	}

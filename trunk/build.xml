@@ -93,6 +93,8 @@
 		<mkdir dir="${dist}/simplerowlog-${version}" />
 		<copy todir="${dist}/simplerowlog-${version}">
 			<fileset dir=".">
+				<exclude name="**/database/**" />
+				<exclude name="**/${testcases}/**" />
 				<exclude name="**/${dist}/**" />
 				<exclude name="**/${src}/**" />
 				<exclude name="**/${bin}/**" />
@@ -124,6 +126,7 @@
 		<mkdir dir="${dist}/simplerowlog-${version}-src" />
 		<copy todir="${dist}/simplerowlog-${version}-src">
 			<fileset dir=".">
+				<exclude name="**/database/**" />
 				<exclude name="**/${dist}/**" />
 				<exclude name="**/${lib}/**" />
 				<exclude name="**/${bin}/**" />

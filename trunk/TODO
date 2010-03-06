@@ -32,3 +32,8 @@ simple rowLog TODO file.
 -- Choosing of highlighting colours for the gui.
 
 -- Verify that the test classes AREN'T included in the ant jar command.
+
+-- Outingdialog: capability to directly add new members (with probability of name
+	being a real name.).
+	
+-- Central localisation manager and interface for updateLocalisation();
