@@ -24,10 +24,11 @@
 # Script: setupMembers
 # Requires: groups
 CREATE TABLE members (
-    id INT NOT NULL GENERATED ALWAYS AS IDENTITY CONSTRAINT MEMBERS_PK PRIMARY KEY,
+    id INT NOT NULL GENERATED ALWAYS AS IDENTITY UNIQUE,
     surname VARCHAR(32),
     forename VARCHAR(32),
     dob DATE NOT NULL,
     usergroup INT,
+    PRIMARY KEY (surname, forename, dob),
     CONSTRAINT MEMBERS_GROUPS_FK FOREIGN KEY (usergroup) references groups (id)
 )

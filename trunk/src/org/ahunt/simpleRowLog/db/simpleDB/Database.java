@@ -34,6 +34,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Statement;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -47,8 +48,10 @@ import java.util.ResourceBundle;
 import org.ahunt.simpleRowLog.common.BoatInfo;
 import org.ahunt.simpleRowLog.common.BoatStatistic;
 import org.ahunt.simpleRowLog.common.DatabaseError;
+import org.ahunt.simpleRowLog.common.EntryAlreadyExistsException;
 import org.ahunt.simpleRowLog.common.GroupInfo;
 import org.ahunt.simpleRowLog.common.GroupStatistic;
+import org.ahunt.simpleRowLog.common.MemberAlreadyExistsException;
 import org.ahunt.simpleRowLog.common.MemberInfo;
 import org.ahunt.simpleRowLog.common.MemberStatistic;
 import org.ahunt.simpleRowLog.common.OutingInfo;
@@ -124,6 +127,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	private PreparedStatement psAddGroup;
 	private PreparedStatement psGetGroup;
 	private PreparedStatement psModifyGroup;
+	private PreparedStatement psGetDefaultGroup;
 
 	private PreparedStatement psGetGroups;
 	private PreparedStatement psGetGroupStat;
@@ -267,10 +271,14 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 				.getString("memberGroupDescription"), new Color(-16776961),
 				false);
 		// Members: guest and deleted.
-		addMember(rb.getString("guestMemberName"), "", new java.sql.Date(0),
-				guestGroup);
-		addMember(rb.getString("deletedMemberName"), "", new java.sql.Date(0),
-				deletedGroup);
+		try {
+			addMember(rb.getString("guestMemberName"), "",
+					new java.sql.Date(0), guestGroup);
+			addMember(rb.getString("deletedMemberName"), "", new java.sql.Date(
+					0), deletedGroup);
+		} catch (EntryAlreadyExistsException e) {
+			// Do nothing, it won't happen, or we don't care.
+		}
 		addBoat(rb.getString("otherBoat"), "", true);
 		log.exit("createDefaultData()");
 	}
@@ -474,7 +482,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	 */
 	@Override
 	public int addMember(String surname, String forename, Date dob, int group)
-			throws DatabaseError {
+			throws DatabaseError, EntryAlreadyExistsException {
 		log.verbose("addMember(... " + group + ")");
 		if (surname == null | surname.length() == 0) {
 			throw new IllegalArgumentException("Surname cannot be null or"
@@ -506,6 +514,10 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			} else {
 				throw new DatabaseError(rb.getString("commandError"), null);
 			}
+		} catch (SQLIntegrityConstraintViolationException e) {
+			throw new EntryAlreadyExistsException("A member named " + surname
+					+ ":" + forename + " with dob " + dob
+					+ " already is in the database.", e);
 		} catch (SQLException e) {
 			log.errorException(e);
 			throw new DatabaseError(rb.getString("commandError"), e);
@@ -796,6 +808,41 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public GroupInfo getDefaultGroup() throws DatabaseError {
+		log.verbose("getDefaultGroup()");
+		try {
+			// Check whether prepared statement exists. Create if necessary.
+			if (psGetDefaultGroup == null) {
+				psGetDefaultGroup = con
+						.prepareStatement("SELECT * FROM groups "
+								+ "WHERE isDefault = 1");
+				psGetDefaultGroup.setMaxRows(1);
+			}
+			psGetDefaultGroup.execute();
+			// Get results.
+			ResultSet rs = psGetDefaultGroup.getResultSet();
+			// Extract data.
+			if (!rs.next()) {
+				throw new DatabaseError("No default group. Major error.", null);
+			}
+			int id = rs.getInt("id");
+			String name = rs.getString("name");
+			String description = rs.getString("description");
+			Color c = new Color(rs.getInt("colour"));
+			log.verbose("Data gotten, returning group");
+			// Return a GroupInfo.
+			return new GroupInfo(id, name, description, c, true);
+		} catch (SQLException e) {
+			log.error("Error getting default group.");
+			log.errorException(e);
+			throw new DatabaseError(rb.getString("commandError"), e);
+		}
+	}
+
 	/* -------------------- GROUPS - STATISTICS [G,G+] ----------------- */
 
 	/**
@@ -841,8 +888,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	 * Not yet implemented.
 	 */
 	@Override
-	public void modifyOuting(long id, long created, int[] rowers, int cox, Date out,
-			Date in, String comment, String destination, String boat,
+	public void modifyOuting(long id, long created, int[] rowers, int cox,
+			Date out, Date in, String comment, String destination, String boat,
 			int distance) {
 		outingManager.modifyOuting(id, created, rowers, cox, out, in, comment,
 				destination, boat, distance);
@@ -865,21 +912,6 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 
 		public OutingManager() throws SQLException, IOException {
 			log.entry("OutingManager.OutingManager()");
-			try {
-				log.info("Trying to create a new table for this year.");
-				String year = new Integer(Calendar.getInstance().get(
-						Calendar.YEAR)).toString();
-				log.db(org.grlea.log.DebugLevel.L6_VERBOSE, MessageFormat
-						.format(Util.loadScript("createOutings"), year));
-				con.createStatement().execute(
-						MessageFormat.format(Util.loadScript("createOutings"),
-								year));
-				log.info("New Outings table for year " + year + " created.");
-			} catch (SQLException e) {
-				// Just ignore. Not worrying. This means the table exists.
-				log.info("Outings table for this year already exists.");
-				log.dbe(org.grlea.log.DebugLevel.L6_VERBOSE, e);
-			}
 			// Start the cache checker.
 			new Thread(this).start();
 			log.exit("OutingManager.OutingManager()");
@@ -1153,9 +1185,22 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		public OutingStatementSet(Integer year,
 				Hashtable<Integer, OutingStatementSet> statementCache)
 				throws SQLException {
-			this.year = year;
 			log.entry("OutingStatementSet(Integer, HashTable");
+			try {
+				log.info("Trying to create a new table for year " + year + ".");
+				con.createStatement().execute(
+						MessageFormat.format(Util.loadScript("createOutings"),
+								year.toString()));
+				log.info("New Outings table for year " + year + " created.");
+			} catch (SQLException e) {
+				// Just ignore. Not worrying. This means the table exists.
+				log.info("Outings table for this year already exists.");
+				log.dbe(org.grlea.log.DebugLevel.L6_VERBOSE, e);
+			} catch (IOException e) {
+				// TODO : think here.
+			}
 			log.info("creating psGetOutings");
+
 			psGetOutings = con
 					.prepareStatement(MessageFormat
 							.format(

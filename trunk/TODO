@@ -37,3 +37,7 @@ simple rowLog TODO file.
 	being a real name.).
 	
 -- Central localisation manager and interface for updateLocalisation();
+
+-- EntryAlreadyExistsException thrown where required.
+
+-- AboutDialog layout
