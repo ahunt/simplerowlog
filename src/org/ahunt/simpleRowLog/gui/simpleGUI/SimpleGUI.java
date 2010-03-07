@@ -490,7 +490,7 @@ public class SimpleGUI extends JFrame {
 			if (arg0.getSource() == menuHelpAbout) {
 				aboutDialog.setVisible(true);
 			} else if (arg0.getSource() == menuFileNewMember) {
-				addMemberDialog.addMember();
+				int i = addMemberDialog.addMember();
 			} else if (arg0.getSource() == menuFileExit) {
 				System.exit(0);
 			}

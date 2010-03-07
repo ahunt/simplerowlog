@@ -207,7 +207,7 @@ public interface Database {
 	 *             database.
 	 */
 	public int addMember(String surname, String forename, Date dob, int group)
-			throws DatabaseError;
+			throws DatabaseError, EntryAlreadyExistsException;
 
 	/**
 	 * Get the information for a certain member.
