@@ -371,6 +371,16 @@ public interface Database {
 	 */
 	public GroupInfo[] getGroups() throws DatabaseError;
 
+	/**
+	 * Get the default group.
+	 * 
+	 * @return The default group.
+	 * @throws DatabaseError
+	 *             If there is a problem connecting to or reading from the
+	 *             database.
+	 */
+	public GroupInfo getDefaultGroup() throws DatabaseError;
+
 	/* -------------------- GROUPS - STATISTICS [G,G+] ----------------- */
 
 	/**
