@@ -288,7 +288,9 @@ public class SimpleGUI extends JFrame {
 			if (arg0.getSource() == newOutingButton) {
 				outingDialog.doNewOuting();
 			} else if (arg0.getSource() == editOutingButton) {
-				outingTableManager.editOutingAt(outingTable.getSelectedRow());
+				if (outingTable.getSelectedRow() >= 0) { // Ensure valid
+					outingTableManager.editOutingAt(outingTable.getSelectedRow());
+				}
 			}
 			outingTableManager.updateOutings();
 		}

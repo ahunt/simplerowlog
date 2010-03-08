@@ -1,17 +1,10 @@
 simple rowLog TODO file.
 
--- Implement Database: (remember to put prepared statements locally.)
-	[Done] addBoat(), getBoat(), modifyBoat(), getBoats(), getBoats(boolean)
-			addMember(...), getMember(int), getMembers(), addGroup(...),
-			getGroup(int), modifyGroup(...), getGroups(), modifyMember(...)
-
--- Update the Database documentation to do the same type of checking.
-	[COMP] --> Now do the implementation
+-- Finish the db.
 	
 -- Update the error system, in the gui do the error catching and create an
 	appropriate user friendly warning. Log all error at database level though.
 	
-	--checking for no member, no group etc.
 
 -- In the database, for all getGroups etc, extract data directly from one request
 	(instead of simply getting ids, then single groups).
@@ -19,17 +12,9 @@ simple rowLog TODO file.
 -- Cache and cache checking in db, and in things like OutingDialog to check for
 	last update.
 	
--- Error cleaning on opening of database, closing of db.
-
--- Colouring of entries in OutingDialog and similar. (Validation!)
-	-- Update to display what field are incomplete in error dialog.
-
+-- Error cleaning on opening of database.
 
 -- Admin error log for minor messages, e.g. MemberInfo.getName etc.
-
--- Database: cleanup  date / day / time for outings
-
--- Choosing of highlighting colours for the gui.
 
 -- Verify that the test classes AREN'T included in the ant jar command.
 
@@ -41,3 +26,5 @@ simple rowLog TODO file.
 -- EntryAlreadyExistsException thrown where required.
 
 -- AboutDialog layout
+
+-- Move the log config files.

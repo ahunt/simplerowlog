@@ -7,3 +7,26 @@ simple rowLog Readme:
 	and are included in the default distribution. In the source distribution
 	they can be found under src/external. More information can be found under
 	NOTICE.
+	
+2. Administration:
+	simple rowLog possesses a multiple account system for administration, where
+	individual users can receive individual accounts, and also individual
+	permissions. One user (but only one) always has to be the root user, i.e.
+	has full permissions. User accounts are NOT linked to the members list used
+	in the front end of the program. A log is kept of the users that have logged
+	in to the administration backend.
+		Obviously, to keep accounts and the computer secure, access to both the
+	hardware, but also simple rowLogs files must be restricted. More on this can
+	be found in the manual.
+		To reset the whole of simple rowLog (fresh start) remove the files in
+	the directory conf (but make sure conf/default is kept), and delete the
+	contents of the directory database. If you simply want to reset the
+	configuration of simple rowLog, but keep all data (note: admin users are
+	also stored in the database, i.e. are part of the data), only delete the
+	files within the directory conf (keeping the directory conf/default intact).
+	Conversely, to delete the data, remove the contents of the folder directory.
+		Note: if you have deleted the database directory, a wizard will start
+	asking you to set up the default administration account.
+		If you do forget the admin password, it is possible to reset it: this
+	requires you to have full access to the computer, and the simple rowLog
+	directory. Check the manual for details.

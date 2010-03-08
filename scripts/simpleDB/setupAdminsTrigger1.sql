@@ -1,6 +1,6 @@
 #
 #    This file is part of simple rowLog: the open rowing logbook.
-#    Copyright (C) 2009  Andrzej JR Hunt
+#    Copyright (C) 2010  Andrzej JR Hunt
 #    
 #    simple rowLog is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -17,13 +17,12 @@
 #
 #
 #	Changelog:
-#	10/09/2009:	Created.
+#   08/03/2010: Created.
 #
-#
-# Startup language file - simple rowLog
-# Default: British English
+# Script: setupAdminsTrigger
+# Makes sure if there's an insert, only one user is root.
+CREATE TRIGGER trig_adminRoot1 AFTER INSERT ON admins
+REFERENCING NEW AS mod
+FOR EACH ROW MODE DB2SQL
+UPDATE  SET admins = 0 WHERE (isRoot = 1) AND ((NOT (username = mod.username)) AND (mod.isRoot = 1))
 
-welcome=Welcome...
-starting=simple rowLog is now starting.
-preferred_toolkit_unavailable=Preferred toolit unavailable, so using default toolkit.
-tkLoaded=Toolkit {0} loaded.

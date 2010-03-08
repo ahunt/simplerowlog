@@ -335,10 +335,12 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			psGetBoat.setString(1, name);
 			psGetBoat.execute();
 			ResultSet rs = psGetBoat.getResultSet();
-			// TODO: check whether there is a boat of this name. -> return null
-			rs.next();
-			return new BoatInfo(rs.getString("name"), rs.getString("type"), rs
-					.getBoolean("inHouse"));
+			if (rs.next()) {
+				return new BoatInfo(rs.getString("name"), rs.getString("type"), rs
+						.getBoolean("inHouse"));
+			} else { // No such boat.
+				return null;
+			}
 		} catch (SQLException e) {
 			log.error("Failed to get boat: " + name);
 			log.errorException(e);
@@ -560,7 +562,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		log.verbose("modifyMember(...)");
 		// Check the data
 		if (getMember(id) == null) {
-			throw new IllegalArgumentException("member must already exist");
+			throw new IllegalArgumentException("member must already exist in order to modify");
 		}
 		if (surname == null | surname.length() == 0) {
 			throw new IllegalArgumentException("surname cannot be null or"
@@ -672,6 +674,14 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	public int addGroup(String name, String description, Color colour,
 			boolean isDefault) throws DatabaseError {
 		log.verbose("addGroup(...)");
+		if (name == null || name.length() == 0) {
+			throw new IllegalArgumentException("name cannot be null when " +
+					"adding a group");
+		}
+		if (colour == null) {
+			throw new IllegalArgumentException("colour cannot be null when " +
+					"adding a group");
+		}
 		try {
 			// Check whether prepared statement exists. Create if necessary.
 			if (psAddGroup == null) {
@@ -718,7 +728,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			// Get results.
 			ResultSet rs = psGetGroup.getResultSet();
 			if (!rs.next()) {
-				throw new IllegalArgumentException("No such group " + id);
+//				throw new IllegalArgumentException("No such group " + id);
+				return null;
 			}
 			// Extract data.
 			String name = rs.getString("name");
@@ -974,6 +985,20 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 				int distance) throws DatabaseError {
 			log.entry("OutingManager.addOuting(...)");
 			log.info("Adding outing");
+			if (date == null) {
+				throw new IllegalArgumentException("Date cannot be null");
+			}
+			if (getMember(rowers[0]) == null) {
+				throw new IllegalArgumentException("rowers[0] must be a valid" +
+						" member");
+			}
+			if (timeOut == null) {
+				throw new IllegalArgumentException("timeOut cannot be null");
+			}
+			if (boat == null || boat.length() == 0 || getBoat(boat) == null) {
+				throw new IllegalArgumentException("boat must be a valid " +
+						"boat, cannot be null");
+			}
 			Calendar cal = new GregorianCalendar();
 			cal.setTime(date);
 			try {
@@ -1042,6 +1067,18 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 				String boat, int distance) {
 			log.entry("OutingManager.modifyOuting(...)");
 			log.info("Adding outing");
+			// TODO : check whether the id is valid.
+			if (getMember(rowers[0]) == null) {
+				throw new IllegalArgumentException("rowers[0] must be a valid" +
+						" member");
+			}
+			if (timeOut == null) {
+				throw new IllegalArgumentException("timeOut cannot be null");
+			}
+			if (boat == null || boat.length() == 0 || getBoat(boat) == null) {
+				throw new IllegalArgumentException("boat must be a valid " +
+						"boat, cannot be null");
+			}
 			Calendar cal = new GregorianCalendar();
 			cal.setTime(new Date(day));
 			try {

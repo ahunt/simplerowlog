@@ -84,44 +84,47 @@ public class Launch {
 				+ Info.getCopyright(true) + "\n" + Info.getLicence());
 		// Load the configuration.
 		Configuration conf;
+		SplashManager sm = new SplashManager(10);
 		try {
 			conf = Configuration.getConf("main");
-		    // Set Desired L&F
-	        javax.swing.UIManager.setLookAndFeel(conf.getProperty("gui.toolkit"));
-	        // Tell the user it is loaded
-	        System.out.println(MessageFormat.format(">> " + rb.getString("tkLoaded"),
-	        		javax.swing.UIManager.getLookAndFeel().getID()));
-	        log.info(javax.swing.UIManager.getLookAndFeel().getID()
-	        		+ " set as toolkit.");
+			// Set Desired L&F
+			javax.swing.UIManager.setLookAndFeel(conf
+					.getProperty("gui.toolkit"));
+			// Tell the user it is loaded
+			System.out.println(MessageFormat.format(">> "
+					+ rb.getString("tkLoaded"), javax.swing.UIManager
+					.getLookAndFeel().getID()));
+			log.info(javax.swing.UIManager.getLookAndFeel().getID()
+					+ " set as toolkit.");
 		} catch (FileNotFoundException e) {
-			JOptionPane.showMessageDialog(null, rb
-					.getString("Configuration not found. simple rowLog cannot start. Please ensure that you have an undamaged installation before restarting."), rb
-					.getString("Fatal error!"),
-					JOptionPane.ERROR_MESSAGE);
+			JOptionPane
+					.showMessageDialog(
+							null,
+							rb
+									.getString("Configuration not found. simple rowLog cannot start. Please ensure that you have an undamaged installation before restarting."),
+							rb.getString("Fatal error!"),
+							JOptionPane.ERROR_MESSAGE);
 			System.exit(0);
 		} catch (Exception e) {
-	    	System.out.println(rb.getString("noGTK"));
-	    	log.info("GTK unavailable, default used.");
-	    }
-		SplashManager sm = new SplashManager(10); 	// Splash: 10%
+			System.out.println(rb.getString("preferred_toolkit_unavailable"));
+			log.info("Preferred toolit unavailable, default used.");
+		}
+		sm.setProgress(30); // Splash: 30%
 		Database db = Database.getInstance();
-		sm.setProgress(30);							// Splash: 30%
+		sm.setProgress(50);
 		SimpleGUI gui = new SimpleGUI(db);
-		sm.setProgress(60);
+		sm.setProgress(70);
 		gui.setVisible(true);
-//		sm.setProgress(50);
-//
-//		try{Thread.sleep(500);}catch(Exception e){}
-//		sm.setProgress(80);
-//		try{Thread.sleep(500);}catch(Exception e){}
-//		sm.setProgress(90);
-//		try{Thread.sleep(500);}catch(Exception e){}
-//		sm.setProgress(100);
-//		try{Thread.sleep(500);}catch(Exception e){}
+		// sm.setProgress(50);
+		//
+		// try{Thread.sleep(500);}catch(Exception e){}
+		// sm.setProgress(80);
+		// try{Thread.sleep(500);}catch(Exception e){}
+		// sm.setProgress(90);
+		// try{Thread.sleep(500);}catch(Exception e){}
+		// sm.setProgress(100);
+		// try{Thread.sleep(500);}catch(Exception e){}
 
-		//TODO: Do stuff. (Splash, Load DB, start GUI) Remember the data dir.
-
-		
 	}
 
 	/**
@@ -160,9 +163,9 @@ public class Launch {
 	 * 
 	 */
 	private static void printUsage() {
-//		System.out.println("Usage:\n\tsimplerowlog DATADIRECTORY");
+		// System.out.println("Usage:\n\tsimplerowlog DATADIRECTORY");
 		System.out.println("Simply run simplerowlog to use.");
+
 	}
-	
 
 }
