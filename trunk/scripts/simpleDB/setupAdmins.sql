@@ -1,6 +1,6 @@
 #
 #    This file is part of simple rowLog: the open rowing logbook.
-#    Copyright (C) 2009  Andrzej JR Hunt
+#    Copyright (C) 2010  Andrzej JR Hunt
 #    
 #    simple rowLog is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -17,13 +17,14 @@
 #
 #
 #	Changelog:
-#	10/09/2009:	Created.
+#   08/03/2010: Created.
 #
-#
-# Startup language file - simple rowLog
-# Default: British English
-
-welcome=Welcome...
-starting=simple rowLog is now starting.
-preferred_toolkit_unavailable=Preferred toolit unavailable, so using default toolkit.
-tkLoaded=Toolkit {0} loaded.
+# Script: setupUSERS
+# Requires: -
+CREATE TABLE admins (
+    username VARCHAR(32) NOT NULL CONSTRAINT ADMINS_PK PRIMARY KEY,
+    passwordhash VARCHAR(32),
+    fullname VARCHAR(32),
+    isRoot INT,
+    permissions VARCHAR(32)
+)

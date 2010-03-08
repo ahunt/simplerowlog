@@ -33,6 +33,8 @@ import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.text.DateFormat;
@@ -75,6 +77,7 @@ import javax.swing.text.MaskFormatter;
 import org.ahunt.simpleRowLog.common.BoatInfo;
 import org.ahunt.simpleRowLog.common.MemberInfo;
 import org.ahunt.simpleRowLog.common.OutingInfo;
+import org.ahunt.simpleRowLog.common.Util;
 import org.ahunt.simpleRowLog.interfaces.Database;
 
 /**
@@ -254,9 +257,13 @@ public class OutingDialog extends JDialog {
 			if (i == 0) {
 				rowerEntry[i] = new SuggestiveTextField(rowerPanel, true, null,
 						32);
+				rowerEntry[i].addFocusListener(
+						new NameEntryListener(rowerEntry[i]));
 			} else {
 				rowerEntry[i] = new SuggestiveTextField(rowerPanel, false,
 						null, 32);
+				rowerEntry[i].addFocusListener(
+						new NameEntryListener(rowerEntry[i]));
 			}
 			// rowerEntry[i] = new JTextField(32);
 			rowerEntryLabel[i] = new JLabel("<html><b>"
@@ -265,6 +272,8 @@ public class OutingDialog extends JDialog {
 			// new EntryListener(rowerPanel, rowerEntry[i], i);
 		}
 		coxEntry = new SuggestiveTextField(rowerPanel, false, null, 32);
+		coxEntry.addFocusListener(
+				new NameEntryListener(coxEntry));
 		coxEntryLabel = new JLabel("<html><b><i>" + rb.getString("outing.cox")
 				+ ":</i></b></html>");
 		// new EntryListener(rowerPanel, coxEntry, -1);
@@ -784,6 +793,33 @@ public class OutingDialog extends JDialog {
 			// TODO Auto-generated constructor stub
 		}
 
+	}
+	
+	/**
+	 * Listen to the name entry fields. Once it is completed, it capitalises
+	 * the names accordingly.
+	 *
+	 */
+	private class NameEntryListener implements FocusListener {
+
+		private SuggestiveTextField entry;
+		
+		public NameEntryListener(SuggestiveTextField entry) {
+			this.entry = entry;
+		}
+
+		@Override
+		public void focusGained(FocusEvent arg0) {
+			// Do nothing
+		}
+
+		@Override
+		public void focusLost(FocusEvent arg0) {
+			entry.setText(Util.capitaliseName(entry.getText()));
+			if (!entry.isValid()) {
+				// TODO: ask for conf.
+			}
+		}
 	}
 
 }

@@ -26,24 +26,32 @@
 package org.ahunt.simpleRowLog.gui.simpleGUI;
 
 import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.io.FileNotFoundException;
+import java.text.MessageFormat;
+import java.text.SimpleDateFormat;
 import java.util.ResourceBundle;
 
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 import org.ahunt.simpleRowLog.common.EntryAlreadyExistsException;
-import org.ahunt.simpleRowLog.common.MemberInfo;
+import org.ahunt.simpleRowLog.common.Util;
 import org.ahunt.simpleRowLog.conf.Configuration;
 import org.ahunt.simpleRowLog.interfaces.Database;
 
@@ -101,6 +109,10 @@ public class AddMemberDialog extends JDialog {
 		entryPanel.setBorder(entryPanelBorder);
 		this.setModal(true);
 
+		surnameEntry
+				.addFocusListener(new NameEntryListener(surnameEntry));
+		forenameEntry
+				.addFocusListener(new NameEntryListener(forenameEntry));		
 		// add(entryPanel); // Temporary
 		setupLayout();
 
@@ -152,23 +164,27 @@ public class AddMemberDialog extends JDialog {
 	 * 
 	 * @param surname
 	 * @param forename
-	 * @return The id for the new member, or 0 if the dialog was
-	 *         cancelled or otherwise failed.
+	 * @return The id for the new member, or 0 if the dialog was cancelled or
+	 *         otherwise failed.
 	 */
 	public int addMember(String surname, String forename) {
 		createdMemberId = 0;
-		
-		dobEntry.setDateFormatString(conf.getProperty("date_format"));
+
+		dobEntry.setDateFormatString(conf.getProperty("srl.date_format"));
 		updateLocalisation();
 		this.pack();
 		this.setResizable(false);
-		
+
 		surnameEntry.setText(surname);
 		forenameEntry.setText(forename);
 		dobEntry.setDate(null);
+
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		setLocation(screenSize.width / 2 - this.getSize().width / 2,
+				screenSize.height / 2 - this.getSize().height / 2);
 		
 		setVisible(true);
-		
+
 		this.setResizable(true);
 		return createdMemberId;
 	}
@@ -196,18 +212,59 @@ public class AddMemberDialog extends JDialog {
 			if (arg0.getSource() == cancelButton) {
 				setVisible(false);
 			} else if (arg0.getSource() == saveButton) {
+//				surname = Util.capitaliseName(surname);
+//				forename = Util.capitaliseName(forename);
+				// TODO: listener for fields.
 				try {
-					createdMemberId = db.addMember(surnameEntry.getText(), forenameEntry
-							.getText(), dobEntry.getDate(), db
-							.getDefaultGroup().getId());
+					createdMemberId = db.addMember(surnameEntry.getText(),
+							forenameEntry.getText(), dobEntry.getDate(), db
+									.getDefaultGroup().getId());
 					// Dialog stating success?
 					setVisible(false);
 				} catch (EntryAlreadyExistsException e) {
-
+					String message = "<html><table><tr><td width=300 align=\"left\">"
+							+MessageFormat.format(
+							loc.getString("addMember.memberAlreadyExists"),
+							"<i>" + MessageFormat.format( 
+							conf.getProperty("srl.name_format"),
+							surnameEntry.getText(),forenameEntry.getText()) + "</i>",
+							"<i>" + new SimpleDateFormat(conf
+							.getProperty("srl.date_format"))
+							.format(dobEntry.getDate()) + "</i>")
+							+"</td></tr></table></html>";
+					JOptionPane.showMessageDialog( null, 
+							message,
+							loc.getString("addMember.memberAlreadyExists.title"),
+							JOptionPane.ERROR_MESSAGE);
 				}
 			}
 
 		}
 	}
 
+	
+	/**
+	 * Listen to the name entry fields. Once it is completed, it capitalises
+	 * the names accordingly.
+	 *
+	 */
+	private class NameEntryListener implements FocusListener {
+
+		private JTextField entry;
+		
+		public NameEntryListener(JTextField entry) {
+			this.entry = entry;
+		}
+
+		@Override
+		public void focusGained(FocusEvent arg0) {
+			// Do nothing
+		}
+
+		@Override
+		public void focusLost(FocusEvent arg0) {
+			entry.setText(Util.capitaliseName(entry.getText()));
+		}
+	}
+	
 }

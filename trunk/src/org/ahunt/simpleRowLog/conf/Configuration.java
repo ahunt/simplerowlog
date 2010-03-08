@@ -34,7 +34,10 @@ import java.util.Properties;
 /**
  * A wrapper class for properties, which deals with the chores such as finding
  * where the file is, loading a default if unavailable, and saving on
- * modification. Caching is also done.
+ * modification. Caching is also done. In addition, all configuration files
+ * requested will include the main configuration files contents, i.e. it is
+ * possible to request configuration parameters from the main config
+ * transparently through any config.
  * 
  * @author Andrzej JR Hunt
  * 
@@ -50,6 +53,7 @@ public class Configuration {
 
 	/** Cache storing opened configurations. */
 	private static Hashtable<String, Configuration> cache = new Hashtable<String, Configuration>();
+	private static Configuration mainConfiguration;
 
 	/**
 	 * Get the desired configuration.
@@ -79,6 +83,9 @@ public class Configuration {
 		}
 		if (doCache) {
 			cache.put(prop.getProperty("FILENAME"), this);
+		}
+		if (desired.equals("main")) {
+			mainConfiguration = this;
 		}
 	}
 
@@ -129,7 +136,11 @@ public class Configuration {
 	 * @return The property's value.
 	 */
 	public String getProperty(String key) {
-		return prop.getProperty(key);
+		String value = prop.getProperty(key);
+		if (value == null && this != mainConfiguration) { // No property
+			value = mainConfiguration.getProperty(key);
+		}
+		return value;
 	}
 
 	/**
@@ -156,6 +167,17 @@ public class Configuration {
 	 */
 	public synchronized void setProperty(String key, String value)
 			throws IOException {
+		// Determine whether this property is for this config or for main.
+		String previousValue = prop.getProperty(key);
+		if (previousValue == null) { // Not previously stored here
+			// But it is stored in the main config
+			if (mainConfiguration.getProperty(key) != null) {
+				mainConfiguration.setProperty(key, previousValue);
+				return;
+			}
+			// If not stored in neither, we just treat it as normal.
+		}
+
 		// Don't do modify the Filename, since that would cause chaos.
 		if (!key.equals("FILENAME")) {
 			prop.setProperty(key, value);
