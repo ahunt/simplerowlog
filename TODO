@@ -25,6 +25,9 @@ simple rowLog TODO file.
 
 -- EntryAlreadyExistsException thrown where required.
 
--- AboutDialog layout
+-- AboutDialog: tabbed pane for devs.
+
+-- Date selection: add a pausable thread for the date selector, so that we only
+update once the user has stopped changing the date.
 
 -- Move the log config files.

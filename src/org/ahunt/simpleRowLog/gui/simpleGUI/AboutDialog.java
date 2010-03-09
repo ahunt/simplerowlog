@@ -33,12 +33,14 @@ import java.io.FileReader;
 import java.text.MessageFormat;
 import java.util.ResourceBundle;
 
+import javax.swing.GroupLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.LayoutStyle;
 import javax.swing.SwingConstants;
 
 import org.ahunt.simpleRowLog.Info;
@@ -106,38 +108,74 @@ public class AboutDialog extends JDialog implements ActionListener {
 			disp = "GNU GPL couldn't be loaded, please refer to http://www.gnu.org/licenses/gpl-3.0.txt";
 		}
 		// Set up the text field. Read only appearance.
-		JTextArea gplTextArea = new JTextArea(disp);
+		JTextArea gplTextArea = new JTextArea(disp, 15, 50);
 		gplTextArea.setCursor(null);
 		gplTextArea.setEditable(false);
 		JScrollPane gplPane = new JScrollPane(gplTextArea);
+		
 		// The close button.
 		JButton exitButton = new JButton(rb.getString("dialog.about.exit"));
 	
 		// Layouting.		
-		Container pane = this.getContentPane();
-		pane.setLayout(null);
-		pane.add(textLabel);
-		pane.add(gplPane);
-		pane.add(exitButton);
-		getRootPane().setDefaultButton(exitButton);
+//		Container pane = this.getContentPane();
+//		pane.setLayout(null);
+//		pane.add(textLabel);
+//		pane.add(gplPane);
+//		pane.add(exitButton);
+
 		exitButton.addActionListener(this);
 		// Set positions
-		Insets insets = pane.getInsets();
-		textLabel.setBounds(25 + insets.left, 5 + insets.top, 500, 100);
-		gplPane.setBounds(15 + insets.left, 110 + insets.top, 550, 260);
-		Dimension size = exitButton.getPreferredSize();
-		exitButton.setBounds(250 + insets.left, 380 + insets.top,
-				size.width + 30, size.height + 5);
+		
+		GroupLayout l = new GroupLayout(getContentPane());
+		getContentPane().setLayout(l);
+		l.setAutoCreateGaps(true);
+		l.setAutoCreateContainerGaps(true);
+		l.setHorizontalGroup(l.createParallelGroup()
+				.addComponent(textLabel).addComponent(gplPane)
+				.addGroup(
+						l.createSequentialGroup()
+						.addPreferredGap(
+								LayoutStyle.ComponentPlacement.RELATED,
+								GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+						.addComponent(exitButton)
+						.addPreferredGap(
+								LayoutStyle.ComponentPlacement.RELATED,
+								GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+				)
+				
+//				.addGroup(l.createSequentialGroup()
+//						.addComponent(textLabel)
+//						.addGroup(l.createParallelGroup()
+//								.addComponent
+//								
+//						)
+//				
+//				)		
+		);
+		l.setVerticalGroup(l.createSequentialGroup().addComponent(textLabel).addComponent(gplPane)
+				.addGroup(l.createParallelGroup().addComponent(exitButton)));
+		
+		
+//		Insets insets = pane.getInsets();
+//		textLabel.setBounds(25 + insets.left, 5 + insets.top, 500, 100);
+//		gplPane.setBounds(15 + insets.left, 110 + insets.top, 550, 260);
+//		Dimension size = exitButton.getPreferredSize();
+//		exitButton.setBounds(250 + insets.left, 380 + insets.top,
+//				size.width + 30, size.height + 5);
 		// Finish off the window.
-		this.setResizable(false);
-		this.setSize(590, 450);
+//		this.setResizable(false);
+//		this.setSize(590, 450);
 		// Centering
-		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize(); 
-		this.setBounds(screenSize.width/2-this.getSize().width/2,
-				screenSize.height/2-this.getSize().height/2, 590, 450);
+//		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize(); 
+//		this.setBounds(screenSize.width/2-this.getSize().width/2,
+//				screenSize.height/2-this.getSize().height/2, 590, 450);
 		this.setAlwaysOnTop(true);
+		getRootPane().setDefaultButton(exitButton);
+		pack();
+		setResizable(false);
+		setVisible(false);
 	}
-
+	
 	/**
 	 * The listener for the exit button. I.e. close the window, which causes the
 	 * constructor to return.
