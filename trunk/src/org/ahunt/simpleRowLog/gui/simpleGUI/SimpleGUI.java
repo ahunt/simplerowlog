@@ -33,6 +33,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.FileNotFoundException;
 import java.text.SimpleDateFormat;
 import java.util.ResourceBundle;
@@ -46,7 +47,11 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.LayoutStyle;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.WindowConstants;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
@@ -63,7 +68,7 @@ import org.ahunt.simpleRowLog.interfaces.Database;
  * 
  * @author Andrzej JR Hunt
  */
-public class SimpleGUI extends JFrame {
+public class SimpleGUI extends JFrame implements ChangeListener {
 
 	static final long serialVersionUID = 1l;
 
@@ -112,7 +117,7 @@ public class SimpleGUI extends JFrame {
 	private Database db;
 
 	// The current date selected in the window. (Not specifically today's date.)
-	private Date current = new Date();
+	private DaySelectionPanel daySelection = new DaySelectionPanel();
 
 	/**
 	 * Create the gui.
@@ -136,6 +141,7 @@ public class SimpleGUI extends JFrame {
 
 		newOutingButton.addActionListener(new ButtonListener());
 		editOutingButton.addActionListener(new ButtonListener());
+		daySelection.addChangeListener(this);
 		// Set up the table. TODO: check whether height is correct.
 		outingTableManager = new OutingTableManager();
 		outingTable = new JTable(outingTableManager) {
@@ -148,7 +154,8 @@ public class SimpleGUI extends JFrame {
 				if (!c.getBackground().equals(getSelectionBackground())) {
 					Object timeOut = getModel().getValueAt(row, 3);
 					// Sets colours for completed rows.
-					c.setBackground(timeOut == null ? Color.LIGHT_GRAY : Color.WHITE);
+					c.setBackground(timeOut == null ? Color.LIGHT_GRAY
+							: Color.WHITE);
 				}
 				return c;
 			}
@@ -171,6 +178,7 @@ public class SimpleGUI extends JFrame {
 		outingTable.addMouseListener(new ClickListener());
 		outingTablePane.addMouseListener(new ClickListener());
 		setupLayout();
+		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 	}
 
 	/**
@@ -186,15 +194,29 @@ public class SimpleGUI extends JFrame {
 		// outingTable.setMinimumSize(new Dimension(400,300));
 		Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
 		l.setVerticalGroup(l.createSequentialGroup().addComponent(
-				outingTablePane, 300, d.height, d.height).addGroup(
+				outingTablePane, 300, d.height, d.height).addComponent(
+				daySelection).addGroup(
 				l.createParallelGroup(GroupLayout.Alignment.BASELINE)
 						.addComponent(newOutingButton).addComponent(
 								editOutingButton)));
 		l.setHorizontalGroup(l.createParallelGroup(
 				GroupLayout.Alignment.TRAILING).addComponent(outingTablePane,
 				400, d.width, d.width).addGroup(
-				l.createSequentialGroup().addComponent(newOutingButton)
-						.addComponent(editOutingButton)));
+				l.createSequentialGroup().addPreferredGap(
+						LayoutStyle.ComponentPlacement.UNRELATED,
+						GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+						.addPreferredGap(
+								LayoutStyle.ComponentPlacement.UNRELATED,
+								GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+						.addComponent(daySelection).addPreferredGap(
+								LayoutStyle.ComponentPlacement.UNRELATED,
+								GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+						.addPreferredGap(
+								LayoutStyle.ComponentPlacement.UNRELATED,
+								GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+				.addGroup(
+						l.createSequentialGroup().addComponent(newOutingButton)
+								.addComponent(editOutingButton)));
 	}
 
 	/**
@@ -214,10 +236,10 @@ public class SimpleGUI extends JFrame {
 	private void setupMenus() {
 		setJMenuBar(new JMenuBar());
 		JMenuBar mb = getJMenuBar();
-		
+
 		// Listener:
 		MenuListener ml = new MenuListener();
-		
+
 		// File menu
 		mb.add(menuFile);
 		menuFile.add(menuFileNewMember);
@@ -234,7 +256,6 @@ public class SimpleGUI extends JFrame {
 		menuHelpHelp.addActionListener(ml);
 		menuHelp.add(menuHelpAbout);
 		menuHelpAbout.addActionListener(ml);
-		
 
 	}
 
@@ -289,7 +310,8 @@ public class SimpleGUI extends JFrame {
 				outingDialog.doNewOuting();
 			} else if (arg0.getSource() == editOutingButton) {
 				if (outingTable.getSelectedRow() >= 0) { // Ensure valid
-					outingTableManager.editOutingAt(outingTable.getSelectedRow());
+					outingTableManager.editOutingAt(outingTable
+							.getSelectedRow());
 				}
 			}
 			outingTableManager.updateOutings();
@@ -304,6 +326,7 @@ public class SimpleGUI extends JFrame {
 		}
 
 		private void onClose() {
+			System.out.println("onClose()");
 			// TODO: stuff
 			// TODO: some method has to be called to clean up and save
 			// data that changes e.g. config.
@@ -433,7 +456,7 @@ public class SimpleGUI extends JFrame {
 		 */
 		public void updateOutings() {
 			try {
-				outings = db.getOutings(current);
+				outings = db.getOutings(daySelection.getDate());
 				fireTableDataChanged();
 			} catch (Exception e) {
 				ErrorHandler.handleError(e);
@@ -484,7 +507,7 @@ public class SimpleGUI extends JFrame {
 		}
 
 	}
-	
+
 	private class MenuListener implements ActionListener {
 
 		@Override
@@ -497,6 +520,15 @@ public class SimpleGUI extends JFrame {
 				System.exit(0);
 			}
 		}
-		
+
 	}
+
+	/**
+	 * Watches for changes of date.
+	 */
+	@Override
+	public void stateChanged(ChangeEvent arg0) {
+		outingTableManager.updateOutings();
+	}
+
 }

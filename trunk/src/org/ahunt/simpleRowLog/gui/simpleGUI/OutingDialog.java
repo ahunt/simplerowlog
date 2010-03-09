@@ -815,9 +815,9 @@ public class OutingDialog extends JDialog {
 
 		@Override
 		public void focusLost(FocusEvent arg0) {
-			entry.setText(Util.capitaliseName(entry.getText()));
+			//	entry.setText(Util.capitaliseName(entry.getText()));
 			if (!entry.isValid()) {
-				// TODO: ask for conf.
+				// TODO: ask for confirmation of addition.
 			}
 		}
 	}
