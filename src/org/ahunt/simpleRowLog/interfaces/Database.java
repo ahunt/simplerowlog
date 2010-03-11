@@ -493,5 +493,15 @@ public interface Database {
 	public void modifyOuting(long id, long day, int[] rowers, int cox,
 			Date out, Date in, String comment, String destination, String boat,
 			int distance);
+	
+	
+	/* -------------------- Admins [AG,G+,M,R,AUTH] ----------------- */
+	
+	public void addAdmin(String username, String password, String name,
+			boolean isRoot, String comment);
+	
+	public AdminInfo getAdmin(String username);
+	
+	public AdminInfo[] getAdmins();
 
 }

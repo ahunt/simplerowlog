@@ -42,6 +42,7 @@ import java.util.Date;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -49,7 +50,9 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.LayoutStyle;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
+import javax.swing.GroupLayout.Alignment;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.table.AbstractTableModel;
@@ -108,6 +111,9 @@ public class SimpleGUI extends JFrame implements ChangeListener {
 
 	private JButton editOutingButton = new JButton();
 	private JButton newOutingButton = new JButton();
+
+	// The footer string.
+	private JLabel windowFooter = new JLabel();
 
 	private OutingDialog outingDialog;
 	private AboutDialog aboutDialog = new AboutDialog();
@@ -179,6 +185,12 @@ public class SimpleGUI extends JFrame implements ChangeListener {
 		outingTablePane.addMouseListener(new ClickListener());
 		setupLayout();
 		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+		// TODO: load from the config, and watch.
+//		windowFooter.setHorizontalAlignment(SwingConstants.TRAILING);
+		windowFooter.setText("Rowing logbook of the Gobi desert rowing club"
+				+ " [http://gobi.desertrowing.com/]");
+		// windowFooter.setAlignmentX(Component.RIGHT_ALIGNMENT);
+
 	}
 
 	/**
@@ -194,29 +206,36 @@ public class SimpleGUI extends JFrame implements ChangeListener {
 		// outingTable.setMinimumSize(new Dimension(400,300));
 		Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
 		l.setVerticalGroup(l.createSequentialGroup().addComponent(
-				outingTablePane, 300, d.height, d.height).addComponent(
-				daySelection).addGroup(
+				outingTablePane, 300, d.height, d.height).addGroup(
 				l.createParallelGroup(GroupLayout.Alignment.BASELINE)
-						.addComponent(newOutingButton).addComponent(
-								editOutingButton)));
-		l.setHorizontalGroup(l.createParallelGroup(
-				GroupLayout.Alignment.TRAILING).addComponent(outingTablePane,
-				400, d.width, d.width).addGroup(
-				l.createSequentialGroup().addPreferredGap(
-						LayoutStyle.ComponentPlacement.UNRELATED,
-						GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-						.addPreferredGap(
-								LayoutStyle.ComponentPlacement.UNRELATED,
-								GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-						.addComponent(daySelection).addPreferredGap(
-								LayoutStyle.ComponentPlacement.UNRELATED,
-								GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-						.addPreferredGap(
-								LayoutStyle.ComponentPlacement.UNRELATED,
-								GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-				.addGroup(
-						l.createSequentialGroup().addComponent(newOutingButton)
-								.addComponent(editOutingButton)));
+						.addComponent(daySelection).addGroup(
+								l.createSequentialGroup().addGroup(
+										l.createParallelGroup().addComponent(
+												newOutingButton).addComponent(
+												editOutingButton))
+										.addComponent(windowFooter))));
+
+		l
+				.setHorizontalGroup(l
+						.createParallelGroup(GroupLayout.Alignment.TRAILING)
+						.addComponent(outingTablePane, 400, d.width, d.width)
+						.addGroup(
+								l
+										.createSequentialGroup()
+										.addComponent(daySelection)
+										.addGroup(
+												l
+														.createParallelGroup()
+														.addGroup(
+																l
+																		.createSequentialGroup()
+																		.addComponent(
+																				newOutingButton)
+																		.addComponent(
+																				editOutingButton))
+														.addComponent(
+																windowFooter,
+																GroupLayout.Alignment.TRAILING))));
 	}
 
 	/**
