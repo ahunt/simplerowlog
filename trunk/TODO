@@ -31,3 +31,5 @@ simple rowLog TODO file.
 update once the user has stopped changing the date.
 
 -- Move the log config files.
+
+-- Length of names in database: document, check, etc.

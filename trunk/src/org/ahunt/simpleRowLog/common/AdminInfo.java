@@ -29,8 +29,12 @@ package org.ahunt.simpleRowLog.common;
  * @author Andrzej JR Hunt
  * @version 0.01 9th March 2010
  */
-public class AdminInfo {
+public interface AdminInfo {
 
-
+	public String getUsername();
+	public String getName();
+	
+	
+	public boolean validatePassword(String password);
 
 }

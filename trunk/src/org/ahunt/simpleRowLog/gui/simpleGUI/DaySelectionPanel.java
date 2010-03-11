@@ -97,6 +97,7 @@ public class DaySelectionPanel extends JPanel implements ActionListener {
 		LineBorder b = new LineBorder(Color.BLACK);
 		setBorder(b);
 		actionPerformed(null);
+		setMaximumSize(getPreferredSize());
 	}
 
 	@Override

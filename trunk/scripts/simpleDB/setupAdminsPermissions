@@ -17,16 +17,13 @@
 #
 #
 #	Changelog:
-#   08/03/2010: Created.
+#   10/03/2010: Created.
 #
-# Script: setupAdmins
+# Script: setupAdminsPermissions
 # Requires: -
-CREATE TABLE admins (
-    username VARCHAR(32) NOT NULL CONSTRAINT ADMINS_PK PRIMARY KEY,
+CREATE TABLE admins_permissions (
+    username VARCHAR(32) NOT NULL,
     password VARCHAR(32),
-    salt VARCHAR(64),
-    name VARCHAR(32),
-    isRoot INT,
-    permissions VARCHAR(32),
-    comment VARCHAR(512);
+    CONSTRAINT ADMINS_PERMISSIONS_FK FOREIGN KEY (username) references 
+    admins (username)
 )

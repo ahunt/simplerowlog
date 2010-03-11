@@ -29,6 +29,8 @@ package org.ahunt.simpleRowLog.db.simpleDB;
 import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.security.MessageDigest;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -43,15 +45,17 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.GregorianCalendar;
 import java.util.Hashtable;
+import java.util.Random;
 import java.util.ResourceBundle;
 
+import org.ahunt.simpleRowLog.common.AdminInfo;
+import org.ahunt.simpleRowLog.common.AdminPermissionList;
 import org.ahunt.simpleRowLog.common.BoatInfo;
 import org.ahunt.simpleRowLog.common.BoatStatistic;
 import org.ahunt.simpleRowLog.common.DatabaseError;
 import org.ahunt.simpleRowLog.common.EntryAlreadyExistsException;
 import org.ahunt.simpleRowLog.common.GroupInfo;
 import org.ahunt.simpleRowLog.common.GroupStatistic;
-import org.ahunt.simpleRowLog.common.MemberAlreadyExistsException;
 import org.ahunt.simpleRowLog.common.MemberInfo;
 import org.ahunt.simpleRowLog.common.MemberStatistic;
 import org.ahunt.simpleRowLog.common.OutingInfo;
@@ -132,6 +136,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	private PreparedStatement psGetGroups;
 	private PreparedStatement psGetGroupStat;
 	private PreparedStatement psGetGroupsStats;
+
+	private PreparedStatement psAddAdmin;
 
 	// TODO: Implement a "locking" mechanism so that users can hold on to the
 	// db,
@@ -242,6 +248,14 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		s.execute(Util.loadScript("setupMembers"));
 		log.debug("setupBoats");
 		s.execute(Util.loadScript("setupBoats"));
+		log.debug("setupAdmins");
+		s.execute(Util.loadScript("setupAdmins"));
+		log.debug("setupAdminsTrigger1");
+		s.execute(Util.loadScript("setupAdminsTrigger1"));
+		log.debug("setupAdminsTrigger2");
+		s.execute(Util.loadScript("setupAdminsTrigger2"));
+		log.debug("setupAdminsTrigger1");
+		s.execute(Util.loadScript("setupAdminsPermissions"));
 
 		// The default data.
 		log.info("Beginning creation of default data.");
@@ -278,8 +292,12 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 					0), deletedGroup);
 		} catch (EntryAlreadyExistsException e) {
 			// Do nothing, it won't happen, or we don't care.
+			// TODO: mass alarm HERE.
 		}
 		addBoat(rb.getString("otherBoat"), "", true);
+		// TODO: setup dialog for admin, asking data.
+		addAdmin("root", "root", "Rootable", true, "Default admin");
+		
 		log.exit("createDefaultData()");
 	}
 
@@ -336,8 +354,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			psGetBoat.execute();
 			ResultSet rs = psGetBoat.getResultSet();
 			if (rs.next()) {
-				return new BoatInfo(rs.getString("name"), rs.getString("type"), rs
-						.getBoolean("inHouse"));
+				return new BoatInfo(rs.getString("name"), rs.getString("type"),
+						rs.getBoolean("inHouse"));
 			} else { // No such boat.
 				return null;
 			}
@@ -562,7 +580,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		log.verbose("modifyMember(...)");
 		// Check the data
 		if (getMember(id) == null) {
-			throw new IllegalArgumentException("member must already exist in order to modify");
+			throw new IllegalArgumentException(
+					"member must already exist in order to modify");
 		}
 		if (surname == null | surname.length() == 0) {
 			throw new IllegalArgumentException("surname cannot be null or"
@@ -675,12 +694,12 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			boolean isDefault) throws DatabaseError {
 		log.verbose("addGroup(...)");
 		if (name == null || name.length() == 0) {
-			throw new IllegalArgumentException("name cannot be null when " +
-					"adding a group");
+			throw new IllegalArgumentException("name cannot be null when "
+					+ "adding a group");
 		}
 		if (colour == null) {
-			throw new IllegalArgumentException("colour cannot be null when " +
-					"adding a group");
+			throw new IllegalArgumentException("colour cannot be null when "
+					+ "adding a group");
 		}
 		try {
 			// Check whether prepared statement exists. Create if necessary.
@@ -728,7 +747,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			// Get results.
 			ResultSet rs = psGetGroup.getResultSet();
 			if (!rs.next()) {
-//				throw new IllegalArgumentException("No such group " + id);
+				// throw new IllegalArgumentException("No such group " + id);
 				return null;
 			}
 			// Extract data.
@@ -907,6 +926,84 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 
 	}
 
+	/* -------------------- Admins [AG,G+,M,R,AUTH] ----------------- */
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void addAdmin(String username, String password, String name,
+			boolean isRoot, String comment) {
+		log.entry("addAdmin(...)");
+		// Generate a salt.
+		Random r = new Random();
+		byte[] salt = new byte[64];
+		r.nextBytes(salt);
+		// Generate a hash.
+
+
+		try {
+			MessageDigest digest = MessageDigest.getInstance("SHA-256");
+			digest.update(salt);
+			byte[] hash = digest.digest(password.getBytes("UTF-16"));
+			if (psAddAdmin == null) {
+				psAddAdmin = con.prepareStatement("INSERT INTO admins "
+						+ "(username, password, salt, name, "
+						+ "isRoot, comment) VALUES (?,?,?,?,?,?)");
+			}
+			psAddAdmin.setString(1, username);
+			psAddAdmin
+					.setString(2, new String(hash, Charset.forName("UTF-16")));
+			psAddAdmin
+					.setString(3, new String(salt, Charset.forName("UTF-16")));
+			psAddAdmin.setString(4, name);
+			psAddAdmin.setBoolean(5, isRoot);
+			psAddAdmin.setString(6, comment);
+
+			psAddAdmin.execute();
+			psAddAdmin.clearParameters(); // So that data isn't kept in mem.
+		} catch (SQLException e) {
+			log.error("Error adding new admin.");
+			log.errorException(e);
+			throw new DatabaseError(rb.getString("commandError"), e);
+		} catch (Exception e) {
+			// TODO: deal with the no encoding / algorithm exceptions.
+		}
+
+	}
+
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public AdminInfo getAdmin(String username) {
+		return null;
+	}
+	
+	public AdminPermissionList getAdminPermissions(String username) {
+		return null;
+	}
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public AdminInfo[] getAdmins() {
+		return null;
+	}
+	
+	public void modifyAdmin(String formerUsername) {
+
+	}
+
+	public void removeAdmin(String username) {
+
+	}
+
+	public AdminInfo authenticateAdmin(String username, String password) {
+		return null;
+	}
+
 	/* -------------------- OutingManager (INTERNAL) ----------------- */
 
 	/**
@@ -919,7 +1016,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	private class OutingManager implements Runnable {
 
 		// Stores the various tables.
-		private Hashtable<Integer, OutingStatementSet> statementCache = new Hashtable<Integer, OutingStatementSet>();
+		private Hashtable<Integer, OutingStatementSet> statementCache = 
+				new Hashtable<Integer, OutingStatementSet>();
 
 		public OutingManager() throws SQLException, IOException {
 			log.entry("OutingManager.OutingManager()");
@@ -989,15 +1087,15 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 				throw new IllegalArgumentException("Date cannot be null");
 			}
 			if (getMember(rowers[0]) == null) {
-				throw new IllegalArgumentException("rowers[0] must be a valid" +
-						" member");
+				throw new IllegalArgumentException("rowers[0] must be a valid"
+						+ " member");
 			}
 			if (timeOut == null) {
 				throw new IllegalArgumentException("timeOut cannot be null");
 			}
 			if (boat == null || boat.length() == 0 || getBoat(boat) == null) {
-				throw new IllegalArgumentException("boat must be a valid " +
-						"boat, cannot be null");
+				throw new IllegalArgumentException("boat must be a valid "
+						+ "boat, cannot be null");
 			}
 			Calendar cal = new GregorianCalendar();
 			cal.setTime(date);
@@ -1069,15 +1167,15 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			log.info("Adding outing");
 			// TODO : check whether the id is valid.
 			if (getMember(rowers[0]) == null) {
-				throw new IllegalArgumentException("rowers[0] must be a valid" +
-						" member");
+				throw new IllegalArgumentException("rowers[0] must be a valid"
+						+ " member");
 			}
 			if (timeOut == null) {
 				throw new IllegalArgumentException("timeOut cannot be null");
 			}
 			if (boat == null || boat.length() == 0 || getBoat(boat) == null) {
-				throw new IllegalArgumentException("boat must be a valid " +
-						"boat, cannot be null");
+				throw new IllegalArgumentException("boat must be a valid "
+						+ "boat, cannot be null");
 			}
 			Calendar cal = new GregorianCalendar();
 			cal.setTime(new Date(day));
