@@ -1,0 +1,21 @@
+Roadmap for simple rowLog:
+(Note some features may be introduced earlier as substeps.)
+
+[DONE/History]
+---- July 2010
+0.1.0-pre-alpha:    First functional version, i.e. logbook function present,
+                    not much else.
+
+
+[FUTURE]
+0.2.0-alpha:        Fully functional, i.e. admin interface also present.
+                    Documentation done.
+0.3.0-alpha:        Statistics.
+0.4.0-alpha:        Language/Internationalisation done, with active switching.
+0.5.0-beta:         Various small details, testing.
+1.0.0:              Final version.
+
+[FURTHER DEVELOPMENT]
+~~~~:               Separation into server/client architecture.
+~~~~:               Adding of web server into server.
+~~~~:               Adding of network capability and multiple clients.

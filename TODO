@@ -21,7 +21,8 @@ simple rowLog TODO file.
 -- Outingdialog: capability to directly add new members (with probability of name
 	being a real name.).
 	
--- Central localisation manager and interface for updateLocalisation();
+-- Central localisation manager and interface for updateLocalisation(); Any
+localisable classes register so that they are updated.
 
 -- EntryAlreadyExistsException thrown where required.
 
@@ -33,3 +34,9 @@ update once the user has stopped changing the date.
 -- Move the log config files.
 
 -- Length of names in database: document, check, etc.
+
+-- Update all file locations to get from config.
+
+-- Create localisation gui tool.
+
+-- Documentation: incorporate into packaging.
