@@ -17,6 +17,8 @@
  *
  *
  *	Changelog
+ *  27/04/2010: Changed the nameentry listener to also listen to mouse events
+ *  			since FocusListener only deals with Keyboard events.
  *	06/03/2010: Renamed from MemberDialog to AddMemberDialog since only the
  *				admin can edit members, i.e. this dialog is only used to add
  *				them.
@@ -32,6 +34,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.FileNotFoundException;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
@@ -109,10 +113,12 @@ public class AddMemberDialog extends JDialog {
 		entryPanel.setBorder(entryPanelBorder);
 		this.setModal(true);
 
-		surnameEntry
-				.addFocusListener(new NameEntryListener(surnameEntry));
-		forenameEntry
-				.addFocusListener(new NameEntryListener(forenameEntry));		
+		NameEntryListener nel = new NameEntryListener(surnameEntry);
+		surnameEntry.addFocusListener(nel);
+		surnameEntry.addMouseListener(nel);
+		nel = new NameEntryListener(forenameEntry);
+		forenameEntry.addFocusListener(nel);
+		forenameEntry.addMouseListener(nel);
 		// add(entryPanel); // Temporary
 		setupLayout();
 
@@ -182,7 +188,7 @@ public class AddMemberDialog extends JDialog {
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		setLocation(screenSize.width / 2 - this.getSize().width / 2,
 				screenSize.height / 2 - this.getSize().height / 2);
-		
+
 		setVisible(true);
 
 		this.setResizable(true);
@@ -212,8 +218,8 @@ public class AddMemberDialog extends JDialog {
 			if (arg0.getSource() == cancelButton) {
 				setVisible(false);
 			} else if (arg0.getSource() == saveButton) {
-//				surname = Util.capitaliseName(surname);
-//				forename = Util.capitaliseName(forename);
+				// surname = Util.capitaliseName(surname);
+				// forename = Util.capitaliseName(forename);
 				// TODO: listener for fields.
 				try {
 					createdMemberId = db.addMember(surnameEntry.getText(),
@@ -223,18 +229,30 @@ public class AddMemberDialog extends JDialog {
 					setVisible(false);
 				} catch (EntryAlreadyExistsException e) {
 					String message = "<html><table><tr><td width=300 align=\"left\">"
-							+MessageFormat.format(
-							loc.getString("addMember.memberAlreadyExists"),
-							"<i>" + MessageFormat.format( 
-							conf.getProperty("srl.name_format"),
-							surnameEntry.getText(),forenameEntry.getText()) + "</i>",
-							"<i>" + new SimpleDateFormat(conf
-							.getProperty("srl.date_format"))
-							.format(dobEntry.getDate()) + "</i>")
-							+"</td></tr></table></html>";
-					JOptionPane.showMessageDialog( null, 
-							message,
-							loc.getString("addMember.memberAlreadyExists.title"),
+							+ MessageFormat
+									.format(
+											loc
+													.getString("addMember.memberAlreadyExists"),
+											"<i>"
+													+ MessageFormat
+															.format(
+																	conf
+																			.getProperty("srl.name_format"),
+																	surnameEntry
+																			.getText(),
+																	forenameEntry
+																			.getText())
+													+ "</i>",
+											"<i>"
+													+ new SimpleDateFormat(
+															conf
+																	.getProperty("srl.date_format"))
+															.format(dobEntry
+																	.getDate())
+													+ "</i>")
+							+ "</td></tr></table></html>";
+					JOptionPane.showMessageDialog(null, message, loc
+							.getString("addMember.memberAlreadyExists.title"),
 							JOptionPane.ERROR_MESSAGE);
 				}
 			}
@@ -242,16 +260,17 @@ public class AddMemberDialog extends JDialog {
 		}
 	}
 
-	
 	/**
-	 * Listen to the name entry fields. Once it is completed, it capitalises
-	 * the names accordingly.
-	 *
+	 * Listen to the name entry fields. Once it is completed, it capitalises the
+	 * names accordingly. It has to listen to both Keyboard and Mouse events
+	 * meaning it is both a FocusListener and MouseListener, since the
+	 * FocusListener ignores what the mouse does.
+	 * 
 	 */
-	private class NameEntryListener implements FocusListener {
+	private class NameEntryListener implements FocusListener, MouseListener {
 
 		private JTextField entry;
-		
+
 		public NameEntryListener(JTextField entry) {
 			this.entry = entry;
 		}
@@ -265,6 +284,31 @@ public class AddMemberDialog extends JDialog {
 		public void focusLost(FocusEvent arg0) {
 			entry.setText(Util.capitaliseName(entry.getText()));
 		}
+
+		@Override
+		public void mouseClicked(MouseEvent arg0) {
+			// Do nothing
+		}
+
+		@Override
+		public void mouseEntered(MouseEvent arg0) {
+			// Do nothing
+		}
+
+		@Override
+		public void mouseExited(MouseEvent arg0) {
+			focusLost(null);
+		}
+
+		@Override
+		public void mousePressed(MouseEvent arg0) {
+			// Do nothing
+		}
+
+		@Override
+		public void mouseReleased(MouseEvent arg0) {
+			// Do nothing
+		}
 	}
-	
+
 }

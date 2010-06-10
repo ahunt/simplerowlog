@@ -23,24 +23,24 @@
 package org.ahunt.simpleRowLog.gui.simpleGUI;
 
 import java.awt.Color;
-import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.FileNotFoundException;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.ResourceBundle;
 
-import javax.swing.BoxLayout;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.LayoutStyle;
+import javax.swing.JSpinner.DateEditor;
 import javax.swing.border.LineBorder;
+import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.ahunt.simpleRowLog.conf.Configuration;
 
-import com.toedter.calendar.JDateChooser;
 import com.toedter.calendar.JSpinnerDateEditor;
 
 /**
@@ -71,6 +71,7 @@ public class DaySelectionPanel extends JPanel implements ActionListener {
 			ErrorHandler.handleError(e);
 		}
 		todayButton.addActionListener(this);
+		dateChooser.addChangeListener(new DateChangeListener());
 		GroupLayout l = new GroupLayout(this);
 		setLayout(l);
 		l.setAutoCreateContainerGaps(true);
@@ -115,5 +116,27 @@ public class DaySelectionPanel extends JPanel implements ActionListener {
 
 	public Date getDate() {
 		return dateChooser.getDate();
+	}
+
+	private class DateChangeListener implements ChangeListener {
+
+		@Override
+		public void stateChanged(ChangeEvent arg0) {
+			Calendar today = Calendar.getInstance();
+			today.setTime(new Date());
+			Calendar selected = Calendar.getInstance();
+			selected.setTime(dateChooser.getDate());
+
+			if ((today.get(Calendar.YEAR) == selected.get(Calendar.YEAR))
+					&& (today.get(Calendar.MONTH) == selected
+							.get(Calendar.MONTH))
+					&& (today.get(Calendar.DAY_OF_MONTH) == selected
+							.get(Calendar.DAY_OF_MONTH))) {
+				todayButton.setEnabled(false);
+			} else {
+				todayButton.setEnabled(true);
+			}
+		}
+
 	}
 }

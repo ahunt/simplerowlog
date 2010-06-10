@@ -17,8 +17,9 @@
  *
  *
  *	Changelog:
- *	05/10/2009:	Created.
+ *  27/04/2010: Started adding the tabbed version.
  *  07/10/2009: Completed initial version.
+ *	05/10/2009:	Created.
  */
 package org.ahunt.simpleRowLog.gui.simpleGUI;
 
@@ -39,18 +40,21 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.LayoutStyle;
 import javax.swing.SwingConstants;
 
 import org.ahunt.simpleRowLog.Info;
+
 /**
  * The About Dialog showing version information and the GPL Licence for simple
  * rowLog. The dialog is a modal dialog, to use the dialog simply call the
- * constructor: <code>new AboutDialog()</code> The constructor returns once
- * the dialog has been closed.
+ * constructor: <code>new AboutDialog()</code> The constructor returns once the
+ * dialog has been closed.
+ * 
  * @author Andrzej JR Hunt
- * @version 1
+ * @version 2
  */
 public class AboutDialog extends JDialog implements ActionListener {
 
@@ -58,20 +62,22 @@ public class AboutDialog extends JDialog implements ActionListener {
 	 * serialVersionUID
 	 */
 	private static final long serialVersionUID = 1L;
-	
+
 	// Language data
 	private ResourceBundle rb = ResourceBundle.getBundle("gui");
-	
+
 	// Get the various data about simple rowLog to display.
 	private String srlVersion = Info.getVersion();
 	private String srlBuildType = Info.getBuildType();
 	private String srlWebSite = Info.getWebSite();
 	private String srlCopyright = Info.getCopyright(false);
-	
+
 	// Get the java version.
 	private String javaVersion = System.getProperty("java.vm.version");
 	private String javaName = System.getProperty("java.vm.name");
-	
+
+	private JTabbedPane tabPane = new JTabbedPane();
+
 	/**
 	 * Open a new about Dialog. This exits once the dialog closes. It throws an
 	 * error if an about Dialog is already open.
@@ -82,26 +88,26 @@ public class AboutDialog extends JDialog implements ActionListener {
 		this.setTitle(rb.getString("dialog.about.title"));
 		// Prepare the content
 		String result = MessageFormat.format(
-				//Line 1: Copyright
+				// Line 1: Copyright
 				"<html><b>{0}</b><br/>"
 				// Line 2 Website
-				+ "<font size=+2><a href=\"{1}\">{1}</a></font><br/>"
-				// Line 3 srl version
-				+ "<b>{2}</b> {3} ({4})<br/>"
-				// Line 4 java version
-				+ "<b>{5}</b> {6} ({7})</html>",
-				srlCopyright, srlWebSite,
-				rb.getString("dialog.about.srlVersion"), srlVersion,
-				srlBuildType, rb.getString("dialog.about.javaVersion"),
-				javaVersion, javaName);
-		JLabel textLabel = new JLabel(result,new ImageIcon("img/logo/logo.png"),
-				SwingConstants.LEFT);
+						+ "<font size=+2><a href=\"{1}\">{1}</a></font><br/>"
+						// Line 3 srl version
+						+ "<b>{2}</b> {3} ({4})<br/>"
+						// Line 4 java version
+						+ "<b>{5}</b> {6} ({7})</html>", srlCopyright,
+				srlWebSite, rb.getString("dialog.about.srlVersion"),
+				srlVersion, srlBuildType, rb
+						.getString("dialog.about.javaVersion"), javaVersion,
+				javaName);
+		JLabel textLabel = new JLabel(result,
+				new ImageIcon("img/logo/logo.png"), SwingConstants.LEFT);
 		// Load the GPL file to show.
 		String disp = "";
 		String buff;
 		try {
 			BufferedReader b = new BufferedReader(new FileReader("LICENSE"));
-			while ((buff= b.readLine())!= null) {
+			while ((buff = b.readLine()) != null) {
 				disp += buff + "\n";
 			}
 		} catch (Exception e) {
@@ -112,70 +118,41 @@ public class AboutDialog extends JDialog implements ActionListener {
 		gplTextArea.setCursor(null);
 		gplTextArea.setEditable(false);
 		JScrollPane gplPane = new JScrollPane(gplTextArea);
-		
+
 		// The close button.
 		JButton exitButton = new JButton(rb.getString("dialog.about.exit"));
-	
-		// Layouting.		
-//		Container pane = this.getContentPane();
-//		pane.setLayout(null);
-//		pane.add(textLabel);
-//		pane.add(gplPane);
-//		pane.add(exitButton);
+
+		tabPane.add("License", gplPane);
 
 		exitButton.addActionListener(this);
 		// Set positions
-		
+
 		GroupLayout l = new GroupLayout(getContentPane());
 		getContentPane().setLayout(l);
 		l.setAutoCreateGaps(true);
 		l.setAutoCreateContainerGaps(true);
-		l.setHorizontalGroup(l.createParallelGroup()
-				.addComponent(textLabel).addComponent(gplPane)
-				.addGroup(
-						l.createSequentialGroup()
-						.addPreferredGap(
+		l.setHorizontalGroup(l.createParallelGroup().addComponent(textLabel)
+				.addComponent(tabPane).addGroup(
+						l.createSequentialGroup().addPreferredGap(
 								LayoutStyle.ComponentPlacement.RELATED,
 								GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-						.addComponent(exitButton)
-						.addPreferredGap(
-								LayoutStyle.ComponentPlacement.RELATED,
-								GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-				)
-				
-//				.addGroup(l.createSequentialGroup()
-//						.addComponent(textLabel)
-//						.addGroup(l.createParallelGroup()
-//								.addComponent
-//								
-//						)
-//				
-//				)		
+								.addComponent(exitButton).addPreferredGap(
+										LayoutStyle.ComponentPlacement.RELATED,
+										GroupLayout.DEFAULT_SIZE,
+										Short.MAX_VALUE))
+
 		);
-		l.setVerticalGroup(l.createSequentialGroup().addComponent(textLabel).addComponent(gplPane)
-				.addGroup(l.createParallelGroup().addComponent(exitButton)));
-		
-		
-//		Insets insets = pane.getInsets();
-//		textLabel.setBounds(25 + insets.left, 5 + insets.top, 500, 100);
-//		gplPane.setBounds(15 + insets.left, 110 + insets.top, 550, 260);
-//		Dimension size = exitButton.getPreferredSize();
-//		exitButton.setBounds(250 + insets.left, 380 + insets.top,
-//				size.width + 30, size.height + 5);
-		// Finish off the window.
-//		this.setResizable(false);
-//		this.setSize(590, 450);
-		// Centering
-//		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize(); 
-//		this.setBounds(screenSize.width/2-this.getSize().width/2,
-//				screenSize.height/2-this.getSize().height/2, 590, 450);
+		l.setVerticalGroup(l.createSequentialGroup().addComponent(textLabel)
+				.addComponent(tabPane).addGroup(
+						l.createParallelGroup().addComponent(exitButton)));
+
 		this.setAlwaysOnTop(true);
 		getRootPane().setDefaultButton(exitButton);
 		pack();
 		setResizable(false);
 		setVisible(false);
 	}
-	
+
 	/**
 	 * The listener for the exit button. I.e. close the window, which causes the
 	 * constructor to return.

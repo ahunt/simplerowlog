@@ -34,6 +34,23 @@
 	<property name="splashimage" value="img/splash/splash.png" />
 	<property name="testcases" value="test" />
 
+	
+    <target name="help" 
+    	   description="Display detailed usage information">
+        <echo>simple rowLog Build system [${version}]</echo>
+    	<echo>
+Build Targets:
+    -help: Print help information for the build system.
+    -clean: Clean the directories of any compiled or derived files.
+    -build: [DEFAULT] Compile the project, and build the jar file, ready to run.
+    -jar: Build the jar file fromt the compiled class files, essentially does the same as {build}.
+    -getdep: Downloads all dependencies and extracts them.
+    -dist: Build the packaged release files.
+    -doc: Build the documentation.
+    	</echo>
+	</target>
+
+	
 	<target name="init">
 		<mkdir dir="${bin}" />
 		<mkdir dir="${lib}" />
@@ -67,9 +84,10 @@
 				<pathelement location="${lib}/jcal.jar" />
 			</classpath>
 		</javac>
+		<antcall target="jar" />
 	</target>
 
-	<target name="jar" depends="build">
+	<target name="jar">
 		<echo message="Packing jar." />
 		<copy todir="${bin}">
 			<fileset dir=".">
@@ -87,7 +105,7 @@
 		<delete dir="${bin}/img" />
 	</target>
 
-	<target name="dist" depends="getdep,build,jar,dist-bin,dist-src" />
+	<target name="dist" depends="checkdep,getdep,build,jar,dist-bin,dist-src" />
 
 	<target name="dist-bin">
 		<delete dir="${dist}/simplerowlog-${version}" />
@@ -122,6 +140,7 @@
 	</target>
 
 
+
 	<target name="dist-src">
 		<delete dir="${dist}/simplerowlog-${version}-src" />
 		<mkdir dir="${dist}" />
@@ -148,8 +167,8 @@
 				<available file="${lib}/derby.jar" />
 				<available file="${lib}/jcal.jar" />
 				<available file="${externalsrc}/simple-log-2.0.1.zip" />
-				<available file="${externalsrc}/derby.tar.gz" />
 				<available file="${externalsrc}/jcalendar-1.3.3.zip" />
+				<available file="${externalsrc}/db-derby-10.5.1.1-src.tar.gz" />
 			</and>
 		</condition>
 	</target>
@@ -175,6 +194,7 @@
 		<unzip src="${temp_getdep}/jcal.zip" dest="${temp_getdep}/jcal"/>
 		<move file="${temp_getdep}/jcal/lib/jcalendar-1.3.3.jar" tofile="${lib}/jcal.jar" />
 	</target>
+
 
 	<target name="getdep-src" depends="checkdep" unless="dep">
 		<mkdir dir="${externalsrc}" />

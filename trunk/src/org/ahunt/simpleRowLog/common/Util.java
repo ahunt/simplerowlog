@@ -17,6 +17,8 @@
  *
  *
  *	Changelog:
+ *	27/04/2010: Corrected bug in capitaliseName(String) where the method would
+ *				cause an exception if a zero length string was used.
  *  07/03/2010: Created.
  */
 package org.ahunt.simpleRowLog.common;
@@ -39,6 +41,7 @@ public class Util {
 	 */
 	public static String capitaliseName(String name) {
 		int l = name.length();
+		if (l == 0) return name; // Do nothing if string is empty.
 		StringBuffer sb = new StringBuffer(name);
 		sb.setCharAt(0, Character.toUpperCase(name.charAt(0)));
 		for (int i = 1; i < l - 1; i++) {

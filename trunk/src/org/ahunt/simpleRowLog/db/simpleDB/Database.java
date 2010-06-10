@@ -17,6 +17,7 @@
  *
  *
  *	Changelog:
+ *  27/04/2010: Implemented getMemberStatistics.
  *	23/08/2009:	Changelog added.
  */
 
@@ -124,18 +125,12 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	/** TO get some members (e.g. group) */
 	private PreparedStatement psGetMembersSelection;
 
-	private PreparedStatement psGetMemberStat;
-	private PreparedStatement psGetMembersStats;
-	private PreparedStatement psGetMembersStatsSelection;
-
 	private PreparedStatement psAddGroup;
 	private PreparedStatement psGetGroup;
 	private PreparedStatement psModifyGroup;
 	private PreparedStatement psGetDefaultGroup;
 
 	private PreparedStatement psGetGroups;
-	private PreparedStatement psGetGroupStat;
-	private PreparedStatement psGetGroupsStats;
 
 	private PreparedStatement psAddAdmin;
 
@@ -297,7 +292,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		addBoat(rb.getString("otherBoat"), "", true);
 		// TODO: setup dialog for admin, asking data.
 		addAdmin("root", "root", "Rootable", true, "Default admin");
-		
+
 		log.exit("createDefaultData()");
 	}
 
@@ -662,8 +657,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	 */
 	@Override
 	public MemberStatistic getMemberStatistics(int id) throws DatabaseError {
-		// TODO: implement (low priority)
-		return null;
+		return outingManager.getMemberStatistics(id);
 	}
 
 	/**
@@ -941,7 +935,6 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		r.nextBytes(salt);
 		// Generate a hash.
 
-
 		try {
 			MessageDigest digest = MessageDigest.getInstance("SHA-256");
 			digest.update(salt);
@@ -972,7 +965,6 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 
 	}
 
-
 	/**
 	 * {@inheritDoc}
 	 */
@@ -980,10 +972,11 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	public AdminInfo getAdmin(String username) {
 		return null;
 	}
-	
+
 	public AdminPermissionList getAdminPermissions(String username) {
 		return null;
 	}
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -991,7 +984,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	public AdminInfo[] getAdmins() {
 		return null;
 	}
-	
+
 	public void modifyAdmin(String formerUsername) {
 
 	}
@@ -1016,8 +1009,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	private class OutingManager implements Runnable {
 
 		// Stores the various tables.
-		private Hashtable<Integer, OutingStatementSet> statementCache = 
-				new Hashtable<Integer, OutingStatementSet>();
+		private Hashtable<Integer, OutingStatementSet> statementCache = new Hashtable<Integer, OutingStatementSet>();
 
 		public OutingManager() throws SQLException, IOException {
 			log.entry("OutingManager.OutingManager()");
@@ -1238,6 +1230,53 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			log.exit("OutingManager.addOuting(...)");
 		}
 
+		public MemberStatistic getMemberStatistics(int id) throws DatabaseError {
+			log.entry("OutingManager.getMemberStatistics()");
+			log.info("Getting statistics for " + id);
+			MemberInfo member = getMember(id);
+			Calendar cal = new GregorianCalendar();
+			cal.setTime(new Date());
+			int totalDistanceThisYear = 0, totalDistanceLastYear = 0; 
+			int totalOutingsThisYear = 0, totalOutingsLastYear = 0;
+			try {
+				PreparedStatement ps = getOutingStatementSet(
+						cal.get(Calendar.YEAR)).getPreparedStatement(
+						OutingStatementType.GET_OUTINGS);
+				for (int i = 1; i < 10; i++) {
+					ps.setInt(i, id);
+				}
+				ResultSet res = ps.executeQuery();
+				log.info("Got ResultSet for that member, now processing.");
+
+				while (res.next()) {
+					totalDistanceThisYear += res.getInt("distance");
+					totalOutingsThisYear++;
+				}
+
+				// For the previous year.
+				ps = getOutingStatementSet(cal.get(Calendar.YEAR) - 1)
+						.getPreparedStatement(OutingStatementType.GET_OUTINGS);
+				for (int i = 1; i < 10; i++) {
+					ps.setInt(i, id);
+				}
+				res = ps.executeQuery();
+				log.info("Got ResultSet for that member, now processing.");
+
+				while (res.next()) {
+					totalDistanceLastYear += res.getInt("distance");
+					totalOutingsLastYear++;
+				}
+			} catch (SQLException e) {
+				log.errorException(e);
+				throw new DatabaseError(rb.getString("commandError"), e);
+			}
+			log.exit("OutingManager.getMemberStatistics(int id)");
+			return new MemberStatistic(id, member.getSurname(), member
+					.getForename(), member.getDob(), member.getGroupInfo(),
+					totalOutingsThisYear, totalDistanceThisYear,
+					totalOutingsLastYear, totalDistanceLastYear);
+		}
+
 		/**
 		 * Get the OutingStatementSet for a particular year. Automatically loads
 		 * the set if required.
@@ -1293,7 +1332,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	/* -------------------- OutingStatementSet (INTERNAL) ----------------- */
 
 	private enum OutingStatementType {
-		GET_OUTINGS, ADD_OUTING, MODIFY_OUTING
+		GET_OUTINGS, ADD_OUTING, MODIFY_OUTING, GET_MEMBER_STATISTICS
 	};
 
 	private class OutingStatementSet {
@@ -1308,6 +1347,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		private PreparedStatement psGetOutings;
 		private PreparedStatement psAddOuting;
 		private PreparedStatement psModifyOuting;
+		private PreparedStatement psGetMemberStatistics;
 
 		/**
 		 * Set up an outingstatement set for a given year.
@@ -1359,6 +1399,14 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 							+ "time_in = ?, comment = ?, "
 							+ "destination = ?, boat = ?, distance = ?"
 							+ " WHERE id = ?", year.toString()));
+			psGetMemberStatistics = con
+					.prepareStatement(MessageFormat
+							.format(
+									"SELECT * FROM outings_{0} WHERE rower1 = ? "
+											+ "OR rower2 = ? OR rower3 = ? OR rower4 = ? "
+											+ "OR rower5 = ? OR rower6 = ? OR rower7 = ? "
+											+ "OR rower8 = ? OR cox = ?",
+									year.toString()));
 			// We want the last used time set.
 			updateTime();
 			// TODO: implement.
@@ -1374,6 +1422,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 				return psAddOuting;
 			} else if (typ == OutingStatementType.MODIFY_OUTING) {
 				return psModifyOuting;
+			} else if (typ == OutingStatementType.GET_MEMBER_STATISTICS) {
+				return psGetMemberStatistics;
 			}
 			return null;
 		}
