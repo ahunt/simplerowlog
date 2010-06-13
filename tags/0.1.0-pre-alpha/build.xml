@@ -1,0 +1,218 @@
+<?xml version="1.0"?>
+<!--
+    This file is part of simple rowLog: the open rowing logbook.
+    Copyright (C) 2009, 2010  Andrzej JR Hunt
+
+    simple rowLog is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    simple rowLog is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with simple rowLog.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<project name="simple rowLog" default="build">
+
+	<condition property="isNix">
+		<os family="unix" />
+	</condition>
+
+	<!-- set global properties -->
+	<property name="src" value="src" />
+	<property name="bin" value="bin" />
+	<property name="lib" value="lib" />
+	<property name="dist" value="dist" />
+	<property name="version" value="0.1.0-pre-alpha" />
+	<property name="temp_getdep" value="temp_getdep" />
+	<property name="externalsrc" value="${src}/external" />
+	<property name="doc" value="doc" />
+	<property name="splashimage" value="img/splash/splash.png" />
+	<property name="testcases" value="test" />
+
+	
+    <target name="help" 
+    	   description="Display detailed usage information">
+        <echo>simple rowLog Build system [${version}]</echo>
+    	<echo>
+Build Targets:
+    -help: Print help information for the build system.
+    -clean: Clean the directories of any compiled or derived files.
+    -build: [DEFAULT] Compile the project, and build the jar file, ready to run.
+    -jar: Build the jar file fromt the compiled class files, essentially does the same as {build}.
+    -getdep: Downloads all dependencies and extracts them.
+    -dist: Build the packaged release files.
+    -doc: Build the documentation.
+    	</echo>
+	</target>
+
+	
+	<target name="init">
+		<mkdir dir="${bin}" />
+		<mkdir dir="${lib}" />
+	</target>
+
+	<target name="clean" depends="doc-clean">
+		<echo message="Cleaning output directories." />
+		<delete dir="${lib}" />
+		<delete dir="${bin}" />
+		<delete dir="${dist}" />
+		<delete file="${src}derby.tar.gz" />
+		<delete file="${src}/simple-log-2.0.1.zip" />
+		<delete dir="${temp_getdep}" />
+		<delete dir="${externalsrc}" />
+		<delete file="srl.jar" />
+	</target>
+
+	<target name="build" depends="init">
+		<echo message="Compiling sources to .class files." />
+		<javac srcdir="${src}" destdir="${bin}" debug="on" source="1.6">
+			<classpath>
+				<pathelement location="${lib}/derby.jar" />
+				<pathelement location="${lib}/simple-log.jar" />
+				<pathelement location="${lib}/jcal.jar" />
+			</classpath>
+		</javac>
+		<javac srcdir="${testcases}" destdir="${bin}" debug="on" source="1.6">
+			<classpath>
+				<pathelement location="${lib}/derby.jar" />
+				<pathelement location="${lib}/simple-log.jar" />
+				<pathelement location="${lib}/jcal.jar" />
+			</classpath>
+		</javac>
+		<antcall target="jar" />
+	</target>
+
+	<target name="jar">
+		<echo message="Packing jar." />
+		<copy todir="${bin}">
+			<fileset dir=".">
+				<include name="${splashimage}" />
+			</fileset>
+		</copy>
+		<jar destfile="${lib}/srl.jar" basedir="${bin}" excludes="**/**Test.class" >
+			<manifest>
+				<attribute name="Main-Class" value="org.ahunt.simpleRowLog.launcher.Launch" />
+				<attribute name="Class-Path" value="derby.jar simple-log-rollover.jar simple-log.jar jcal.jar ../conf/ .. ../loc/" />
+				<attribute name="Built-By" value="${user.name}" />
+				<attribute name="SplashScreen-Image" value="${splashimage}" />
+			</manifest>
+		</jar>
+		<delete dir="${bin}/img" />
+	</target>
+
+	<target name="dist" depends="checkdep,getdep,build,jar,dist-bin,dist-src" />
+
+	<target name="dist-bin">
+		<delete dir="${dist}/simplerowlog-${version}" />
+		<mkdir dir="${dist}" />
+		<mkdir dir="${dist}/simplerowlog-${version}" />
+		<copy todir="${dist}/simplerowlog-${version}">
+			<fileset dir=".">
+				<exclude name="**/database/**" />
+				<exclude name="**/${testcases}/**" />
+				<exclude name="**/${dist}/**" />
+				<exclude name="**/${src}/**" />
+				<exclude name="**/${bin}/**" />
+				<exclude name="**/${temp_getdep}/**" />
+				<exclude name="**/.**" />
+				<exclude name="**/.settings/**" />
+				<exclude name="**/build.xml" />
+				<exclude name="README-devel" />
+			</fileset>
+		</copy>
+		<!-- Make .tar.gz, .tar.bz2 and .zip, plus .tar.gz source -->
+		<zip destfile="${dist}/simplerowlog-${version}.zip" basedir="${dist}" includes="simplerowlog-${version}/**" />
+		<tar destfile="${dist}/simplerowlog-${version}.tar.gz" basedir="${dist}" includes="simplerowlog-${version}/**" compression="gzip" />
+		<tar destfile="${dist}/simplerowlog-${version}.tar.bz2" basedir="${dist}" includes="simplerowlog-${version}/**" compression="bzip2" />
+		<delete dir="${dist}/simplerowlog-${version}" />
+		<checksum algorithm="MD5" format="MD5SUM" forceOverwrite="yes">
+			<fileset dir=".">
+				<include name="${dist}/simplerowlog-${version}.zip" />
+				<include name="${dist}/simplerowlog-${version}.tar.gz" />
+				<include name="${dist}/simplerowlog-${version}.tar.bz2" />
+			</fileset>
+		</checksum>
+	</target>
+
+
+
+	<target name="dist-src">
+		<delete dir="${dist}/simplerowlog-${version}-src" />
+		<mkdir dir="${dist}" />
+		<mkdir dir="${dist}/simplerowlog-${version}-src" />
+		<copy todir="${dist}/simplerowlog-${version}-src">
+			<fileset dir=".">
+				<exclude name="**/database/**" />
+				<exclude name="**/${dist}/**" />
+				<exclude name="**/${lib}/**" />
+				<exclude name="**/${bin}/**" />
+				<exclude name="**/${temp_getdep}/**" />
+			</fileset>
+		</copy>
+		<!-- Make .tar.gz, .tar.bz2 and .zip, plus .tar.gz source -->
+		<tar destfile="${dist}/simplerowlog-${version}-src.tar.gz" basedir="${dist}" includes="simplerowlog-${version}-src/**" compression="gzip" />
+		<delete dir="${dist}/simplerowlog-${version}-src" />
+		<checksum file="${dist}/simplerowlog-${version}-src.tar.gz" algorithm="MD5" format="MD5SUM" forceOverwrite="yes" />
+	</target>
+
+	<target name="checkdep">
+		<condition property="dep">
+			<and>
+				<available file="${lib}/simple-log.jar" />
+				<available file="${lib}/derby.jar" />
+				<available file="${lib}/jcal.jar" />
+				<available file="${externalsrc}/simple-log-2.0.1.zip" />
+				<available file="${externalsrc}/jcalendar-1.3.3.zip" />
+				<available file="${externalsrc}/db-derby-10.5.1.1-src.tar.gz" />
+			</and>
+		</condition>
+	</target>
+
+	<target name="getdep" depends="getdep-src,getdep-bin" />
+
+	<target name="derby-download" depends="checkdep" unless="dep">
+		<mkdir dir="${temp_getdep}" />
+		<get src="http://archive.apache.org/dist/db/derby/db-derby-10.5.1.1/db-derby-10.5.1.1-lib.tar.gz" dest="${temp_getdep}/derby.tar.gz" />
+	</target>
+
+	<target name="jcal-download" depends="checkdep" unless="dep">
+		<mkdir dir="${temp_getdep}" />
+		<get src="http://www.toedter.com/download/jcalendar-1.3.3.zip" dest="${temp_getdep}/jcal.zip" />
+	</target>
+		
+	<target name="getdep-bin" depends="checkdep,init,derby-download,jcal-download" unless="dep">
+		<get src="https://simple-log.dev.java.net/release/simple-log.jar" dest="${lib}/simple-log.jar" />
+		<get src="https://simple-log.dev.java.net/release/simple-log-rollover.jar" dest="${lib}/simple-log-rollover.jar" />
+		<gunzip src="${temp_getdep}/derby.tar.gz" />
+		<untar src="${temp_getdep}/derby.tar" dest="${temp_getdep}" />
+		<move file="${temp_getdep}/db-derby-10.5.1.1-lib/lib/derby.jar" tofile="${lib}/derby.jar" />
+		<unzip src="${temp_getdep}/jcal.zip" dest="${temp_getdep}/jcal"/>
+		<move file="${temp_getdep}/jcal/lib/jcalendar-1.3.3.jar" tofile="${lib}/jcal.jar" />
+	</target>
+
+
+	<target name="getdep-src" depends="checkdep" unless="dep">
+		<mkdir dir="${externalsrc}" />
+		<get src="http://archive.apache.org/dist/db/derby/db-derby-10.5.1.1/db-derby-10.5.1.1-src.tar.gz" dest="${externalsrc}/db-derby-10.5.1.1-src.tar.gz" />
+		<get src="https://simple-log.dev.java.net/release/simple-log-2.0.1.zip" dest="${externalsrc}/simple-log-2.0.1.zip" />
+		<get src="http://www.toedter.com/download/jcalendar-1.3.3.zip" dest="${externalsrc}/jcalendar-1.3.3.zip" />
+	</target>
+
+	<target name="doc" if="isNix">
+		<echo message="Building documentation" />
+		<exec dir="${doc}" executable="./make.sh">
+			<arg line="make" />
+		</exec>
+	</target>
+
+	<target name="doc-clean" if="isNix">
+		<exec dir="${doc}" executable="./make.sh">
+			<arg line="clean" />
+		</exec>
+	</target>
+</project>

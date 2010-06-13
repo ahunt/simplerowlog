@@ -1,0 +1,10 @@
+\chapter{Getting sources (simple rowLog and manual)}
+The sources for \srl and this manual are kept on the \srl svn repository. You download the current development branch of simple rowlog using the commands:
+\command{svn co svn://svn.savannah.nongnu.org/simplerowlog/trunk}
+or
+\command{svn co http://svn.savannah.nongnu.org/simplerowlog/trunk}
+(The second method pulls the sources using http which is slower.)
+It is also possible to \link{browse the sources online}{http://svn.savannah.nongnu.org/viewcvs/?root=simplerowlog}.
+
+
+The document sources are found in the directory \code{doc/src}. The program sources are in \code{src}. Note that if you download the sources from svn, external sources aren't included, but can be downloaded using:\command{ant getdep-src}which downloads them into \code{src/external}.

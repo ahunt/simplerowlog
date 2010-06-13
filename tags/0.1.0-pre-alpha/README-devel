@@ -1,0 +1,43 @@
+1. simple rowLog is being written using Eclipse, which is highly recommended. It is
+a good idea to download the two jar files (see the README) and configure Eclipse to
+use these since otherwise you'll have to download them again after every ant clean.
+That said it isn't necessary to do a clean before commit, just make sure that the
+bin, dist and lib directories and *.jar are excluded for svn.
+
+[IMPORTANT: PLEASE READ THE TODO.]
+
+2. At the moment the language files are being written in British English. They will
+be checked before a release, so it doesn't matter if there are a few mistakes.
+Other languages will also be added leading up to a first release. (English, German,
+Polish are definite since the main developer can write them, possibly also French.)
+IMPORTANT: All dates are in British format with DD/MM/YYYY (All leading zeros please.)
+
+3. The first release date is currently unknown. [Full Stop]...
+
+4. If developing using a DOS based OS you might have problems reading various text
+files lacking endings (this file included). Too bad.
+
+5. simple rowLog is built using ant, some commmands are:
+'ant clean' - cleans the working directory.
+'ant build' - build a runnable copy.
+'ant getdep-bin' -  get the necessary jar files for compiling / running.
+'ant dist' - builds the distributable files. Remember to edit the version in
+	     build.xml as to have correctly named files. Also remember that internal
+	     versioning info is set in the class org.ahunt.simpleRowLog.Info.
+	     
+6. Documentation:
+Documentation is written in latex, and can be found in the folder doc. The Ant
+commands are 'ant doc' to to create the documentation and 'ant doc-clean' to
+clean all the output files. You will probably only be able to do this on a *nix
+system, possibly under cygwin as well (but who would?).
+Note: This only concerns the user manual. The javadoc documentation is usually
+ignored: it is only of interest to developers, and if one is using an ide,
+it is automatically generated as necessary. However ant commands to generate
+the javadoc will be made in the future, e.g. for developers not using an ide.
+(A move to emacs is also being considered.)
+
+7. Configuration
+Look at org.ahunt.simpleRowLog.conf.Configuration for details.
+
+8. Groups
+0 is club (everyone)...

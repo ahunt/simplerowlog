@@ -1,0 +1,42 @@
+simple rowLog TODO file.
+
+-- Finish the db.
+	
+-- Update the error system, in the gui do the error catching and create an
+	appropriate user friendly warning. Log all error at database level though.
+	
+
+-- In the database, for all getGroups etc, extract data directly from one request
+	(instead of simply getting ids, then single groups).
+	
+-- Cache and cache checking in db, and in things like OutingDialog to check for
+	last update.
+	
+-- Error cleaning on opening of database.
+
+-- Admin error log for minor messages, e.g. MemberInfo.getName etc.
+
+-- Verify that the test classes AREN'T included in the ant jar command.
+
+-- Outingdialog: capability to directly add new members (with probability of name
+	being a real name.).
+	
+-- Central localisation manager and interface for updateLocalisation(); Any
+localisable classes register so that they are updated.
+
+-- EntryAlreadyExistsException thrown where required.
+
+-- AboutDialog: tabbed pane for devs.
+
+-- Date selection: add a pausable thread for the date selector, so that we only
+update once the user has stopped changing the date.
+
+-- Move the log config files.
+
+-- Length of names in database: document, check, etc.
+
+-- Update all file locations to get from config.
+
+-- Create localisation gui tool.
+
+-- Documentation: incorporate into packaging.
