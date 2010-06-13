@@ -115,14 +115,19 @@ Build Targets:
 			<fileset dir=".">
 				<exclude name="**/database/**" />
 				<exclude name="**/${testcases}/**" />
+                <exclude name="**/${doc}/**" />
 				<exclude name="**/${dist}/**" />
 				<exclude name="**/${src}/**" />
 				<exclude name="**/${bin}/**" />
+                <exclude name="**/log/**" />
 				<exclude name="**/${temp_getdep}/**" />
 				<exclude name="**/.**" />
+                <exclude name="**/.**/**" />
 				<exclude name="**/.settings/**" />
 				<exclude name="**/build.xml" />
 				<exclude name="README-devel" />
+                <exclude name="ROADMAP" />
+                <exclude name="TODO" />
 			</fileset>
 		</copy>
 		<!-- Make .tar.gz, .tar.bz2 and .zip, plus .tar.gz source -->
@@ -152,6 +157,8 @@ Build Targets:
 				<exclude name="**/${lib}/**" />
 				<exclude name="**/${bin}/**" />
 				<exclude name="**/${temp_getdep}/**" />
+                <exclude name="**/${doc}/html/" />
+                <exclude name="**/log/**" />
 			</fileset>
 		</copy>
 		<!-- Make .tar.gz, .tar.bz2 and .zip, plus .tar.gz source -->

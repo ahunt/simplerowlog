@@ -249,9 +249,9 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		s.execute(Util.loadScript("setupAdminsTrigger1"));
 		log.debug("setupAdminsTrigger2");
 		s.execute(Util.loadScript("setupAdminsTrigger2"));
-		log.debug("setupAdminsTrigger1");
-		s.execute(Util.loadScript("setupAdminsPermissions"));
-
+		log.debug("setupAdminsPermissions");
+//		s.execute(Util.loadScript("setupAdminsPermissions"));
+// TODO: Enable the admin permissions.
 		// The default data.
 		log.info("Beginning creation of default data.");
 		createDefaultData();

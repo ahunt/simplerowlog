@@ -28,5 +28,5 @@ CREATE TABLE admins (
     name VARCHAR(32),
     isRoot INT,
     permissions VARCHAR(32),
-    comment VARCHAR(512);
+    comment VARCHAR(512)
 )

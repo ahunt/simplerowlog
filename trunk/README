@@ -1,3 +1,7 @@
+IMPORTANT: This is a pre-alpha release version of simple rowLog. Many functions
+may not work, work incorrectly, or work properly. Test at your own risk.
+Documentation is also lacking (or incorrect), as may become quickly apparent.
+
 simple rowLog Readme:
 
 1. Dependencies:
