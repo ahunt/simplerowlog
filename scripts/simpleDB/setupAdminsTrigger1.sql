@@ -1,7 +1,7 @@
 #
 #    This file is part of simple rowLog: the open rowing logbook.
 #    Copyright (C) 2010  Andrzej JR Hunt
-#    
+#
 #    simple rowLog is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
@@ -16,7 +16,7 @@
 #    along with simple rowLog.  If not, see <http://www.gnu.org/licenses/>.
 #
 #
-#	Changelog:
+#   Changelog:
 #   08/03/2010: Created.
 #
 # Script: setupAdminsTrigger
@@ -24,5 +24,5 @@
 CREATE TRIGGER trig_adminRoot1 AFTER INSERT ON admins
 REFERENCING NEW AS mod
 FOR EACH ROW MODE DB2SQL
-UPDATE  SET admins = 0 WHERE (isRoot = 1) AND ((NOT (username = mod.username)) AND (mod.isRoot = 1))
-
+UPDATE admins SET isRoot = 0 WHERE (isRoot = 1) AND ((NOT (username =
+mod.username)) AND (mod.isRoot = 1))
