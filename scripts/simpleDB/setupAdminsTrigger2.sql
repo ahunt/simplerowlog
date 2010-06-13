@@ -21,9 +21,8 @@
 #
 # Script: setupAdminsTrigger
 # Makes sure if there's an update, only one user is root.
-CREATE TRIGGER trig_adminRoot2 AFTER UPDATE ON admins
+CREATE TRIGGER trig_adminRoot1 AFTER UPDATE ON admins
 REFERENCING NEW AS mod
 FOR EACH ROW MODE DB2SQL
-UPDATE admins SET isRoot = 0 WHERE (isRoot = 1) AND ((NOT (username =
-mod.username)) AND (mod.isRoot = 1))
+UPDATE  SET admins = 0 WHERE (isRoot = 1) AND ((NOT (username = mod.username)) AND (mod.isRoot = 1))
 
