@@ -13,6 +13,7 @@ simple rowLog Readme:
 	NOTICE.
 	
 2. Administration:
+[This section describes future functionality, not necessarily present yet.]
 	simple rowLog possesses a multiple account system for administration, where
 	individual users can receive individual accounts, and also individual
 	permissions. One user (but only one) always has to be the root user, i.e.
