@@ -30,6 +30,7 @@ package org.ahunt.simpleRowLog.db.simpleDB;
 import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
+import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.sql.Connection;
@@ -41,6 +42,7 @@ import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Statement;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Enumeration;
@@ -133,6 +135,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	private PreparedStatement psGetGroups;
 
 	private PreparedStatement psAddAdmin;
+	private PreparedStatement psGetAdmin;
 
 	// TODO: Implement a "locking" mechanism so that users can hold on to the
 	// db,
@@ -250,8 +253,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		log.debug("setupAdminsTrigger2");
 		s.execute(Util.loadScript("setupAdminsTrigger2"));
 		log.debug("setupAdminsPermissions");
-//		s.execute(Util.loadScript("setupAdminsPermissions"));
-// TODO: Enable the admin permissions.
+		// s.execute(Util.loadScript("setupAdminsPermissions"));
+		// TODO: Enable the admin permissions.
 		// The default data.
 		log.info("Beginning creation of default data.");
 		createDefaultData();
@@ -291,7 +294,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		}
 		addBoat(rb.getString("otherBoat"), "", true);
 		// TODO: setup dialog for admin, asking data.
-		addAdmin("root", "root", "Rootable", true, "Default admin");
+		addAdmin("root", "root".toCharArray(), "Rootable", true,
+				"Default admin");
 
 		log.exit("createDefaultData()");
 	}
@@ -914,7 +918,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	@Override
 	public void modifyOuting(long id, long created, int[] rowers, int cox,
 			Date out, Date in, String comment, String destination, String boat,
-			int distance) {
+			int distance) throws DatabaseError {
 		outingManager.modifyOuting(id, created, rowers, cox, out, in, comment,
 				destination, boat, distance);
 
@@ -926,8 +930,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void addAdmin(String username, String password, String name,
-			boolean isRoot, String comment) {
+	public void addAdmin(String username, char[] password, String name,
+			boolean isRoot, String comment) throws DatabaseError {
 		log.entry("addAdmin(...)");
 		// Generate a salt.
 		Random r = new Random();
@@ -936,19 +940,19 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		// Generate a hash.
 
 		try {
+
 			MessageDigest digest = MessageDigest.getInstance("SHA-256");
 			digest.update(salt);
-			byte[] hash = digest.digest(password.getBytes("UTF-16"));
+			byte[] hash = digest.digest(new String(password)
+					.getBytes("UTF-16BE"));
 			if (psAddAdmin == null) {
 				psAddAdmin = con.prepareStatement("INSERT INTO admins "
 						+ "(username, password, salt, name, "
 						+ "isRoot, comment) VALUES (?,?,?,?,?,?)");
 			}
 			psAddAdmin.setString(1, username);
-			psAddAdmin
-					.setString(2, new String(hash, Charset.forName("UTF-16")));
-			psAddAdmin
-					.setString(3, new String(salt, Charset.forName("UTF-16")));
+			psAddAdmin.setBytes(2, hash);
+			psAddAdmin.setBytes(3, salt);
 			psAddAdmin.setString(4, name);
 			psAddAdmin.setBoolean(5, isRoot);
 			psAddAdmin.setString(6, comment);
@@ -962,6 +966,67 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		} catch (Exception e) {
 			// TODO: deal with the no encoding / algorithm exceptions.
 		}
+	}
+
+	private class SimpleDBAdminInfo implements AdminInfo {
+
+		private String name;
+		private String username;
+		private byte[] hash;
+		private byte[] salt;
+		private boolean isRoot;
+		private String comment;// password.getBytes("UTF-16BE")
+
+		public SimpleDBAdminInfo(String name, String username, byte[] hash,
+				byte[] salt, boolean isRoot, String comment) {
+			this.name = name;
+			this.username = username;
+			this.hash = hash;
+			this.salt = salt;
+			this.isRoot = isRoot;
+			this.comment = comment;
+		}
+
+		@Override
+		public String getName() {
+			return name;
+		}
+
+		@Override
+		public String getUsername() {
+			return username;
+		}
+
+		@Override
+		public boolean validatePassword(char[] password) {
+			try {
+
+				MessageDigest digest = MessageDigest.getInstance("SHA-256");
+				digest.update(salt);
+
+				byte[] generatedHash = digest.digest(new String(password)
+						.getBytes("UTF-16BE"));
+
+				if (Arrays.equals(generatedHash, hash)) {
+					return true;
+				} else {
+					return false;
+				}
+			} catch (Exception e) {
+				return false;
+				// TODO: Help?
+			}
+		}
+
+		@Override
+		public boolean isRoot() {
+			return isRoot;
+		}
+
+		@Override
+		public String getComment() {
+			return comment;
+		}
 
 	}
 
@@ -969,8 +1034,43 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public AdminInfo getAdmin(String username) {
+	public AdminInfo getAdmin(String username) throws DatabaseError {
+		log.entry("getAdmin(" + username + ")");
+
+		try {
+			// Check whether prepared statement exists. Create if necessary.
+			if (psGetAdmin == null) {
+				psGetAdmin = con.prepareStatement("SELECT * FROM admins "
+						+ "WHERE username = ?");
+			}
+			// Set the data
+			psGetAdmin.setString(1, username);
+			psGetAdmin.execute();
+			// Get results.
+			ResultSet rs = psGetAdmin.getResultSet();
+			if (!rs.next()) {
+				// No such admin
+				return null;
+			}
+			String name = rs.getString("name");
+
+			byte[] salt = rs.getBytes("salt");
+			byte[] hash = rs.getBytes("password");
+			boolean isRoot = rs.getBoolean("isRoot");
+			String comment = rs.getString("comment");
+
+			return new SimpleDBAdminInfo(name, username, hash, salt, isRoot,
+					comment);
+
+		} catch (SQLException e) {
+			log.error("Error getting the admin.");
+			log.errorException(e);
+			throw new DatabaseError(rb.getString("commandError"), e);
+		} catch (Exception e) {
+			// TODO: deal with the no encoding / algorithm exceptions.
+		}
 		return null;
+
 	}
 
 	public AdminPermissionList getAdminPermissions(String username) {
@@ -981,20 +1081,16 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public AdminInfo[] getAdmins() {
+	public AdminInfo[] getAdmins() throws DatabaseError {
 		return null;
 	}
 
-	public void modifyAdmin(String formerUsername) {
+	public void modifyAdmin(String formerUsername) throws DatabaseError {
 
 	}
 
-	public void removeAdmin(String username) {
+	public void removeAdmin(String username) throws DatabaseError {
 
-	}
-
-	public AdminInfo authenticateAdmin(String username, String password) {
-		return null;
 	}
 
 	/* -------------------- OutingManager (INTERNAL) ----------------- */
@@ -1236,7 +1332,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			MemberInfo member = getMember(id);
 			Calendar cal = new GregorianCalendar();
 			cal.setTime(new Date());
-			int totalDistanceThisYear = 0, totalDistanceLastYear = 0; 
+			int totalDistanceThisYear = 0, totalDistanceLastYear = 0;
 			int totalOutingsThisYear = 0, totalOutingsLastYear = 0;
 			try {
 				PreparedStatement ps = getOutingStatementSet(
@@ -1399,14 +1495,11 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 							+ "time_in = ?, comment = ?, "
 							+ "destination = ?, boat = ?, distance = ?"
 							+ " WHERE id = ?", year.toString()));
-			psGetMemberStatistics = con
-					.prepareStatement(MessageFormat
-							.format(
-									"SELECT * FROM outings_{0} WHERE rower1 = ? "
-											+ "OR rower2 = ? OR rower3 = ? OR rower4 = ? "
-											+ "OR rower5 = ? OR rower6 = ? OR rower7 = ? "
-											+ "OR rower8 = ? OR cox = ?",
-									year.toString()));
+			psGetMemberStatistics = con.prepareStatement(MessageFormat.format(
+					"SELECT * FROM outings_{0} WHERE rower1 = ? "
+							+ "OR rower2 = ? OR rower3 = ? OR rower4 = ? "
+							+ "OR rower5 = ? OR rower6 = ? OR rower7 = ? "
+							+ "OR rower8 = ? OR cox = ?", year.toString()));
 			// We want the last used time set.
 			updateTime();
 			// TODO: implement.

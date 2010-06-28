@@ -48,6 +48,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.KeyStroke;
 import javax.swing.LayoutStyle;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
@@ -191,6 +192,7 @@ public class SimpleGUI extends JFrame implements ChangeListener {
 				+ " [http://gobi.desertrowing.com/]");
 		// windowFooter.setAlignmentX(Component.RIGHT_ALIGNMENT);
 
+	
 	}
 
 	/**
@@ -275,7 +277,10 @@ public class SimpleGUI extends JFrame implements ChangeListener {
 		menuHelpHelp.addActionListener(ml);
 		menuHelp.add(menuHelpAbout);
 		menuHelpAbout.addActionListener(ml);
-
+		
+		// TODO: Move the keyboard shortcuts
+		menuFileExit.setAccelerator(KeyStroke.getKeyStroke(new Character('q'), java.awt.event.InputEvent.CTRL_DOWN_MASK));
+		menuOptionsAdmin.setAccelerator(KeyStroke.getKeyStroke(new Character('w'), java.awt.event.InputEvent.CTRL_DOWN_MASK));
 	}
 
 	/**
@@ -537,6 +542,8 @@ public class SimpleGUI extends JFrame implements ChangeListener {
 				int i = addMemberDialog.addMember();
 			} else if (arg0.getSource() == menuFileExit) {
 				System.exit(0);
+			} else if (arg0.getSource() == menuOptionsAdmin) {
+				AdminAuthenticationDialog.doLogin(db);
 			}
 		}
 

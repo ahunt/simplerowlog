@@ -492,16 +492,22 @@ public interface Database {
 	 */
 	public void modifyOuting(long id, long day, int[] rowers, int cox,
 			Date out, Date in, String comment, String destination, String boat,
-			int distance);
-	
-	
+			int distance) throws DatabaseError;
+
 	/* -------------------- Admins [AG,G+,M,R,AUTH] ----------------- */
-	
-	public void addAdmin(String username, String password, String name,
-			boolean isRoot, String comment);
-	
-	public AdminInfo getAdmin(String username);
-	
-	public AdminInfo[] getAdmins();
+
+	public void addAdmin(String username, char[] password, String name,
+			boolean isRoot, String comment) throws DatabaseError;
+
+	/**
+	 * Get the admin info for a specific admin.
+	 * 
+	 * @param username
+	 *            The username.
+	 * @return The AdminInfo for a specific admin.
+	 */
+	public AdminInfo getAdmin(String username) throws DatabaseError;
+
+	public AdminInfo[] getAdmins() throws DatabaseError;
 
 }
