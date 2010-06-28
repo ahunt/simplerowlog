@@ -38,5 +38,6 @@ public interface AdminInfo {
 	public boolean validatePassword(char[] password);
 	public boolean isRoot();
 	public String getComment();
+	public AdminPermissionList getPermissionList();
 
 }

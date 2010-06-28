@@ -136,6 +136,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 
 	private PreparedStatement psAddAdmin;
 	private PreparedStatement psGetAdmin;
+	private PreparedStatement psGetAdminPermissionList;
 
 	// TODO: Implement a "locking" mechanism so that users can hold on to the
 	// db,
@@ -253,8 +254,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		log.debug("setupAdminsTrigger2");
 		s.execute(Util.loadScript("setupAdminsTrigger2"));
 		log.debug("setupAdminsPermissions");
-		// s.execute(Util.loadScript("setupAdminsPermissions"));
-		// TODO: Enable the admin permissions.
+		s.execute(Util.loadScript("setupAdminsPermissions"));
+
 		// The default data.
 		log.info("Beginning creation of default data.");
 		createDefaultData();
@@ -976,15 +977,18 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		private byte[] salt;
 		private boolean isRoot;
 		private String comment;// password.getBytes("UTF-16BE")
+		private AdminPermissionList permissionList;
 
 		public SimpleDBAdminInfo(String name, String username, byte[] hash,
-				byte[] salt, boolean isRoot, String comment) {
+				byte[] salt, boolean isRoot, String comment,
+				AdminPermissionList permissionList) {
 			this.name = name;
 			this.username = username;
 			this.hash = hash;
 			this.salt = salt;
 			this.isRoot = isRoot;
 			this.comment = comment;
+			this.permissionList = permissionList;
 		}
 
 		@Override
@@ -1028,6 +1032,11 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			return comment;
 		}
 
+		@Override
+		public AdminPermissionList getPermissionList() {
+			return permissionList;
+		}
+
 	}
 
 	/**
@@ -1060,7 +1069,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			String comment = rs.getString("comment");
 
 			return new SimpleDBAdminInfo(name, username, hash, salt, isRoot,
-					comment);
+					comment, getAdminPermissionList(username));
 
 		} catch (SQLException e) {
 			log.error("Error getting the admin.");
@@ -1073,8 +1082,39 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 
 	}
 
-	public AdminPermissionList getAdminPermissions(String username) {
-		return null;
+	public AdminPermissionList getAdminPermissionList(String username)
+			throws DatabaseError {
+		log.entry("getAdminPermissionList(" + username + ")");
+		ArrayList<String> permissions = new ArrayList<String>();
+		try {
+			// Check whether prepared statement exists. Create if necessary.
+			if (psGetAdminPermissionList == null) {
+				psGetAdminPermissionList = con
+						.prepareStatement("SELECT * FROM admins_permissions "
+								+ "WHERE username = ?");
+			}
+			// Set the data
+			psGetAdminPermissionList.setString(1, username);
+			psGetAdminPermissionList.execute();
+			// Get results.
+			ResultSet rs = psGetAdminPermissionList.getResultSet();
+			while (rs.next()) {
+				permissions.add(rs.getString("permission"));
+			}
+		} catch (SQLException e) {
+			log.error("Error getting the admin.");
+			log.errorException(e);
+			throw new DatabaseError(rb.getString("commandError"), e);
+		}
+
+		return new AdminPermissionList(username, permissions
+				.toArray(new String[0]));
+
+	}
+
+	public void storeAdminPermissionList(String username,
+			AdminPermissionList permissions) throws DatabaseError {
+		// TODO: implement
 	}
 
 	/**

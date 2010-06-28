@@ -23,7 +23,7 @@
 # Requires: -
 CREATE TABLE admins_permissions (
     username VARCHAR(32) NOT NULL,
-    password VARCHAR(32),
+    permission VARCHAR(64) NOT NULL,
     CONSTRAINT ADMINS_PERMISSIONS_FK FOREIGN KEY (username) references 
     admins (username)
 )

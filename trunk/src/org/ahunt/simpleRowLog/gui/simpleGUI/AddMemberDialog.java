@@ -125,6 +125,7 @@ public class AddMemberDialog extends JDialog {
 		ButtonListener bl = new ButtonListener();
 		cancelButton.addActionListener(bl);
 		saveButton.addActionListener(bl);
+		this.getRootPane().setDefaultButton(saveButton);
 	}
 
 	private void setupLayout() {
