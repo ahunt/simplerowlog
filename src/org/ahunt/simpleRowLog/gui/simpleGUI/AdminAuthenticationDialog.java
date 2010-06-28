@@ -23,6 +23,8 @@
 package org.ahunt.simpleRowLog.gui.simpleGUI;
 
 import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.FileNotFoundException;
@@ -105,7 +107,11 @@ public class AdminAuthenticationDialog extends JDialog {
 		cancelButton.addActionListener(new ValidationListener());
 		validateButton.addActionListener(new ValidationListener());
 		getRootPane().setDefaultButton(validateButton);
-
+		
+		// Get the maximum number of attempts left.
+		attemptsLeft = Integer.parseInt(conf.getProperty("max_login_attempts"));
+		updateAttempts();
+		
 		// Assemble the gui.
 		// TODO: do.
 		JPanel entryPanel = new JPanel();
@@ -127,10 +133,16 @@ public class AdminAuthenticationDialog extends JDialog {
 				l.createSequentialGroup().addComponent(cancelButton)
 						.addComponent(validateButton)));
 
-		setModal(true);
-		// Get the maximum number of attempts left.
-		attemptsLeft = Integer.parseInt(conf.getProperty("max_login_attempts"));
-		updateAttempts();
+		// Window properties
+		this.pack();
+		this.setResizable(false);
+		this.setAlwaysOnTop(true);
+		this.setModal(true);
+		// Centering
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		setLocation(screenSize.width / 2 - this.getSize().width / 2,
+				screenSize.height / 2 - this.getSize().height / 2);
+
 	}
 
 	/**
@@ -155,10 +167,10 @@ public class AdminAuthenticationDialog extends JDialog {
 		// If the timeout is still running tell the user and exit.
 		if (timeout != null && timeout.isRunning()) {
 			return null;
+			// TODO: Tell the user.
 		}
 
 		AdminAuthenticationDialog d = new AdminAuthenticationDialog(db);
-		d.pack();
 		d.setVisible(true);
 		return d.validatedAdmin;
 	}

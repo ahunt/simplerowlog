@@ -239,6 +239,7 @@ public class OutingDialog extends JDialog {
 								.addComponent(confirmButton).addComponent(
 										cancelButton)));
 		// Routine (and boring) window setup
+		this.getRootPane().setDefaultButton(confirmButton);
 		this.setModal(true);
 		this.pack();
 		this.setResizable(false);
@@ -483,7 +484,8 @@ public class OutingDialog extends JDialog {
 			rowerEntry[i].setText("");
 		}
 		distanceEntry.setText("");
-		timeOutEntry.setText("");
+		// We want to set the current time
+		timeOutEntry.setText(format.format(new Date()));
 		timeInEntry.setText("");
 		coxEntry.setText("");
 		destinationEntry.setText("");
@@ -530,7 +532,7 @@ public class OutingDialog extends JDialog {
 		if (outing.getIn() != null) {
 			timeInEntry.setText(format.format(outing.getIn()));
 		} else {
-			timeInEntry.setText("");
+			timeInEntry.setText(format.format(new Date()));
 		}
 		if (outing.getCox() != null) {
 			coxEntry.setText(outing.getCox().getName());
