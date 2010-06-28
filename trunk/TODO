@@ -22,6 +22,8 @@ simple rowLog TODO file.
 -- In the database, for all getGroups etc, extract data directly from one request
     (instead of simply getting ids, then single groups).
     
+-- Security log.
+    
 -- Error cleaning on opening of database.
 
 -- Outingdialog: capability to directly add new members (with probability of name
