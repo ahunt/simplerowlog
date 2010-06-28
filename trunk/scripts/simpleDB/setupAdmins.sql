@@ -23,8 +23,8 @@
 # Requires: -
 CREATE TABLE admins (
     username VARCHAR(32) NOT NULL CONSTRAINT ADMINS_PK PRIMARY KEY,
-    password VARCHAR(32),
-    salt VARCHAR(64),
+    password VARCHAR(32) FOR BIT DATA,
+    salt VARCHAR(64) FOR BIT DATA,
     name VARCHAR(32),
     isRoot INT,
     permissions VARCHAR(32),

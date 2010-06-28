@@ -30,11 +30,13 @@ package org.ahunt.simpleRowLog.common;
  * @version 0.01 9th March 2010
  */
 public interface AdminInfo {
-
+	
 	public String getUsername();
 	public String getName();
 	
 	
-	public boolean validatePassword(String password);
+	public boolean validatePassword(char[] password);
+	public boolean isRoot();
+	public String getComment();
 
 }
