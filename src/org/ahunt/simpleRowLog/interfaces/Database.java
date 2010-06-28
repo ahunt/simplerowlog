@@ -509,5 +509,7 @@ public interface Database {
 	public AdminInfo getAdmin(String username) throws DatabaseError;
 
 	public AdminInfo[] getAdmins() throws DatabaseError;
+	
+	public AdminPermissionList getAdminPermissionList(String username) throws DatabaseError;
 
 }

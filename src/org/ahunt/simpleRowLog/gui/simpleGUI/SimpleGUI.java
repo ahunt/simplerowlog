@@ -60,6 +60,7 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 
+import org.ahunt.simpleRowLog.common.AdminInfo;
 import org.ahunt.simpleRowLog.common.BoatInfo;
 import org.ahunt.simpleRowLog.common.GroupInfo;
 import org.ahunt.simpleRowLog.common.MemberInfo;
@@ -541,7 +542,16 @@ public class SimpleGUI extends JFrame implements ChangeListener {
 			} else if (arg0.getSource() == menuFileNewMember) {
 				int i = addMemberDialog.addMember();
 			} else if (arg0.getSource() == menuFileExit) {
-				System.exit(0);
+				if (conf.getProperty("authenticate_for_exit").equals("true")) {
+					AdminInfo ai = AdminAuthenticationDialog.doLogin(db);
+					if (ai != null && (ai.isRoot() || ai.getPermissionList().isPermissionSet("can_do_shutdown"))) {
+						System.exit(0);
+					} else {
+						// TODO: Rejection.
+					}
+				} else {
+					System.exit(0);
+				}
 			} else if (arg0.getSource() == menuOptionsAdmin) {
 				AdminAuthenticationDialog.doLogin(db);
 			}
