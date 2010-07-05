@@ -113,7 +113,6 @@ public class AdminAuthenticationDialog extends JDialog {
 		updateAttempts();
 		
 		// Assemble the gui.
-		// TODO: do.
 		JPanel entryPanel = new JPanel();
 		entryPanel.setLayout(new BoxLayout(entryPanel, BoxLayout.PAGE_AXIS));
 		entryPanel.add(usernameEntry);
@@ -179,7 +178,6 @@ public class AdminAuthenticationDialog extends JDialog {
 
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
-			// TODO Auto-generated method stub
 			AdminInfo admin = db.getAdmin(usernameEntry.getText());
 			if (admin != null) {
 				if (admin.validatePassword(passwordEntry.getPassword())) {
@@ -191,6 +189,7 @@ public class AdminAuthenticationDialog extends JDialog {
 			validatedAdmin = db.getAdmin("INVALID");
 			attemptsLeft--; // One more false.
 			if (attemptsLeft == 0) {
+				// TODO: tell the user.
 				timeout = new Timer(Integer.parseInt(conf
 						.getProperty("timeout")), null);
 				timeout.setRepeats(false);

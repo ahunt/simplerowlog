@@ -18,6 +18,8 @@ simple rowLog TODO file.
     
 -- Documentation: incorporate into packaging.
 
+-- Auto backup tool for db and settings.
+
 ------------------ [LOW PRIORITY] ----------------------------------------------
 -- In the database, for all getGroups etc, extract data directly from one request
     (instead of simply getting ids, then single groups).
