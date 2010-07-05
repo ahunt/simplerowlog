@@ -7,3 +7,33 @@ In the admin dialog do bla.
 All mentions of user in outings will be replaced with the deleted user.
 \section{Boat management}
 Easy peasy
+
+
+\section{Administrator permissions}
+    
+    The following permissions can be granted to admins. By default none will be
+    enabled. Note that whichever user is set as root is treated as having
+    all permissions. Only the root admin can change which user is set as root.
+    These exact names are used in the database, whereas the admin interface
+    displays the below information.
+    
+    \begin{description}
+        \item [can\_do\_shutdown] Whether or not this admin is allowed to shutdown \srl. Note that this setting becomes irrelevant if exit-authentication is disabled.
+        
+        \item [admin\_list] Whether or not this admin can access the admins list.
+        \begin{description}
+            \item [admin\_list.details] Whether or not the details for an admin
+                    can be viewed.
+            \item [admin\_list.modify] Whether or not the details for an admin
+                    can be modified. Note that the status of an admin as being
+                    root or not is not covered by this rule, but requires the
+                    modifying admin to be root.
+        \end{description}
+        
+        \item [member\_list] Whether or not the admin is allowed to access the list of members.
+        \begin{description}
+            \item [member\_list.details] Whether or not the admin can view members's details.
+            \item [member\_list.modify] Whether or not the admin can edit members.
+            \item [member\_list.remove] Whether or not the admin can remove members.
+        \end{description}
+    \end{description}
