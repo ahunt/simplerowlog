@@ -37,6 +37,7 @@ import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
@@ -46,6 +47,7 @@ import javax.swing.border.LineBorder;
 import org.ahunt.simpleRowLog.common.AdminInfo;
 import org.ahunt.simpleRowLog.conf.Configuration;
 import org.ahunt.simpleRowLog.interfaces.Database;
+import org.apache.derby.iapi.types.Resetable;
 
 public class AdminAuthenticationDialog extends JDialog {
 
@@ -54,12 +56,12 @@ public class AdminAuthenticationDialog extends JDialog {
 	/**
 	 * Localisation data.
 	 */
-	private ResourceBundle rb = ResourceBundle.getBundle("gui");
+	private static ResourceBundle rb = ResourceBundle.getBundle("gui");
 
 	/**
 	 * Configuration for the dialog.
 	 */
-	private Configuration conf;
+	private static Configuration conf;
 
 	/**
 	 * 
@@ -67,9 +69,11 @@ public class AdminAuthenticationDialog extends JDialog {
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * How many login attempts are left before the timeout starts.
+	 * How many login attempts are left before the timeout starts. Initially -1
+	 * as a marker.
 	 */
-	private int attemptsLeft;
+	private static int attemptsLeft = -1;
+
 	/**
 	 * The validated administrator, i.e. is a valid object if an admin has
 	 * authenticated.
@@ -107,11 +111,13 @@ public class AdminAuthenticationDialog extends JDialog {
 		cancelButton.addActionListener(new ValidationListener());
 		validateButton.addActionListener(new ValidationListener());
 		getRootPane().setDefaultButton(validateButton);
-		
+
 		// Get the maximum number of attempts left.
-		attemptsLeft = Integer.parseInt(conf.getProperty("max_login_attempts"));
-		updateAttempts();
-		
+		if (attemptsLeft == -1) { // First use
+			resetAttempts();
+		}
+		updateAttempts(); // Show on screen
+
 		// Assemble the gui.
 		JPanel entryPanel = new JPanel();
 		entryPanel.setLayout(new BoxLayout(entryPanel, BoxLayout.PAGE_AXIS));
@@ -155,6 +161,13 @@ public class AdminAuthenticationDialog extends JDialog {
 	}
 
 	/**
+	 * Reset the number of attempts left to the maximum number.
+	 */
+	private static void resetAttempts() {
+		attemptsLeft = Integer.parseInt(conf.getProperty("max_login_attempts"));
+	}
+
+	/**
 	 * Do a login, i.e. show the dialog and ask the user to authenticate:
 	 * returns the AdminInfo for the admin that has authenticated if the
 	 * authentication is successful, otherwise it returns null if the login was
@@ -163,10 +176,20 @@ public class AdminAuthenticationDialog extends JDialog {
 	 * @return The information for the admin that has authenticated.
 	 */
 	public static AdminInfo doLogin(Database db) {
+
+		if (attemptsLeft == -1)
+			;
 		// If the timeout is still running tell the user and exit.
-		if (timeout != null && timeout.isRunning()) {
+		if (attemptsLeft == 0 && timeout != null && timeout.isRunning()) {
+			// Tell the user
+			JOptionPane.showMessageDialog(null, MessageFormat.format(rb
+					.getString("admin.timeout"), Integer.parseInt(conf
+					.getProperty("timeout")) / 1000), rb
+					.getString("admin.timeout.title"),
+					JOptionPane.WARNING_MESSAGE);
 			return null;
-			// TODO: Tell the user.
+		} else if (timeout != null && !timeout.isRunning()) {
+			resetAttempts(); // Timer is finished.
 		}
 
 		AdminAuthenticationDialog d = new AdminAuthenticationDialog(db);
@@ -178,6 +201,15 @@ public class AdminAuthenticationDialog extends JDialog {
 
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
+			if (arg0.getSource() == cancelButton) {
+				timeout = new Timer(Integer.parseInt(conf
+						.getProperty("timeout")), null);
+				timeout.setRepeats(false);
+				timeout.start();
+
+				setVisible(false);
+				return;
+			}
 			AdminInfo admin = db.getAdmin(usernameEntry.getText());
 			if (admin != null) {
 				if (admin.validatePassword(passwordEntry.getPassword())) {
@@ -189,13 +221,18 @@ public class AdminAuthenticationDialog extends JDialog {
 			validatedAdmin = db.getAdmin("INVALID");
 			attemptsLeft--; // One more false.
 			if (attemptsLeft == 0) {
-				// TODO: tell the user.
+				setVisible(false);
 				timeout = new Timer(Integer.parseInt(conf
 						.getProperty("timeout")), null);
 				timeout.setRepeats(false);
+				// Tell the user
+				JOptionPane.showMessageDialog(null, MessageFormat.format(rb
+						.getString("admin.no_attempts_left"), Integer
+						.parseInt(conf.getProperty("timeout")) / 1000), rb
+						.getString("admin.no_attempts_left.title"),
+						JOptionPane.WARNING_MESSAGE);
+				// Then count the time.
 				timeout.start();
-
-				setVisible(false);
 			}
 			updateAttempts();
 		}

@@ -25,26 +25,47 @@ import java.util.ArrayList;
 
 /**
  * A list of permissions for an administrator, listing what they can do. Note
- * that if an admin is also root, they automatically gain no permissions,
+ * that if an admin is also root, they automatically gain all permissions,
  * regardless of what their permission list states.
  * 
  * @author Andrzej JR Hunt
- *
+ * 
  */
-public class AdminPermissionList {
+public abstract class AdminPermissionList {
 
 	private ArrayList<String> permissionsList = new ArrayList<String>();
 
 	private String username;
 
 	/**
+	 * Whether or not to store any modification directly, as opposed to waiting
+	 * to be told to do so.
+	 */
+	private boolean autoStore;
+
+	/**
 	 * Create a new, blank, list of permissions.
 	 * 
 	 * @param username
-	 *            The admins username.
+	 *            The admin's username.
+	 * @param autoStore
+	 *            Whether or not the list should automatically be stored on
+	 *            modification.
+	 */
+	public AdminPermissionList(String username, boolean autoStore) {
+		this.username = username;
+		this.autoStore = autoStore;
+	}
+
+	/**
+	 * Create a new, blank, list of permissions, with auto-storing of
+	 * modifications enabled.
+	 * 
+	 * @param username
+	 *            The admin's username.
 	 */
 	public AdminPermissionList(String username) {
-		this.username = username;
+		this(username, true);
 	}
 
 	/**
@@ -54,10 +75,56 @@ public class AdminPermissionList {
 	 *            The admins username.
 	 * @param permissions
 	 *            The permissions to be set.
+	 * @param autoStore
+	 *            Whether or not auto-storing should be enabled.
+	 */
+	public AdminPermissionList(String username, String[] permissions,
+			boolean autoStore) {
+		this(username, autoStore);
+		addPermissions(permissions);
+	}
+
+	/**
+	 * Create a new list and add the specificed permissions, with auto-storing
+	 * enabled.
+	 * 
+	 * @param username
+	 *            The admins username.
+	 * @param permissions
+	 *            The permissions to be set.
 	 */
 	public AdminPermissionList(String username, String[] permissions) {
-		new AdminPermissionList(username);
-		addPermissions(permissions);
+		this(username, permissions, true);
+	}
+
+	/**
+	 * Set whether the list should automatically be stored on modification, i.e.
+	 * whether or not the changes are stored directly to the database. If many
+	 * changes are being made it is wise to switch this off, and then store at
+	 * the end of the changes.
+	 * 
+	 * @param autoStore
+	 */
+	public void setAutoStore(boolean autoStore) {
+		this.autoStore = autoStore;
+	}
+
+	/**
+	 * Whether or not auto-storing is turned on.
+	 * 
+	 * @return Auto-storing status.
+	 */
+	public boolean getAutoStore() {
+		return autoStore;
+	}
+
+	/**
+	 * What user these permissions are for.
+	 * 
+	 * @return The user for which these permissions are valid.
+	 */
+	public String getUsername() {
+		return username;
 	}
 
 	/**
@@ -65,11 +132,22 @@ public class AdminPermissionList {
 	 * present will be ignored.
 	 * 
 	 * @param permissions
-	 *            Ana array of the permissions to be added.
+	 *            An array of the permissions to be added.
 	 */
 	public void addPermissions(String[] permissions) {
+		boolean autoStoreWasSet = false; // Don't store each change but store
+		if (autoStore) { // once the changes are complete.
+			autoStoreWasSet = true;
+			autoStore = false;
+		}
+
 		for (String permission : permissions) {
 			addPermission(permission);
+		}
+
+		if (autoStoreWasSet) { // Change back and store if required.
+			autoStore = true;
+			storePermissions();
 		}
 	}
 
@@ -81,8 +159,19 @@ public class AdminPermissionList {
 	 *            The permissions to be removed.
 	 */
 	public void removePermissions(String[] permissions) {
+		boolean autoStoreWasSet = false; // Don't store each change but store
+		if (autoStore) { // once the changes are complete.
+			autoStoreWasSet = true;
+			autoStore = false;
+		}
+
 		for (String permission : permissions) {
 			removePermission(permission);
+		}
+
+		if (autoStoreWasSet) { // Change back and store if required.
+			autoStore = true;
+			storePermissions();
 		}
 	}
 
@@ -91,6 +180,8 @@ public class AdminPermissionList {
 	 */
 	public void clearAllPermissions() {
 		permissionsList.clear();
+		if (autoStore)
+			storePermissions();
 	}
 
 	/**
@@ -104,6 +195,8 @@ public class AdminPermissionList {
 		if (!isPermissionSet(permission)) {
 			permissionsList.add(permission);
 		}
+		if (autoStore) // Store if wanted
+			storePermissions();
 	}
 
 	/**
@@ -125,7 +218,10 @@ public class AdminPermissionList {
 	 * @return Whether or not the permission was removed.
 	 */
 	public boolean removePermission(String permission) {
-		return permissionsList.remove(permission);
+		boolean result = permissionsList.remove(permission);
+		if (autoStore && result) // Only if storing and something was removed.
+			storePermissions();
+		return result;
 	}
 
 	/**
@@ -136,4 +232,10 @@ public class AdminPermissionList {
 	public String[] getAllPermissions() {
 		return permissionsList.toArray(new String[permissionsList.size()]);
 	}
+
+	/**
+	 * Store the permissions to the database.
+	 */
+	public abstract void storePermissions();
+
 }

@@ -137,6 +137,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	private PreparedStatement psAddAdmin;
 	private PreparedStatement psGetAdmin;
 	private PreparedStatement psGetAdminPermissionList;
+	private PreparedStatement psRemoveAllPermissions;
+	private PreparedStatement psAddPermission;
 
 	// TODO: Implement a "locking" mechanism so that users can hold on to the
 	// db,
@@ -1108,13 +1110,48 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		}
 
 		return new AdminPermissionList(username, permissions
-				.toArray(new String[0]));
+				.toArray(new String[0])) {
+			public void storePermissions() {
+				storeAdminPermissionList(this);
+			}
+
+		};
 
 	}
 
-	public void storeAdminPermissionList(String username,
-			AdminPermissionList permissions) throws DatabaseError {
-		// TODO: implement
+	public void storeAdminPermissionList(AdminPermissionList permissions)
+			throws DatabaseError {
+		log
+				.entry("storeAdminPermissionList(" + permissions.getUsername()
+						+ ")");
+		try {
+			// Check whether prepared statements exist. Create if necessary.
+			if (psRemoveAllPermissions == null) {
+				psRemoveAllPermissions = con
+						.prepareStatement("DELETE FROM admins_permissions" +
+								" WHERE username = ?");
+			}
+			if (psAddPermission == null) {
+				psAddPermission = con
+						.prepareStatement("INSERT INTO admins_permissions " +
+								"(username, permission) VALUES (?,?)");
+			}
+
+			// Remove all previous permissions
+			psRemoveAllPermissions.setString(1, permissions.getUsername());
+			psRemoveAllPermissions.execute();
+			// Add the new
+			psAddPermission.setString(1, permissions.getUsername());
+			for (int i = 0; i < permissions.getAllPermissions().length; i++) {
+				psAddPermission.setString(2, permissions.getAllPermissions()[i]);
+				psAddPermission.execute();
+			}
+		} catch (SQLException e) {
+			log.error("Error settting the permissions.");
+			log.errorException(e);
+			throw new DatabaseError(rb.getString("commandError"), e);
+		}
+
 	}
 
 	/**
