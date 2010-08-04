@@ -1,7 +1,6 @@
 simple rowLog TODO file.
 
 ------------------ [HIGH PRIORITY] ---------------------------------------------
--- Admin interface. : Permissionlist: saving.
 
 -- Finish the db.
 
@@ -46,3 +45,6 @@ update once the user has stopped changing the date.
 -- Update all file locations to get from config.
 
 -- Create localisation gui tool.
+
+-- AdminAuthenticationDialog: update waiting time for next attempts, and format
+        the time in hours/minutes/seconds.

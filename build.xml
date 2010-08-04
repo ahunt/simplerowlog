@@ -34,11 +34,10 @@
 	<property name="splashimage" value="img/splash/splash.png" />
 	<property name="testcases" value="test" />
 
-	
-    <target name="help" 
-    	   description="Display detailed usage information">
-        <echo>simple rowLog Build system [${version}]</echo>
-    	<echo>
+
+	<target name="help" description="Display detailed usage information">
+		<echo>simple rowLog Build system [${version}]</echo>
+		<echo>
 Build Targets:
     -help: Print help information for the build system.
     -clean: Clean the directories of any compiled or derived files.
@@ -50,7 +49,7 @@ Build Targets:
     	</echo>
 	</target>
 
-	
+
 	<target name="init">
 		<mkdir dir="${bin}" />
 		<mkdir dir="${lib}" />
@@ -94,7 +93,7 @@ Build Targets:
 				<include name="${splashimage}" />
 			</fileset>
 		</copy>
-		<jar destfile="${lib}/srl.jar" basedir="${bin}" excludes="**/**Test.class" >
+		<jar destfile="${lib}/srl.jar" basedir="${bin}" excludes="**/**Test.class">
 			<manifest>
 				<attribute name="Main-Class" value="org.ahunt.simpleRowLog.launcher.Launch" />
 				<attribute name="Class-Path" value="derby.jar simple-log-rollover.jar simple-log.jar jcal.jar ../conf/ .. ../loc/" />
@@ -115,19 +114,19 @@ Build Targets:
 			<fileset dir=".">
 				<exclude name="**/database/**" />
 				<exclude name="**/${testcases}/**" />
-                <exclude name="**/${doc}/**" />
+				<exclude name="**/${doc}/**" />
 				<exclude name="**/${dist}/**" />
 				<exclude name="**/${src}/**" />
 				<exclude name="**/${bin}/**" />
-                <exclude name="**/log/**" />
+				<exclude name="**/log/**" />
 				<exclude name="**/${temp_getdep}/**" />
 				<exclude name="**/.**" />
-                <exclude name="**/.**/**" />
+				<exclude name="**/.**/**" />
 				<exclude name="**/.settings/**" />
 				<exclude name="**/build.xml" />
 				<exclude name="README-devel" />
-                <exclude name="ROADMAP" />
-                <exclude name="TODO" />
+				<exclude name="ROADMAP" />
+				<exclude name="TODO" />
 			</fileset>
 		</copy>
 		<!-- Make .tar.gz, .tar.bz2 and .zip, plus .tar.gz source -->
@@ -157,8 +156,8 @@ Build Targets:
 				<exclude name="**/${lib}/**" />
 				<exclude name="**/${bin}/**" />
 				<exclude name="**/${temp_getdep}/**" />
-                <exclude name="**/${doc}/html/" />
-                <exclude name="**/log/**" />
+				<exclude name="**/${doc}/html/" />
+				<exclude name="**/log/**" />
 			</fileset>
 		</copy>
 		<!-- Make .tar.gz, .tar.bz2 and .zip, plus .tar.gz source -->
@@ -191,14 +190,14 @@ Build Targets:
 		<mkdir dir="${temp_getdep}" />
 		<get src="http://www.toedter.com/download/jcalendar-1.3.3.zip" dest="${temp_getdep}/jcal.zip" />
 	</target>
-		
+
 	<target name="getdep-bin" depends="checkdep,init,derby-download,jcal-download" unless="dep">
 		<get src="https://simple-log.dev.java.net/release/simple-log.jar" dest="${lib}/simple-log.jar" />
 		<get src="https://simple-log.dev.java.net/release/simple-log-rollover.jar" dest="${lib}/simple-log-rollover.jar" />
 		<gunzip src="${temp_getdep}/derby.tar.gz" />
 		<untar src="${temp_getdep}/derby.tar" dest="${temp_getdep}" />
 		<move file="${temp_getdep}/db-derby-10.5.1.1-lib/lib/derby.jar" tofile="${lib}/derby.jar" />
-		<unzip src="${temp_getdep}/jcal.zip" dest="${temp_getdep}/jcal"/>
+		<unzip src="${temp_getdep}/jcal.zip" dest="${temp_getdep}/jcal" />
 		<move file="${temp_getdep}/jcal/lib/jcalendar-1.3.3.jar" tofile="${lib}/jcal.jar" />
 	</target>
 
@@ -221,5 +220,9 @@ Build Targets:
 		<exec dir="${doc}" executable="./make.sh">
 			<arg line="clean" />
 		</exec>
+	</target>
+
+	<target name="cleandb">
+		<delete dir="database/srl" />
 	</target>
 </project>
