@@ -2,6 +2,11 @@ simple rowLog TODO file.
 
 ------------------ [HIGH PRIORITY] ---------------------------------------------
 
+-- Create an admin permission list that answers true for all permissions
+   if root.
+   
+-- Authentication dialog: add labels.
+
 -- Finish the db.
 
 -- Verify that the test classes AREN'T included in the ant jar command.
@@ -31,7 +36,7 @@ simple rowLog TODO file.
     being a real name.).
     
 -- Central localisation manager and interface for updateLocalisation(); Any
-localisable classes register so that they are updated.
+localisable classes register so that they are updated. Selector on main screen.
 
 -- AboutDialog: tabbed pane for devs.
 
@@ -48,3 +53,4 @@ update once the user has stopped changing the date.
 
 -- AdminAuthenticationDialog: update waiting time for next attempts, and format
         the time in hours/minutes/seconds.
+        
