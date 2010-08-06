@@ -242,9 +242,10 @@ public interface Database {
 	 * @throws DatabaseError
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
+	 * @throws EntryAlreadyExistsException 
 	 */
 	public void modifyMember(int id, String surname, String forename, Date dob,
-			int group) throws DatabaseError;
+			int group) throws DatabaseError, EntryAlreadyExistsException;
 
 	/* -------------------- MEMBERS (GROUP) [G+] ----------------- */
 

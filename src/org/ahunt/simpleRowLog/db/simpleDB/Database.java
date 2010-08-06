@@ -551,7 +551,6 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	 */
 	@Override
 	public MemberInfo getMember(int id) throws DatabaseError {
-		// TODO: Correct group.
 		log.verbose("getMember(int)");
 		try {
 			if (psGetMember == null) { // Ensure the ps is available
@@ -578,7 +577,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	 */
 	@Override
 	public void modifyMember(int id, String surname, String forename, Date dob,
-			int group) throws DatabaseError {
+			int group) throws DatabaseError, EntryAlreadyExistsException {
 		log.verbose("modifyMember(...)");
 		// Check the data
 		if (getMember(id) == null) {
@@ -609,6 +608,10 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			psModifyMember.setInt(4, group);
 			psModifyMember.setInt(5, id);
 			psModifyMember.execute();
+		} catch (SQLIntegrityConstraintViolationException e) {
+			throw new EntryAlreadyExistsException("A member named " + surname
+					+ ":" + forename + " with dob " + dob
+					+ " already is in the database.", e);
 		} catch (SQLException e) {
 			log.error("Failed to modify member.");
 			log.errorException(e);
@@ -635,7 +638,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			// TODO: caching of groups to save call of getGroup for each group.
 			while (rs.next()) {
 				a.add(new MemberInfo(rs.getInt("id"), rs.getString("surname"),
-						rs.getString("forename"), new Date(0), getGroup(rs
+						rs.getString("forename"), rs.getDate("dob"), getGroup(rs
 								.getInt("usergroup"))));
 			}
 			if (a.size() == 0) {

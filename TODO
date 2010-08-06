@@ -11,6 +11,10 @@ simple rowLog TODO file.
 
 -- Verify that the test classes AREN'T included in the ant jar command.
 
+-- ErrorHandler for all the program, with a command line version implemented.
+
+-- Check non 0 zero length in add/edit member dialogs.
+
 ------------------ [MEDIUM PRIORITY] -------------------------------------------
 -- Admin error log for minor messages, e.g. MemberInfo.getName etc.
 

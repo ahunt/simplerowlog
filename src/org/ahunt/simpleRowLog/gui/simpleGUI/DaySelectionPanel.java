@@ -39,6 +39,7 @@ import javax.swing.border.LineBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.ahunt.simpleRowLog.common.ErrorHandler;
 import org.ahunt.simpleRowLog.conf.Configuration;
 
 import com.toedter.calendar.JSpinnerDateEditor;

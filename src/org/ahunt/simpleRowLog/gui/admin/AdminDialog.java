@@ -43,9 +43,9 @@ import javax.swing.table.AbstractTableModel;
 
 import org.ahunt.simpleRowLog.common.AdminInfo;
 import org.ahunt.simpleRowLog.common.AdminPermissionList;
+import org.ahunt.simpleRowLog.common.ErrorHandler;
 import org.ahunt.simpleRowLog.common.MemberInfo;
 import org.ahunt.simpleRowLog.conf.Configuration;
-import org.ahunt.simpleRowLog.gui.simpleGUI.ErrorHandler;
 import org.ahunt.simpleRowLog.interfaces.Database;
 
 /**
