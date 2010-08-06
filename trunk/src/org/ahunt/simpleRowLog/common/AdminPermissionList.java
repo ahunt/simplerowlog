@@ -42,6 +42,11 @@ public abstract class AdminPermissionList {
 	 * to be told to do so.
 	 */
 	private boolean autoStore;
+	
+	/**
+	 * Whether or not this is the root user.
+	 */
+	private boolean isRoot;
 
 	/**
 	 * Create a new, blank, list of permissions.
@@ -52,8 +57,9 @@ public abstract class AdminPermissionList {
 	 *            Whether or not the list should automatically be stored on
 	 *            modification.
 	 */
-	public AdminPermissionList(String username, boolean autoStore) {
+	public AdminPermissionList(String username, boolean isRoot, boolean autoStore) {
 		this.username = username;
+		this.isRoot = isRoot;
 		this.autoStore = autoStore;
 	}
 
@@ -64,8 +70,8 @@ public abstract class AdminPermissionList {
 	 * @param username
 	 *            The admin's username.
 	 */
-	public AdminPermissionList(String username) {
-		this(username, true);
+	public AdminPermissionList(String username, boolean isRoot) {
+		this(username, isRoot, true);
 	}
 
 	/**
@@ -78,9 +84,9 @@ public abstract class AdminPermissionList {
 	 * @param autoStore
 	 *            Whether or not auto-storing should be enabled.
 	 */
-	public AdminPermissionList(String username, String[] permissions,
+	public AdminPermissionList(String username, boolean isRoot, String[] permissions,
 			boolean autoStore) {
-		this(username, autoStore);
+		this(username, isRoot, autoStore);
 		addPermissions(permissions);
 	}
 
@@ -93,8 +99,8 @@ public abstract class AdminPermissionList {
 	 * @param permissions
 	 *            The permissions to be set.
 	 */
-	public AdminPermissionList(String username, String[] permissions) {
-		this(username, permissions, true);
+	public AdminPermissionList(String username, boolean isRoot, String[] permissions) {
+		this(username, isRoot, permissions, true);
 	}
 
 	/**
@@ -206,6 +212,7 @@ public abstract class AdminPermissionList {
 	 * @return
 	 */
 	public boolean isPermissionSet(String permission) {
+		if (isRoot) return true;
 		return permissionsList.contains(permission);
 	}
 
