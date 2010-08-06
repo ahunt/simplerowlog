@@ -81,21 +81,17 @@ public class AdminDialog extends JDialog {
 	 */
 	private AdminInfo admin;
 
-	/**
-	 * The current admin's permissions.
-	 */
-	private AdminPermissionList permissions;
-
 	// TODO: add reset button, loading default configuration.
 
 	/**
 	 * Open a new configuration Dialog. This exits once the dialog closes.
 	 */
 	public AdminDialog(Database db, AdminInfo admin) {
+		System.out.println("here");
 		this.db = db;
 		this.admin = admin;
 		// TODO: set full permissions on root, and create those permissions.
-		this.permissions = db.getAdminPermissionList(admin.getUsername());
+
 		try {
 			config = Configuration.getConf("simpleGUI");
 		} catch (FileNotFoundException e) {
@@ -128,9 +124,10 @@ public class AdminDialog extends JDialog {
 		this.setSize(500, 300);
 
 		// Add all the appropriate panels.
-		// if (permissions.isPermissionSet("member_list"))
-		tabPane.addTab(rb.getString("dialog.conf.edit_members.title"),
-				new MemberManagementPanel(db).getPanel());
+		if (admin.getPermissionList().isPermissionSet("member_list")) {
+			tabPane.addTab(rb.getString("dialog.conf.edit_members.title"),
+					new MemberManagementPanel(db, admin).getPanel());
+		}
 
 		this.setVisible(true);
 	}
@@ -143,7 +140,5 @@ public class AdminDialog extends JDialog {
 		applyButton.setText(rb.getString("dialog.conf.apply"));
 		exitButton.setText(rb.getString("dialog.conf.exit"));
 	}
-
-
 
 }

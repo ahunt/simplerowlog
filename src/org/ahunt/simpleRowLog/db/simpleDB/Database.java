@@ -137,6 +137,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	private PreparedStatement psAddAdmin;
 	private PreparedStatement psGetAdmin;
 	private PreparedStatement psGetAdminPermissionList;
+	private PreparedStatement psGetRoot;
 	private PreparedStatement psRemoveAllPermissions;
 	private PreparedStatement psAddPermission;
 
@@ -638,8 +639,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			// TODO: caching of groups to save call of getGroup for each group.
 			while (rs.next()) {
 				a.add(new MemberInfo(rs.getInt("id"), rs.getString("surname"),
-						rs.getString("forename"), rs.getDate("dob"), getGroup(rs
-								.getInt("usergroup"))));
+						rs.getString("forename"), rs.getDate("dob"),
+						getGroup(rs.getInt("usergroup"))));
 			}
 			if (a.size() == 0) {
 				return null;
@@ -1072,7 +1073,6 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			byte[] hash = rs.getBytes("password");
 			boolean isRoot = rs.getBoolean("isRoot");
 			String comment = rs.getString("comment");
-
 			return new SimpleDBAdminInfo(name, username, hash, salt, isRoot,
 					comment, getAdminPermissionList(username));
 
@@ -1091,12 +1091,18 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			throws DatabaseError {
 		log.entry("getAdminPermissionList(" + username + ")");
 		ArrayList<String> permissions = new ArrayList<String>();
+		boolean isRoot = false;
 		try {
 			// Check whether prepared statement exists. Create if necessary.
 			if (psGetAdminPermissionList == null) {
 				psGetAdminPermissionList = con
 						.prepareStatement("SELECT * FROM admins_permissions "
 								+ "WHERE username = ?");
+			}
+			if (psGetRoot == null) {
+				psGetRoot = con
+						.prepareStatement("SELECT * FROM admins "
+								+ "WHERE isRoot = 1");
 			}
 			// Set the data
 			psGetAdminPermissionList.setString(1, username);
@@ -1106,13 +1112,17 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			while (rs.next()) {
 				permissions.add(rs.getString("permission"));
 			}
+			psGetRoot.execute();
+			rs = psGetRoot.getResultSet();
+			rs.next();
+			if (rs.getString("username").equals(username)) isRoot = true;
 		} catch (SQLException e) {
 			log.error("Error getting the admin.");
 			log.errorException(e);
 			throw new DatabaseError(rb.getString("commandError"), e);
 		}
 
-		return new AdminPermissionList(username, permissions
+		return new AdminPermissionList(username, isRoot, permissions
 				.toArray(new String[0])) {
 			public void storePermissions() {
 				storeAdminPermissionList(this);
@@ -1131,13 +1141,13 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			// Check whether prepared statements exist. Create if necessary.
 			if (psRemoveAllPermissions == null) {
 				psRemoveAllPermissions = con
-						.prepareStatement("DELETE FROM admins_permissions" +
-								" WHERE username = ?");
+						.prepareStatement("DELETE FROM admins_permissions"
+								+ " WHERE username = ?");
 			}
 			if (psAddPermission == null) {
 				psAddPermission = con
-						.prepareStatement("INSERT INTO admins_permissions " +
-								"(username, permission) VALUES (?,?)");
+						.prepareStatement("INSERT INTO admins_permissions "
+								+ "(username, permission) VALUES (?,?)");
 			}
 
 			// Remove all previous permissions
@@ -1146,7 +1156,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			// Add the new
 			psAddPermission.setString(1, permissions.getUsername());
 			for (int i = 0; i < permissions.getAllPermissions().length; i++) {
-				psAddPermission.setString(2, permissions.getAllPermissions()[i]);
+				psAddPermission
+						.setString(2, permissions.getAllPermissions()[i]);
 				psAddPermission.execute();
 			}
 		} catch (SQLException e) {

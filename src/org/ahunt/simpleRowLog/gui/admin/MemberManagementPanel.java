@@ -34,21 +34,26 @@ import javax.swing.LayoutStyle;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.table.AbstractTableModel;
 
+import org.ahunt.simpleRowLog.common.AdminInfo;
+import org.ahunt.simpleRowLog.common.AdminPermissionList;
 import org.ahunt.simpleRowLog.common.ErrorHandler;
 import org.ahunt.simpleRowLog.common.MemberInfo;
 import org.ahunt.simpleRowLog.conf.Configuration;
 import org.ahunt.simpleRowLog.interfaces.Database;
 
 /**
+ * Panel allowing access to
  * 
  * @author Andrzej JR Hunt
- *
+ * 
  */
 public class MemberManagementPanel extends AbstractTableModel implements
 		ConfigPanelInterface, MouseListener {
 
 	/** The configuration in use */
 	private Configuration config;
+
+	private AdminInfo admin;
 
 	/** The language files for use. */
 	private ResourceBundle loc = ResourceBundle.getBundle("admin");
@@ -69,9 +74,10 @@ public class MemberManagementPanel extends AbstractTableModel implements
 
 	private MemberInfo[] members;
 
-	public MemberManagementPanel(Database db) {
+	public MemberManagementPanel(Database db, AdminInfo admin) {
 		super();
 		this.db = db;
+		this.admin = admin;
 		memberDialog = new EditMemberDialog(db);
 
 		memberTable = new JTable(this);
@@ -90,6 +96,18 @@ public class MemberManagementPanel extends AbstractTableModel implements
 		addMemberButton.setText(loc.getString("member.add"));
 		editMemberButton.setText(loc.getString("member.edit"));
 		deleteMemberButton.setText(loc.getString("member.delete"));
+
+		if (admin.getPermissionList().isPermissionSet("member_list.modify")) {
+			editMemberButton.setVisible(true);
+		} else {
+			editMemberButton.setVisible(false);
+		}
+		if (admin.getPermissionList().isPermissionSet("member_list.remove")) {
+			deleteMemberButton.setVisible(true);
+		} else {
+			deleteMemberButton.setVisible(false);
+		}
+		
 		GroupLayout l = new GroupLayout(displayPanel);
 		displayPanel.setLayout(l);
 		l.setAutoCreateGaps(true);
@@ -108,7 +126,7 @@ public class MemberManagementPanel extends AbstractTableModel implements
 						.addComponent(addMemberButton).addComponent(
 								editMemberButton).addComponent(
 								deleteMemberButton)));
-		
+
 		updateMembers();
 
 	}
@@ -118,6 +136,9 @@ public class MemberManagementPanel extends AbstractTableModel implements
 			locCommon.getString("group") };
 
 	public int getColumnCount() {
+		// No details on members if not allowed
+		if (!admin.getPermissionList().isPermissionSet("member_list.details"))
+			return 2;
 		return columnNames.length;
 	}
 
@@ -137,6 +158,9 @@ public class MemberManagementPanel extends AbstractTableModel implements
 	}
 
 	public void editMemberAt(int row) {
+		// Exit if not allowed.
+		if (!admin.getPermissionList().isPermissionSet("member_list.modify"))
+			return;
 		memberDialog.editMember(members[row]);
 		updateMembers();
 	}
