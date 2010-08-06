@@ -41,6 +41,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
+import javax.swing.LayoutStyle;
 import javax.swing.Timer;
 import javax.swing.border.LineBorder;
 
@@ -104,7 +105,7 @@ public class AdminAuthenticationDialog extends JDialog {
 			ErrorHandler.handleError(e);
 		}
 
-		setTitle("admin.login_title");
+		setTitle(rb.getString("admin.login_title"));
 
 		cancelButton.setText(rb.getString("admin.cancel_login"));
 		validateButton.setText(rb.getString("admin.validate_login"));
@@ -135,7 +136,10 @@ public class AdminAuthenticationDialog extends JDialog {
 						.addComponent(validateButton)));
 		l.setHorizontalGroup(l.createParallelGroup().addComponent(
 				attemptsLeftLabel).addComponent(entryPanel).addGroup(
-				l.createSequentialGroup().addComponent(cancelButton)
+				l.createSequentialGroup().addPreferredGap(
+						LayoutStyle.ComponentPlacement.RELATED,
+						GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+						.addComponent(cancelButton)
 						.addComponent(validateButton)));
 
 		// Window properties

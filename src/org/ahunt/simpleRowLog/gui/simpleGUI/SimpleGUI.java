@@ -66,6 +66,7 @@ import org.ahunt.simpleRowLog.common.GroupInfo;
 import org.ahunt.simpleRowLog.common.MemberInfo;
 import org.ahunt.simpleRowLog.common.OutingInfo;
 import org.ahunt.simpleRowLog.conf.Configuration;
+import org.ahunt.simpleRowLog.gui.admin.AdminDialog;
 import org.ahunt.simpleRowLog.interfaces.Database;
 
 /**
@@ -150,7 +151,7 @@ public class SimpleGUI extends JFrame implements ChangeListener {
 		newOutingButton.addActionListener(new ButtonListener());
 		editOutingButton.addActionListener(new ButtonListener());
 		daySelection.addChangeListener(this);
-		// Set up the table. TODO: check whether height is correct.
+
 		outingTableManager = new OutingTableManager();
 		outingTable = new JTable(outingTableManager) {
 			private static final long serialVersionUID = 1L;
@@ -169,6 +170,7 @@ public class SimpleGUI extends JFrame implements ChangeListener {
 			}
 		};
 
+		// TODO: Clean this mess!
 		outingTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 		int vColIndex = 1;
 		TableColumn col = outingTable.getColumnModel().getColumn(vColIndex);
@@ -187,13 +189,13 @@ public class SimpleGUI extends JFrame implements ChangeListener {
 		outingTablePane.addMouseListener(new ClickListener());
 		setupLayout();
 		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-		// TODO: load from the config, and watch.
-//		windowFooter.setHorizontalAlignment(SwingConstants.TRAILING);
+		addWindowListener(new ExitListener());
+		// TODO: load from the config, and watch. (The footer below that is.)
+		// windowFooter.setHorizontalAlignment(SwingConstants.TRAILING);
 		windowFooter.setText("Rowing logbook of the Gobi desert rowing club"
 				+ " [http://gobi.desertrowing.com/]");
 		// windowFooter.setAlignmentX(Component.RIGHT_ALIGNMENT);
 
-	
 	}
 
 	/**
@@ -278,10 +280,12 @@ public class SimpleGUI extends JFrame implements ChangeListener {
 		menuHelpHelp.addActionListener(ml);
 		menuHelp.add(menuHelpAbout);
 		menuHelpAbout.addActionListener(ml);
-		
+
 		// TODO: Move the keyboard shortcuts
-		menuFileExit.setAccelerator(KeyStroke.getKeyStroke(new Character('q'), java.awt.event.InputEvent.CTRL_DOWN_MASK));
-		menuOptionsAdmin.setAccelerator(KeyStroke.getKeyStroke(new Character('w'), java.awt.event.InputEvent.CTRL_DOWN_MASK));
+		menuFileExit.setAccelerator(KeyStroke.getKeyStroke(new Character('q'),
+				java.awt.event.InputEvent.CTRL_DOWN_MASK));
+		menuOptionsAdmin.setAccelerator(KeyStroke.getKeyStroke(new Character(
+				'w'), java.awt.event.InputEvent.CTRL_DOWN_MASK));
 	}
 
 	/**
@@ -345,17 +349,11 @@ public class SimpleGUI extends JFrame implements ChangeListener {
 	}
 
 	private class ExitListener extends WindowAdapter {
-		// TODO: Also implement exit button + behaviour
+
 		public void windowClosing(WindowEvent e) {
-			onClose();
+			menuFileExit.doClick();
 		}
 
-		private void onClose() {
-			System.out.println("onClose()");
-			// TODO: stuff
-			// TODO: some method has to be called to clean up and save
-			// data that changes e.g. config.
-		}
 	}
 
 	private class OutingTableManager extends AbstractTableModel {
@@ -416,7 +414,6 @@ public class SimpleGUI extends JFrame implements ChangeListener {
 
 		public Object getValueAt(int row, int col) {
 			if (col == 0) {
-				// TODO: implement in DB.
 				return outings[row].getBoat().getName();
 				// if (row == 0) {return "Anna";} else {return "Bob";}
 			} else if (col == 1) {
@@ -486,8 +483,6 @@ public class SimpleGUI extends JFrame implements ChangeListener {
 			} catch (Exception e) {
 				ErrorHandler.handleError(e);
 			}
-			// TODO: Complete
-			// db.getOutings(current);
 		}
 
 	}
@@ -509,26 +504,18 @@ public class SimpleGUI extends JFrame implements ChangeListener {
 
 		@Override
 		public void mouseEntered(MouseEvent arg0) {
-			// TODO Auto-generated method stub
-
 		}
 
 		@Override
 		public void mouseExited(MouseEvent arg0) {
-			// TODO Auto-generated method stub
-
 		}
 
 		@Override
 		public void mousePressed(MouseEvent arg0) {
-			// TODO Auto-generated method stub
-
 		}
 
 		@Override
 		public void mouseReleased(MouseEvent arg0) {
-			// TODO Auto-generated method stub
-
 		}
 
 	}
@@ -544,7 +531,9 @@ public class SimpleGUI extends JFrame implements ChangeListener {
 			} else if (arg0.getSource() == menuFileExit) {
 				if (conf.getProperty("authenticate_for_exit").equals("true")) {
 					AdminInfo ai = AdminAuthenticationDialog.doLogin(db);
-					if (ai != null && (ai.isRoot() || ai.getPermissionList().isPermissionSet("can_do_shutdown"))) {
+					if (ai != null
+							&& (ai.isRoot() || ai.getPermissionList()
+									.isPermissionSet("can_do_shutdown"))) {
 						System.exit(0);
 					} else {
 						// TODO: Rejection.
@@ -553,7 +542,14 @@ public class SimpleGUI extends JFrame implements ChangeListener {
 					System.exit(0);
 				}
 			} else if (arg0.getSource() == menuOptionsAdmin) {
-				AdminAuthenticationDialog.doLogin(db);
+				AdminInfo ai = AdminAuthenticationDialog.doLogin(db);
+				if (ai != null
+						&& (ai.isRoot() || ai.getPermissionList()
+								.isPermissionSet("can_do_shutdown"))) {
+					new AdminDialog(db, ai);
+				} else {
+					// TODO: Rejection.
+				}
 			}
 		}
 
