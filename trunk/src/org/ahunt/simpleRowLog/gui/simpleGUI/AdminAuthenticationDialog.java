@@ -46,6 +46,7 @@ import javax.swing.Timer;
 import javax.swing.border.LineBorder;
 
 import org.ahunt.simpleRowLog.common.AdminInfo;
+import org.ahunt.simpleRowLog.common.ErrorHandler;
 import org.ahunt.simpleRowLog.conf.Configuration;
 import org.ahunt.simpleRowLog.interfaces.Database;
 import org.apache.derby.iapi.types.Resetable;

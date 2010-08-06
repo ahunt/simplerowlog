@@ -19,7 +19,7 @@
  *	Changelog:
  *	30/11/2009: Created.
  */
-package org.ahunt.simpleRowLog.gui.simpleGUI;
+package org.ahunt.simpleRowLog.common;
 
 /**
  * An error handling class for the gui. It will inform the user and ask them

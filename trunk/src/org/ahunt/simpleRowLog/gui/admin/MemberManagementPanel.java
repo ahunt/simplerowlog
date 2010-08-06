@@ -25,18 +25,25 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ResourceBundle;
 
+import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.LayoutStyle;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.table.AbstractTableModel;
 
+import org.ahunt.simpleRowLog.common.ErrorHandler;
 import org.ahunt.simpleRowLog.common.MemberInfo;
 import org.ahunt.simpleRowLog.conf.Configuration;
-import org.ahunt.simpleRowLog.gui.simpleGUI.ErrorHandler;
 import org.ahunt.simpleRowLog.interfaces.Database;
 
+/**
+ * 
+ * @author Andrzej JR Hunt
+ *
+ */
 public class MemberManagementPanel extends AbstractTableModel implements
 		ConfigPanelInterface, MouseListener {
 
@@ -51,12 +58,12 @@ public class MemberManagementPanel extends AbstractTableModel implements
 	Database db;
 
 	private JPanel displayPanel = new JPanel();
-	
+
+	private EditMemberDialog memberDialog;
 	private JButton addMemberButton = new JButton();
 	private JButton editMemberButton = new JButton();
 	private JButton deleteMemberButton = new JButton();
-	
-	
+
 	private JScrollPane memberTablePane;
 	private JTable memberTable;
 
@@ -65,10 +72,9 @@ public class MemberManagementPanel extends AbstractTableModel implements
 	public MemberManagementPanel(Database db) {
 		super();
 		this.db = db;
+		memberDialog = new EditMemberDialog(db);
 
-		members = db.getMembers();
-
-		memberTable = new JTable();
+		memberTable = new JTable(this);
 		memberTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 
 		memberTablePane = new JScrollPane(memberTable);
@@ -79,15 +85,32 @@ public class MemberManagementPanel extends AbstractTableModel implements
 		// Listeners to listen for attempted edits.
 		memberTable.addMouseListener(this);
 		memberTablePane.addMouseListener(this);
-		
-		
-		
+
 		// Setup the display
 		addMemberButton.setText(loc.getString("member.add"));
 		editMemberButton.setText(loc.getString("member.edit"));
 		deleteMemberButton.setText(loc.getString("member.delete"));
+		GroupLayout l = new GroupLayout(displayPanel);
+		displayPanel.setLayout(l);
+		l.setAutoCreateGaps(true);
+		l.setAutoCreateContainerGaps(true);
+
+		l.setVerticalGroup(l.createSequentialGroup().addComponent(
+				memberTablePane).addGroup(
+				l.createParallelGroup().addComponent(addMemberButton)
+						.addComponent(editMemberButton).addComponent(
+								deleteMemberButton)));
+		l.setHorizontalGroup(l.createParallelGroup().addComponent(
+				memberTablePane).addGroup(
+				l.createSequentialGroup().addPreferredGap(
+						LayoutStyle.ComponentPlacement.RELATED,
+						GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+						.addComponent(addMemberButton).addComponent(
+								editMemberButton).addComponent(
+								deleteMemberButton)));
 		
-		
+		updateMembers();
+
 	}
 
 	private String[] columnNames = { loc.getString("member.id"),
@@ -114,7 +137,8 @@ public class MemberManagementPanel extends AbstractTableModel implements
 	}
 
 	public void editMemberAt(int row) {
-		// TODO: implement
+		memberDialog.editMember(members[row]);
+		updateMembers();
 	}
 
 	public Object getValueAt(int row, int col) {
@@ -157,9 +181,7 @@ public class MemberManagementPanel extends AbstractTableModel implements
 			return; // Return unless we have a double click
 		}
 		if (arg0.getSource() == memberTablePane) { // Click on blank area
-			// memberDialog.doNewOuting();
-
-			// TODO: add New member
+			memberDialog.addMember();
 		} else if (arg0.getSource() == memberTable) {
 			this.editMemberAt(memberTable.getSelectedRow());
 		}

@@ -23,6 +23,11 @@ package org.ahunt.simpleRowLog.gui.admin;
 
 import javax.swing.JPanel;
 
+/**
+ * 
+ * @author Andrzej JR Hunt
+ *
+ */
 public interface ConfigPanelInterface {
 
 	
