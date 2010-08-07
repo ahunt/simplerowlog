@@ -1,10 +1,10 @@
 simple rowLog TODO file.
 
 ------------------ [HIGH PRIORITY] ---------------------------------------------
-   
--- Authentication dialog: add labels.
 
--- Finish the db.
+-- Finish the db: add deletion of items. Refactor all modify methods to use the original Boat/Admin/MemberInfo as opposed to id.
+
+-- All tables: add check to make sure a row is selected if using a button to modify.
 
 -- Verify that the test classes AREN'T included in the ant jar command.
 
@@ -15,6 +15,8 @@ simple rowLog TODO file.
 -- In OutingDialog warn what fields aren't filled in, and check first before submitting due to crash otherwise.
 
 -- Language files system for when files aren't found. Also clean up locations.
+
+-- R
 
 ------------------ [MEDIUM PRIORITY] -------------------------------------------
 -- Admin error log for minor messages, e.g. MemberInfo.getName etc.
@@ -60,4 +62,11 @@ update once the user has stopped changing the date.
         the time in hours/minutes/seconds.
         
 -- Tooltips
-        
+
+
+--------------------------------------------------------------------------------
+Code cleaning and documentation:
+--------------------------------
+DONE:
+org.ahunt.simpleRowLog.gui.admin.BoatManagementPanel
+org.ahunt.simpleRowLog.gui.admin.MemberManagementPanel      
