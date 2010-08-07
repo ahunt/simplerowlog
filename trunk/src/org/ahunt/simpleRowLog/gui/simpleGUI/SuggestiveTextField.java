@@ -45,6 +45,10 @@ import javax.swing.event.MenuKeyListener;
 public class SuggestiveTextField extends JTextField implements
 		DocumentListener, MenuKeyListener, ActionListener {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private Point popupLocation;
 	private JPopupMenu popup = new JPopupMenu();
 	private Container container;
@@ -74,7 +78,6 @@ public class SuggestiveTextField extends JTextField implements
 		Point textLocation = getLocation();
 		Dimension textSize = getSize();
 		Insets insets = container.getInsets();
-		System.out.println("Inset" + insets);
 		// Position popup at bottom left corner of the entry.
 		if (container.getClass().getName().equals(OutingDialog.class.getName())) {
 			popupLocation = new Point(textLocation.x + insets.left,

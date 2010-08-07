@@ -23,6 +23,8 @@ package org.ahunt.simpleRowLog.gui.admin;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ResourceBundle;
@@ -53,7 +55,7 @@ import org.ahunt.simpleRowLog.interfaces.Database;
  * 
  */
 public class GroupManagementPanel extends AbstractTableModel implements
-		ConfigPanelInterface, MouseListener {
+		ConfigPanelInterface, MouseListener, ActionListener {
 
 	/**
 * 
@@ -112,17 +114,23 @@ public class GroupManagementPanel extends AbstractTableModel implements
 		editGroupButton.setText(loc.getString("group.edit"));
 		deleteGroupButton.setText(loc.getString("group.delete"));
 
+		// Listeners for the buttons
+		makeDefaultGroupButton.addActionListener(this);
+		addGroupButton.addActionListener(this);
+		editGroupButton.addActionListener(this);
+		deleteGroupButton.addActionListener(this);
+
 		if (admin.getPermissionList().isPermissionSet("group_list.modify")) {
-			editGroupButton.setVisible(true);
-			makeDefaultGroupButton.setVisible(false);
+			editGroupButton.setEnabled(true);
+			makeDefaultGroupButton.setEnabled(true);
 		} else {
-			editGroupButton.setVisible(false);
-			makeDefaultGroupButton.setVisible(false);
+			editGroupButton.setEnabled(false);
+			makeDefaultGroupButton.setEnabled(false);
 		}
 		if (admin.getPermissionList().isPermissionSet("group_list.remove")) {
-			deleteGroupButton.setVisible(true);
+			deleteGroupButton.setEnabled(true);
 		} else {
-			deleteGroupButton.setVisible(false);
+			deleteGroupButton.setEnabled(false);
 		}
 
 		GroupLayout l = new GroupLayout(displayPanel);
@@ -174,7 +182,7 @@ public class GroupManagementPanel extends AbstractTableModel implements
 		return groups.length;
 	}
 
-	public void editGroupAt(int row) {
+	private void editGroupAt(int row) {
 		// Exit if not allowed.
 		if (!admin.getPermissionList().isPermissionSet("group_list.modify"))
 			return;
@@ -214,8 +222,29 @@ public class GroupManagementPanel extends AbstractTableModel implements
 
 	@Override
 	public void apply() {
-		// TODO Auto-generated method stub
+		// We do all saving automatically so no need.
+	}
 
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void actionPerformed(ActionEvent arg0) {
+		if (arg0.getSource() == makeDefaultGroupButton) {
+			GroupInfo g = groups[groupTable.getSelectedRow()];
+			db.modifyGroup(g.getId(), g.getName(), g.getDescription(), g
+					.getDisplayColour(), true);
+		} else if (arg0.getSource() == addGroupButton) {
+			groupDialog.addGroup();
+		} else if (arg0.getSource() == editGroupButton) {
+			if (groupTable.getSelectedRow() >= 0)
+				editGroupAt(groupTable.getSelectedRow());
+		} else if (arg0.getSource() == deleteGroupButton) {
+			// TODO: ask for confirmation and then do. Also include a relinking
+			// group, i.e. what the members with this group should be reassigned
+			// to.
+		}
+		updateGroups();
 	}
 
 	@Override
@@ -270,7 +299,6 @@ public class GroupManagementPanel extends AbstractTableModel implements
 		public Component getTableCellRendererComponent(JTable table,
 				Object value, boolean isSelected, boolean hasFocus, int row,
 				int column) {
-			System.out.println("here and " + row + " " + column);
 			Color col = (Color) value;
 			setBackground(col);
 			return this;

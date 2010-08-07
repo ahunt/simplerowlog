@@ -136,7 +136,7 @@ public class SimpleGUI extends JFrame implements ChangeListener {
 	 *            The database from which data is to be requested.
 	 */
 	public SimpleGUI(Database db) {
-		System.out.println("Starting gui");
+		System.out.println(">> Starting gui");
 		try {
 			conf = Configuration.getConf("simpleGUI");
 		} catch (FileNotFoundException e) {

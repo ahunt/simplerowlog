@@ -79,8 +79,7 @@ public class AboutDialog extends JDialog implements ActionListener {
 	private JTabbedPane tabPane = new JTabbedPane();
 
 	/**
-	 * Open a new about Dialog. This exits once the dialog closes. It throws an
-	 * error if an about Dialog is already open.
+	 * Set up the dialog.
 	 */
 	public AboutDialog() {
 		// Prepare the window.
@@ -151,6 +150,17 @@ public class AboutDialog extends JDialog implements ActionListener {
 		pack();
 		setResizable(false);
 		setVisible(false);
+	}
+
+	@Override
+	public void setVisible(boolean b) {
+		// Centering
+		if (b) {
+			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+			setLocation(screenSize.width / 2 - this.getSize().width / 2,
+					screenSize.height / 2 - this.getSize().height / 2);
+		}
+		super.setVisible(b);
 	}
 
 	/**

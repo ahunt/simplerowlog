@@ -21,6 +21,8 @@
  */
 package org.ahunt.simpleRowLog.gui.admin;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ResourceBundle;
@@ -35,24 +37,32 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.table.AbstractTableModel;
 
 import org.ahunt.simpleRowLog.common.AdminInfo;
-import org.ahunt.simpleRowLog.common.AdminPermissionList;
 import org.ahunt.simpleRowLog.common.ErrorHandler;
 import org.ahunt.simpleRowLog.common.MemberInfo;
-import org.ahunt.simpleRowLog.conf.Configuration;
 import org.ahunt.simpleRowLog.interfaces.Database;
 
 /**
- * Panel allowing access to the list of members.
+ * Panel allowing access to the list of members. Depending on the permissions
+ * the administrator has, they may either be able to only view the names (and
+ * database id) of, and add members, or also modify and delete members, or view
+ * their other details (date of birth and group). (Check the manual under
+ * Administrator Permissions for specific information on the permissions.)
+ * Before calling this panel the code should check whether the permission
+ * <code>member_list</code> is set.
  * 
  * @author Andrzej JR Hunt
  * 
  */
 public class MemberManagementPanel extends AbstractTableModel implements
-		ConfigPanelInterface, MouseListener {
+		ConfigPanelInterface, MouseListener, ActionListener {
 
-	/** The configuration in use */
-	private Configuration config;
+	/** serialVersionUID */
+	private static final long serialVersionUID = 1L;
 
+	/**
+	 * The current administrator who is working with the panel. Is used to
+	 * determine permissions.
+	 */
 	private AdminInfo admin;
 
 	/** The language files for use. */
@@ -62,22 +72,43 @@ public class MemberManagementPanel extends AbstractTableModel implements
 	/** The database we are working upon. */
 	Database db;
 
+	/**
+	 * The list of members currently in the database. Is updated after any
+	 * changes. Use this to access any data as opposed to requesting from the
+	 * database.
+	 */
+	private MemberInfo[] members;
+
+	/** The panel containing all the graphical components. */
 	private JPanel displayPanel = new JPanel();
 
-	private EditMemberDialog memberDialog;
 	private JButton addMemberButton = new JButton();
 	private JButton editMemberButton = new JButton();
 	private JButton deleteMemberButton = new JButton();
 
-	private JScrollPane memberTablePane;
+	/** Table displaying the list of members. */
 	private JTable memberTable;
+	private JScrollPane memberTablePane;
 
-	private MemberInfo[] members;
+	/** Dialog allowing editing of members. */
+	private EditMemberDialog memberDialog;
 
+	/**
+	 * Create the MemberManagementPanel, allowing access to and modification of
+	 * the list of members currently in the database.
+	 * 
+	 * @param db
+	 *            The database to be used.
+	 * @param admin
+	 *            The current administrator accessing the panel (used to
+	 *            determine permissions).
+	 */
 	public MemberManagementPanel(Database db, AdminInfo admin) {
 		super();
 		this.db = db;
 		this.admin = admin;
+
+		// Setup the editing dialog (used throughout)
 		memberDialog = new EditMemberDialog(db);
 
 		memberTable = new JTable(this);
@@ -88,7 +119,9 @@ public class MemberManagementPanel extends AbstractTableModel implements
 				.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 		memberTablePane
 				.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-		// Listeners to listen for attempted edits.
+
+		// Listeners to detect when someone wants to edit (for double clicks on
+		// table).
 		memberTable.addMouseListener(this);
 		memberTablePane.addMouseListener(this);
 
@@ -97,22 +130,28 @@ public class MemberManagementPanel extends AbstractTableModel implements
 		editMemberButton.setText(loc.getString("member.edit"));
 		deleteMemberButton.setText(loc.getString("member.delete"));
 
+		// Listeners for the buttons
+		addMemberButton.addActionListener(this);
+		editMemberButton.addActionListener(this);
+		deleteMemberButton.addActionListener(this);
+
+		// Disable functions this admin can't use.
 		if (admin.getPermissionList().isPermissionSet("member_list.modify")) {
-			editMemberButton.setVisible(true);
+			editMemberButton.setEnabled(true);
 		} else {
-			editMemberButton.setVisible(false);
+			editMemberButton.setEnabled(false);
 		}
 		if (admin.getPermissionList().isPermissionSet("member_list.remove")) {
-			deleteMemberButton.setVisible(true);
+			deleteMemberButton.setEnabled(true);
 		} else {
-			deleteMemberButton.setVisible(false);
+			deleteMemberButton.setEnabled(false);
 		}
-		
+
+		// Layouting
 		GroupLayout l = new GroupLayout(displayPanel);
 		displayPanel.setLayout(l);
 		l.setAutoCreateGaps(true);
 		l.setAutoCreateContainerGaps(true);
-
 		l.setVerticalGroup(l.createSequentialGroup().addComponent(
 				memberTablePane).addGroup(
 				l.createParallelGroup().addComponent(addMemberButton)
@@ -126,45 +165,59 @@ public class MemberManagementPanel extends AbstractTableModel implements
 						.addComponent(addMemberButton).addComponent(
 								editMemberButton).addComponent(
 								deleteMemberButton)));
-
+		// Get the data loaded in from the db.
 		updateMembers();
-
 	}
 
+	/**
+	 * The columns in the table.
+	 */
 	private String[] columnNames = { loc.getString("member.id"),
 			locCommon.getString("name"), locCommon.getString("dob"),
 			locCommon.getString("group") };
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public int getColumnCount() {
-		// No details on members if not allowed
+		// No details on members if not allowed, i.e only show id and name
+		// columns.
 		if (!admin.getPermissionList().isPermissionSet("member_list.details"))
 			return 2;
 		return columnNames.length;
 	}
 
 	/**
-	 * Get the name for a specific column.
-	 * 
-	 * @param col
-	 *            The column.
-	 * @return The name of the column.
+	 * {@inheritDoc}
 	 */
 	public String getColumnName(int col) {
 		return columnNames[col];
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public int getRowCount() {
 		return members.length;
 	}
 
-	public void editMemberAt(int row) {
+	/**
+	 * Edit the member in a specific row by calling the EditMemberDialog. Only
+	 * works if the current admin has the required permissions.
+	 * 
+	 * @param row
+	 *            The row in which the member is on the table.
+	 */
+	private void editMemberAt(int row) {
 		// Exit if not allowed.
 		if (!admin.getPermissionList().isPermissionSet("member_list.modify"))
 			return;
 		memberDialog.editMember(members[row]);
-		updateMembers();
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public Object getValueAt(int row, int col) {
 		switch (col) {
 		case 0:
@@ -193,46 +246,85 @@ public class MemberManagementPanel extends AbstractTableModel implements
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void apply() {
-		// TODO Auto-generated method stub
-
+		// We don't need to do anything here since everything autosaves.
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void mouseClicked(MouseEvent arg0) {
 		if (arg0.getClickCount() != 2) {
 			return; // Return unless we have a double click
 		}
-		if (arg0.getSource() == memberTablePane) { // Click on blank area
+		if (arg0.getSource() == memberTablePane) { // A click on blank area
 			memberDialog.addMember();
 		} else if (arg0.getSource() == memberTable) {
-			this.editMemberAt(memberTable.getSelectedRow());
+			if (memberTable.getSelectedRow() >= 0)
+				editMemberAt(memberTable.getSelectedRow());
 		}
-		this.updateMembers();
+		updateMembers();
 
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public JPanel getPanel() {
 		return displayPanel;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void actionPerformed(ActionEvent arg0) {
+		if (arg0.getSource() == addMemberButton) {
+			memberDialog.addMember();
+		} else if (arg0.getSource() == editMemberButton) {
+			if (memberTable.getSelectedRow() >= 0)
+				editMemberAt(memberTable.getSelectedRow());
+		} else if (arg0.getSource() == deleteMemberButton) {
+			// TODO: ask for confirmation and then do. Also include a relinking
+			// dialog, i.e. what the outings with this member should be
+			// reassigned
+			// to.
+		}
+		updateMembers();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void mouseEntered(MouseEvent arg0) {
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void mouseExited(MouseEvent arg0) {
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void mousePressed(MouseEvent arg0) {
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void mouseReleased(MouseEvent arg0) {
-
 	}
 
 }

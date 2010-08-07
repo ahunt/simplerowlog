@@ -23,28 +23,18 @@
  */
 package org.ahunt.simpleRowLog.gui.admin;
 
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.io.FileNotFoundException;
 import java.util.ResourceBundle;
 
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
-import javax.swing.JTable;
 import javax.swing.LayoutStyle;
-import javax.swing.ScrollPaneConstants;
-import javax.swing.table.AbstractTableModel;
+
 
 import org.ahunt.simpleRowLog.common.AdminInfo;
-import org.ahunt.simpleRowLog.common.AdminPermissionList;
 import org.ahunt.simpleRowLog.common.ErrorHandler;
-import org.ahunt.simpleRowLog.common.MemberInfo;
 import org.ahunt.simpleRowLog.conf.Configuration;
 import org.ahunt.simpleRowLog.interfaces.Database;
 
@@ -87,7 +77,6 @@ public class AdminDialog extends JDialog {
 	 * Open a new configuration Dialog. This exits once the dialog closes.
 	 */
 	public AdminDialog(Database db, AdminInfo admin) {
-		System.out.println("here");
 		this.db = db;
 		this.admin = admin;
 		// TODO: set full permissions on root, and create those permissions.
@@ -121,7 +110,7 @@ public class AdminDialog extends JDialog {
 										exitButton)));
 
 		// TODO: find size
-		this.setSize(500, 300);
+		this.setSize(900, 600);
 
 		// Add all the appropriate panels.
 		if (admin.getPermissionList().isPermissionSet("member_list")) {

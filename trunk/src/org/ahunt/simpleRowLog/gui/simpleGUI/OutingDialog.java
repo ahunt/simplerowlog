@@ -222,13 +222,13 @@ public class OutingDialog extends JDialog {
 			if (i == 0) {
 				rowerEntry[i] = new SuggestiveTextField(rowerPanel, true, null,
 						32);
-				rowerEntry[i].addFocusListener(
-						new NameEntryListener(rowerEntry[i]));
+				rowerEntry[i].addFocusListener(new NameEntryListener(
+						rowerEntry[i]));
 			} else {
 				rowerEntry[i] = new SuggestiveTextField(rowerPanel, false,
 						null, 32);
-				rowerEntry[i].addFocusListener(
-						new NameEntryListener(rowerEntry[i]));
+				rowerEntry[i].addFocusListener(new NameEntryListener(
+						rowerEntry[i]));
 			}
 			// rowerEntry[i] = new JTextField(32);
 			rowerEntryLabel[i] = new JLabel("<html><b>"
@@ -237,8 +237,7 @@ public class OutingDialog extends JDialog {
 			// new EntryListener(rowerPanel, rowerEntry[i], i);
 		}
 		coxEntry = new SuggestiveTextField(rowerPanel, false, null, 32);
-		coxEntry.addFocusListener(
-				new NameEntryListener(coxEntry));
+		coxEntry.addFocusListener(new NameEntryListener(coxEntry));
 		coxEntryLabel = new JLabel("<html><b><i>" + rb.getString("outing.cox")
 				+ ":</i></b></html>");
 		// new EntryListener(rowerPanel, coxEntry, -1);
@@ -270,40 +269,48 @@ public class OutingDialog extends JDialog {
 										rowerEntry[6]).addComponent(
 										rowerEntry[7]).addComponent(coxEntry)));
 		r.setVerticalGroup(r.createSequentialGroup().addGroup(
-				r.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(rowerEntryLabel[0])
-						.addComponent(rowerEntry[0])).addPreferredGap(
+				r.createParallelGroup(GroupLayout.Alignment.BASELINE)
+						.addComponent(rowerEntryLabel[0]).addComponent(
+								rowerEntry[0])).addPreferredGap(
 				LayoutStyle.ComponentPlacement.RELATED,
 				GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE).addGroup(
-				r.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(rowerEntryLabel[1])
-						.addComponent(rowerEntry[1])).addPreferredGap(
+				r.createParallelGroup(GroupLayout.Alignment.BASELINE)
+						.addComponent(rowerEntryLabel[1]).addComponent(
+								rowerEntry[1])).addPreferredGap(
 				LayoutStyle.ComponentPlacement.RELATED,
 				GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE).addGroup(
-				r.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(rowerEntryLabel[2])
-						.addComponent(rowerEntry[2])).addPreferredGap(
+				r.createParallelGroup(GroupLayout.Alignment.BASELINE)
+						.addComponent(rowerEntryLabel[2]).addComponent(
+								rowerEntry[2])).addPreferredGap(
 				LayoutStyle.ComponentPlacement.RELATED,
 				GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE).addGroup(
-				r.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(rowerEntryLabel[3])
-						.addComponent(rowerEntry[3])).addPreferredGap(
+				r.createParallelGroup(GroupLayout.Alignment.BASELINE)
+						.addComponent(rowerEntryLabel[3]).addComponent(
+								rowerEntry[3])).addPreferredGap(
 				LayoutStyle.ComponentPlacement.RELATED,
 				GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE).addGroup(
-				r.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(rowerEntryLabel[4])
-						.addComponent(rowerEntry[4])).addPreferredGap(
+				r.createParallelGroup(GroupLayout.Alignment.BASELINE)
+						.addComponent(rowerEntryLabel[4]).addComponent(
+								rowerEntry[4])).addPreferredGap(
 				LayoutStyle.ComponentPlacement.RELATED,
 				GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE).addGroup(
-				r.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(rowerEntryLabel[5])
-						.addComponent(rowerEntry[5])).addPreferredGap(
+				r.createParallelGroup(GroupLayout.Alignment.BASELINE)
+						.addComponent(rowerEntryLabel[5]).addComponent(
+								rowerEntry[5])).addPreferredGap(
 				LayoutStyle.ComponentPlacement.RELATED,
 				GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE).addGroup(
-				r.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(rowerEntryLabel[6])
-						.addComponent(rowerEntry[6])).addPreferredGap(
+				r.createParallelGroup(GroupLayout.Alignment.BASELINE)
+						.addComponent(rowerEntryLabel[6]).addComponent(
+								rowerEntry[6])).addPreferredGap(
 				LayoutStyle.ComponentPlacement.RELATED,
 				GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE).addGroup(
-				r.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(rowerEntryLabel[7])
-						.addComponent(rowerEntry[7])).addPreferredGap(
+				r.createParallelGroup(GroupLayout.Alignment.BASELINE)
+						.addComponent(rowerEntryLabel[7]).addComponent(
+								rowerEntry[7])).addPreferredGap(
 				LayoutStyle.ComponentPlacement.RELATED,
 				GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE).addGroup(
-				r.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(coxEntryLabel)
-						.addComponent(coxEntry))
+				r.createParallelGroup(GroupLayout.Alignment.BASELINE)
+						.addComponent(coxEntryLabel).addComponent(coxEntry))
 
 		);
 		return rowerPanel;
@@ -412,22 +419,25 @@ public class OutingDialog extends JDialog {
 
 				);
 		l.setVerticalGroup(l.createSequentialGroup().addGroup(
-				l.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(distanceEntryLabel)
-						.addComponent(distanceEntry)).addPreferredGap(
+				l.createParallelGroup(GroupLayout.Alignment.BASELINE)
+						.addComponent(distanceEntryLabel).addComponent(
+								distanceEntry)).addPreferredGap(
 				LayoutStyle.ComponentPlacement.RELATED,
 				GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE).addGroup(
-				l.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(timeOutEntryLabel)
-						.addComponent(timeOutEntry).addComponent(
-								timeInEntryLabel).addComponent(timeInEntry))
-				.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED,
-						GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE).addGroup(
-						l.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(
-								destinationEntryLabel).addComponent(
+				l.createParallelGroup(GroupLayout.Alignment.BASELINE)
+						.addComponent(timeOutEntryLabel).addComponent(
+								timeOutEntry).addComponent(timeInEntryLabel)
+						.addComponent(timeInEntry)).addPreferredGap(
+				LayoutStyle.ComponentPlacement.RELATED,
+				GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE).addGroup(
+				l.createParallelGroup(GroupLayout.Alignment.BASELINE)
+						.addComponent(destinationEntryLabel).addComponent(
 								destinationEntryScrollPane)).addPreferredGap(
-						LayoutStyle.ComponentPlacement.RELATED,
-						GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE).addGroup(
-						l.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(commentEntryLabel)
-								.addComponent(commentEntryScrollPane))
+				LayoutStyle.ComponentPlacement.RELATED,
+				GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE).addGroup(
+				l.createParallelGroup(GroupLayout.Alignment.BASELINE)
+						.addComponent(commentEntryLabel).addComponent(
+								commentEntryScrollPane))
 
 		);
 		return ret;
@@ -670,14 +680,12 @@ public class OutingDialog extends JDialog {
 		public void actionPerformed(ActionEvent arg0) {
 			if (arg0.getSource() == cancelButton && isNewOuting) {
 				// showConfirmDialog(cancelNewOuting)
-				System.out.println("deleting new outing");
 				setVisible(false); // Return the dialog.
 			} else if (arg0.getSource() == cancelButton && !isNewOuting) {
 				// TODO: dialog
 				setVisible(false);
 			} else if (arg0.getSource() == confirmButton) {
 				if (isValidInput()) {
-					System.out.println("Saving new outing");
 					try {
 						int distance;
 						if (distanceEntry.getText().equals("")) {
@@ -687,7 +695,6 @@ public class OutingDialog extends JDialog {
 									.parseInt(distanceEntry.getText());
 						}
 						if (isNewOuting) {
-							System.out.println("new outing");
 							db.addOuting(new Date(), new int[] {
 									getRowerForName(rowerEntry[0].getText()),
 									getRowerForName(rowerEntry[1].getText()),
@@ -703,7 +710,6 @@ public class OutingDialog extends JDialog {
 									destinationEntry.getText(), boatEntry
 											.getText(), distance);
 						} else {
-							System.out.println("modify");
 							db.modifyOuting(outing.getId(), outing.getDay()
 									.getTime(), new int[] {
 									getRowerForName(rowerEntry[0].getText()),
@@ -760,16 +766,16 @@ public class OutingDialog extends JDialog {
 		}
 
 	}
-	
+
 	/**
-	 * Listen to the name entry fields. Once it is completed, it capitalises
-	 * the names accordingly.
-	 *
+	 * Listen to the name entry fields. Once it is completed, it capitalises the
+	 * names accordingly.
+	 * 
 	 */
 	private class NameEntryListener implements FocusListener {
 
 		private SuggestiveTextField entry;
-		
+
 		public NameEntryListener(SuggestiveTextField entry) {
 			this.entry = entry;
 		}
@@ -781,7 +787,7 @@ public class OutingDialog extends JDialog {
 
 		@Override
 		public void focusLost(FocusEvent arg0) {
-			//	entry.setText(Util.capitaliseName(entry.getText()));
+			// entry.setText(Util.capitaliseName(entry.getText()));
 			if (!entry.isValid()) {
 				// TODO: ask for confirmation of addition.
 			}
