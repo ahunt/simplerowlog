@@ -17,6 +17,8 @@
  *
  *
  *	Changelog:
+ *  07/08/2010: Added Baseline alignment in parallel groups (layout)for better
+ *  			looks.
  *  25/01/2010: Worked on dialog: added validation of text fields (except for
  *  			distance entry), added possibility of saving outings (albeit no
  *  			editing yet).
@@ -96,44 +98,6 @@ public class OutingDialog extends JDialog {
 	 */
 	private boolean isNewOuting;
 	private DateFormat format = new SimpleDateFormat("HH:mm");
-
-	// TEMPORARY Method
-	public static void main(String[] args) throws Exception {
-		javax.swing.UIManager
-				.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
-		try {
-			Runtime.getRuntime().exec("rm -rf ./database/srl");
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		Database d = org.ahunt.simpleRowLog.db.simpleDB.Database.getInstance();
-		d.addBoat("Andy", "4x+", true);
-		d.addBoat("Andrew", "4x+", true);
-		d.addMember("Hunt", "Andrew", new Date(), 1);
-		d.addMember("Hunt", "James", new Date(), 1);
-		d.addMember("Cricket", "Andrew", new Date(), 1);
-		d.addMember("Hunt", "Kenneth", new Date(), 1);
-		d.addMember("Hunt", "Kasia", new Date(), 1);
-		d.addMember("Random", "Guy", new Date(), 1);
-		d.addMember("Random", "Girl", new Date(), 1);
-
-		System.out.println("2");
-		OutingDialog od = new OutingDialog(d);
-		od.doNewOuting();
-		OutingInfo[] outings = d.getOutings(new Date());
-		for (OutingInfo o : outings) {
-			System.out.println(o.getBoat().getName() + ":"
-					+ o.getRowers()[0].getName());
-		}
-		od.doNewOuting();
-		outings = d.getOutings(new Date());
-		for (OutingInfo o : outings) {
-			System.out.println(o.getBoat().getName() + ":"
-					+ o.getRowers()[0].getName());
-		}
-		System.exit(0);
-	}
 
 	/** A list of boats the Dialog is to use. */
 	private BoatInfo[] boats;
@@ -306,39 +270,39 @@ public class OutingDialog extends JDialog {
 										rowerEntry[6]).addComponent(
 										rowerEntry[7]).addComponent(coxEntry)));
 		r.setVerticalGroup(r.createSequentialGroup().addGroup(
-				r.createParallelGroup().addComponent(rowerEntryLabel[0])
+				r.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(rowerEntryLabel[0])
 						.addComponent(rowerEntry[0])).addPreferredGap(
 				LayoutStyle.ComponentPlacement.RELATED,
 				GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE).addGroup(
-				r.createParallelGroup().addComponent(rowerEntryLabel[1])
+				r.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(rowerEntryLabel[1])
 						.addComponent(rowerEntry[1])).addPreferredGap(
 				LayoutStyle.ComponentPlacement.RELATED,
 				GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE).addGroup(
-				r.createParallelGroup().addComponent(rowerEntryLabel[2])
+				r.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(rowerEntryLabel[2])
 						.addComponent(rowerEntry[2])).addPreferredGap(
 				LayoutStyle.ComponentPlacement.RELATED,
 				GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE).addGroup(
-				r.createParallelGroup().addComponent(rowerEntryLabel[3])
+				r.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(rowerEntryLabel[3])
 						.addComponent(rowerEntry[3])).addPreferredGap(
 				LayoutStyle.ComponentPlacement.RELATED,
 				GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE).addGroup(
-				r.createParallelGroup().addComponent(rowerEntryLabel[4])
+				r.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(rowerEntryLabel[4])
 						.addComponent(rowerEntry[4])).addPreferredGap(
 				LayoutStyle.ComponentPlacement.RELATED,
 				GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE).addGroup(
-				r.createParallelGroup().addComponent(rowerEntryLabel[5])
+				r.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(rowerEntryLabel[5])
 						.addComponent(rowerEntry[5])).addPreferredGap(
 				LayoutStyle.ComponentPlacement.RELATED,
 				GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE).addGroup(
-				r.createParallelGroup().addComponent(rowerEntryLabel[6])
+				r.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(rowerEntryLabel[6])
 						.addComponent(rowerEntry[6])).addPreferredGap(
 				LayoutStyle.ComponentPlacement.RELATED,
 				GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE).addGroup(
-				r.createParallelGroup().addComponent(rowerEntryLabel[7])
+				r.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(rowerEntryLabel[7])
 						.addComponent(rowerEntry[7])).addPreferredGap(
 				LayoutStyle.ComponentPlacement.RELATED,
 				GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE).addGroup(
-				r.createParallelGroup().addComponent(coxEntryLabel)
+				r.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(coxEntryLabel)
 						.addComponent(coxEntry))
 
 		);
@@ -448,21 +412,21 @@ public class OutingDialog extends JDialog {
 
 				);
 		l.setVerticalGroup(l.createSequentialGroup().addGroup(
-				l.createParallelGroup().addComponent(distanceEntryLabel)
+				l.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(distanceEntryLabel)
 						.addComponent(distanceEntry)).addPreferredGap(
 				LayoutStyle.ComponentPlacement.RELATED,
 				GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE).addGroup(
-				l.createParallelGroup().addComponent(timeOutEntryLabel)
+				l.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(timeOutEntryLabel)
 						.addComponent(timeOutEntry).addComponent(
 								timeInEntryLabel).addComponent(timeInEntry))
 				.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED,
 						GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE).addGroup(
-						l.createParallelGroup().addComponent(
+						l.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(
 								destinationEntryLabel).addComponent(
 								destinationEntryScrollPane)).addPreferredGap(
 						LayoutStyle.ComponentPlacement.RELATED,
 						GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE).addGroup(
-						l.createParallelGroup().addComponent(commentEntryLabel)
+						l.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(commentEntryLabel)
 								.addComponent(commentEntryScrollPane))
 
 		);

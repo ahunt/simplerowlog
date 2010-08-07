@@ -84,6 +84,9 @@ public class AdminAuthenticationDialog extends JDialog {
 
 	private Database db;
 
+	private JLabel usernameEntryLabel = new JLabel();
+	private JLabel passwordEntryLabel = new JLabel();
+
 	private JTextField usernameEntry = new JTextField(32);
 	private JPasswordField passwordEntry = new JPasswordField(32);
 
@@ -110,6 +113,10 @@ public class AdminAuthenticationDialog extends JDialog {
 
 		cancelButton.setText(rb.getString("admin.cancel_login"));
 		validateButton.setText(rb.getString("admin.validate_login"));
+
+		usernameEntryLabel.setText("<html><b>" + rb.getString("username") + ":</b></html>");
+		passwordEntryLabel.setText("<html><b>" + rb.getString("password") + ":</b></html>");
+
 		cancelButton.addActionListener(new ValidationListener());
 		validateButton.addActionListener(new ValidationListener());
 		getRootPane().setDefaultButton(validateButton);
@@ -122,10 +129,35 @@ public class AdminAuthenticationDialog extends JDialog {
 
 		// Assemble the gui.
 		JPanel entryPanel = new JPanel();
-		entryPanel.setLayout(new BoxLayout(entryPanel, BoxLayout.PAGE_AXIS));
-		entryPanel.add(usernameEntry);
-		entryPanel.add(passwordEntry);
 		entryPanel.setBorder(new LineBorder(Color.BLACK));
+		GroupLayout r = new GroupLayout(entryPanel);
+		entryPanel.setLayout(r);
+		r.setAutoCreateGaps(true);
+		r.setAutoCreateContainerGaps(true);
+		r.setVerticalGroup(
+//				r.createParallelGroup().addGroup(r.createSequentialGroup().addComponent(usernameEntryLabel).addComponent(passwordEntryLabel)).addGroup(r.createSequentialGroup().addComponent(usernameEntry).addComponent(passwordEntry))
+//				
+				r.createSequentialGroup().addGroup(
+				r.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(usernameEntryLabel)
+						.addComponent(usernameEntry)).addGroup(
+				r.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(passwordEntryLabel)
+						.addComponent(passwordEntry))
+						
+		
+		);
+		
+		
+		r.setHorizontalGroup(
+			r.createSequentialGroup().addGroup(r.createParallelGroup().addComponent(usernameEntryLabel).addComponent(passwordEntryLabel)).addGroup(r.createParallelGroup().addComponent(usernameEntry).addComponent(passwordEntry))	
+				
+//				r.createParallelGroup().addGroup(
+//				r.createSequentialGroup().addComponent(usernameEntryLabel)
+//						.addComponent(usernameEntry)).addGroup(
+//				r.createSequentialGroup().addComponent(passwordEntryLabel)
+//						.addComponent(passwordEntry))
+						
+		
+		);
 
 		GroupLayout l = new GroupLayout(getContentPane());
 		getContentPane().setLayout(l);
@@ -216,9 +248,9 @@ public class AdminAuthenticationDialog extends JDialog {
 				return;
 			}
 			AdminInfo admin = db.getAdmin(usernameEntry.getText());
-			if (admin != null) { // Is an admin
-				if (admin.validatePassword(passwordEntry.getPassword())) { // password
-																			// matches
+			if (admin != null) { // Is a real admin
+				if (admin.validatePassword(passwordEntry.getPassword())) { // and
+					// the password matches
 					validatedAdmin = admin;
 					resetAttempts();
 					setVisible(false); // Close the dialog, forcing doLogin to

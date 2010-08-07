@@ -132,6 +132,10 @@ public class AdminDialog extends JDialog {
 			tabPane.addTab(rb.getString("dialog.conf.edit_groups.title"),
 					new GroupManagementPanel(db, admin).getPanel());
 		}
+		if (admin.getPermissionList().isPermissionSet("boat_list")) {
+			tabPane.addTab(rb.getString("dialog.conf.edit_boats.title"),
+					new BoatManagementPanel(db, admin).getPanel());
+		}
 
 		this.setVisible(true);
 	}
