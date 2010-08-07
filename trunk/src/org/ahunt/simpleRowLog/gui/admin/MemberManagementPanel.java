@@ -42,7 +42,7 @@ import org.ahunt.simpleRowLog.conf.Configuration;
 import org.ahunt.simpleRowLog.interfaces.Database;
 
 /**
- * Panel allowing access to
+ * Panel allowing access to the list of members.
  * 
  * @author Andrzej JR Hunt
  * 

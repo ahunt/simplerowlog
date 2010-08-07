@@ -27,6 +27,5 @@ CREATE TABLE admins (
     salt VARCHAR(64) FOR BIT DATA,
     name VARCHAR(32),
     isRoot INT,
-    permissions VARCHAR(32),
     comment VARCHAR(512)
 )

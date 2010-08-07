@@ -216,9 +216,11 @@ public class AdminAuthenticationDialog extends JDialog {
 				return;
 			}
 			AdminInfo admin = db.getAdmin(usernameEntry.getText());
-			if (admin != null) {
-				if (admin.validatePassword(passwordEntry.getPassword())) {
+			if (admin != null) { // Is an admin
+				if (admin.validatePassword(passwordEntry.getPassword())) { // password
+																			// matches
 					validatedAdmin = admin;
+					resetAttempts();
 					setVisible(false); // Close the dialog, forcing doLogin to
 					return;
 				}

@@ -15,6 +15,8 @@ simple rowLog TODO file.
 
 -- Check non 0 zero length in add/edit member dialogs.
 
+-- Language files system for when files aren't found. Also clean up locations.
+
 ------------------ [MEDIUM PRIORITY] -------------------------------------------
 -- Admin error log for minor messages, e.g. MemberInfo.getName etc.
 
