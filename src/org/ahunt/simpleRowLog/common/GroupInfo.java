@@ -123,7 +123,7 @@ public class GroupInfo {
 	 * 
 	 * @return Whether the group is default.
 	 */
-	public boolean getIsDefault() {
+	public boolean isDefault() {
 		return isDefault;
 	}
 

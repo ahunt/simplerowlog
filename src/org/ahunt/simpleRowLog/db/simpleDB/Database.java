@@ -790,8 +790,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		}
 		try {
 			if (psModifyGroup == null) {
-				psModifyGroup = con.prepareStatement("UPDATE groups name = ?,"
-						+ "description = ?, colour = ?, isDefault = ?"
+				psModifyGroup = con.prepareStatement("UPDATE groups SET name = ?,"
+						+ " description = ?, colour = ?, isDefault = ?"
 						+ " WHERE id = ?");
 			}
 			// Setup data.
