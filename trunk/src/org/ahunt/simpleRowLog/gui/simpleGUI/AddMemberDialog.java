@@ -160,12 +160,14 @@ public class AddMemberDialog extends JDialog {
 								.addComponent(surnameEntry).addComponent(
 										dobEntry)));
 		r.setVerticalGroup(r.createSequentialGroup().addGroup(
-				r.createParallelGroup().addComponent(forenameEntryLabel)
-						.addComponent(forenameEntry)).addGroup(
-				r.createParallelGroup().addComponent(surnameEntryLabel)
-						.addComponent(surnameEntry)).addGroup(
-				r.createParallelGroup().addComponent(dobEntryLabel)
-						.addComponent(dobEntry)));
+				r.createParallelGroup(GroupLayout.Alignment.BASELINE)
+						.addComponent(forenameEntryLabel).addComponent(
+								forenameEntry)).addGroup(
+				r.createParallelGroup(GroupLayout.Alignment.BASELINE)
+						.addComponent(surnameEntryLabel).addComponent(
+								surnameEntry)).addGroup(
+				r.createParallelGroup(GroupLayout.Alignment.BASELINE)
+						.addComponent(dobEntryLabel).addComponent(dobEntry)));
 	}
 
 	/**
@@ -205,9 +207,12 @@ public class AddMemberDialog extends JDialog {
 		setTitle(loc.getString("addMember.title"));
 		entryPanelBorder.setTitle(loc.getString("addMember.entryFrame"));
 
-		surnameEntryLabel.setText(locCommon.getString("surname") + ":");
-		forenameEntryLabel.setText(locCommon.getString("forename") + ":");
-		dobEntryLabel.setText(locCommon.getString("dob") + ":");
+		surnameEntryLabel.setText("<html><b>" + locCommon.getString("surname")
+				+ ":</b></html>");
+		forenameEntryLabel.setText("<html><b>"
+				+ locCommon.getString("forename") + ":</b></html>");
+		dobEntryLabel.setText("<html><b>" + locCommon.getString("dob")
+				+ ":</b></html>");
 
 		cancelButton.setText(locCommon.getString("cancel"));
 		saveButton.setText(locCommon.getString("save"));

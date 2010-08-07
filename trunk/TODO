@@ -1,9 +1,6 @@
 simple rowLog TODO file.
 
 ------------------ [HIGH PRIORITY] ---------------------------------------------
-
--- Create an admin permission list that answers true for all permissions
-   if root.
    
 -- Authentication dialog: add labels.
 
@@ -13,7 +10,9 @@ simple rowLog TODO file.
 
 -- ErrorHandler for all the program, with a command line version implemented.
 
--- Check non 0 zero length in add/edit member dialogs.
+-- Check non 0 zero length in add/edit member dialogs and full length.
+
+-- In OutingDialog warn what fields aren't filled in, and check first before submitting due to crash otherwise.
 
 -- Language files system for when files aren't found. Also clean up locations.
 
@@ -59,4 +58,6 @@ update once the user has stopped changing the date.
 
 -- AdminAuthenticationDialog: update waiting time for next attempts, and format
         the time in hours/minutes/seconds.
+        
+-- Tooltips
         

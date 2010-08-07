@@ -97,7 +97,7 @@ public class BoatInfo {
 	 * 
 	 * @return Whether the boat is in the boathouse.
 	 */
-	public boolean getInHouse() {
+	public boolean inHouse() {
 		return inHouse;
 	}
 

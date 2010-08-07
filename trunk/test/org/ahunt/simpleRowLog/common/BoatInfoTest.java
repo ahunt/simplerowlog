@@ -38,7 +38,7 @@ public class BoatInfoTest extends TestCase {
 		if (!b.getType().equals(type)) {
 			fail("getName() not returning correct String.");
 		}
-		if (b.getInHouse() != true) {
+		if (b.inHouse() != true) {
 			fail("inHouse has changed.");
 		}
 		b = new BoatInfo(name, type, false); // Test again with false for inHouse
@@ -48,7 +48,7 @@ public class BoatInfoTest extends TestCase {
 		if (!b.getType().equals(type)) {
 			fail("getName() not returning correct String.");
 		}
-		if (b.getInHouse() != false) {
+		if (b.inHouse() != false) {
 			fail("inHouse has changed.");
 		}
 		// All fine.
