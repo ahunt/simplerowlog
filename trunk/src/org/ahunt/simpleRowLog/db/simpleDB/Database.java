@@ -483,7 +483,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	 * Not yet implemented.
 	 */
 	@Override
-	public BoatStatistic getBoatStatistic(String name) {
+	public BoatStatistic getBoatStatistic(BoatInfo boat) {
 		// TODO: implement (low priority)
 		return null;
 	}
@@ -577,11 +577,12 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void modifyMember(int id, String surname, String forename, Date dob,
-			int group) throws DatabaseError, EntryAlreadyExistsException {
+	public void modifyMember(MemberInfo member, String surname,
+			String forename, Date dob, int group) throws DatabaseError,
+			EntryAlreadyExistsException {
 		log.verbose("modifyMember(...)");
 		// Check the data
-		if (getMember(id) == null) {
+		if (getMember(member.getKey()) == null) {
 			throw new IllegalArgumentException(
 					"member must already exist in order to modify");
 		}
@@ -607,7 +608,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			psModifyMember.setString(2, forename);
 			psModifyMember.setDate(3, new java.sql.Date(dob.getTime()));
 			psModifyMember.setInt(4, group);
-			psModifyMember.setInt(5, id);
+			psModifyMember.setInt(5, member.getKey());
 			psModifyMember.execute();
 		} catch (SQLIntegrityConstraintViolationException e) {
 			throw new EntryAlreadyExistsException("A member named " + surname
@@ -667,8 +668,9 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	 * Not yet implemented.
 	 */
 	@Override
-	public MemberStatistic getMemberStatistics(int id) throws DatabaseError {
-		return outingManager.getMemberStatistics(id);
+	public MemberStatistic getMemberStatistics(MemberInfo member)
+			throws DatabaseError {
+		return outingManager.getMemberStatistics(member.getKey());
 	}
 
 	/**
@@ -775,10 +777,10 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void modifyGroup(int id, String name, String description,
+	public void modifyGroup(GroupInfo group, String name, String description,
 			Color colour, boolean isDefault) throws DatabaseError {
-		log.verbose("Modifying group " + id);
-		if (getGroup(id) == null) { // if no such group
+		log.verbose("Modifying group " + group.getId());
+		if (getGroup(group.getId()) == null) { // if no such group
 			throw new IllegalArgumentException("id must be a valid group");
 		}
 		if (name == null | name.length() == 0) {
@@ -790,20 +792,21 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		}
 		try {
 			if (psModifyGroup == null) {
-				psModifyGroup = con.prepareStatement("UPDATE groups SET name = ?,"
-						+ " description = ?, colour = ?, isDefault = ?"
-						+ " WHERE id = ?");
+				psModifyGroup = con
+						.prepareStatement("UPDATE groups SET name = ?,"
+								+ " description = ?, colour = ?, isDefault = ?"
+								+ " WHERE id = ?");
 			}
 			// Setup data.
 			psModifyGroup.setString(1, name);
 			psModifyGroup.setString(2, description);
 			psModifyGroup.setInt(3, colour.getRGB());
 			psModifyGroup.setBoolean(4, isDefault);
-			psModifyGroup.setInt(5, id);
+			psModifyGroup.setInt(5, group.getId());
 			// Process
 			psModifyGroup.execute();
 		} catch (SQLException e) {
-			log.error("Error modifying group " + id);
+			log.error("Error modifying group " + group.getId());
 			log.errorException(e);
 			throw new DatabaseError(rb.getString("commandError"), e);
 		}
@@ -923,11 +926,11 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	 * Not yet implemented.
 	 */
 	@Override
-	public void modifyOuting(long id, long created, int[] rowers, int cox,
-			Date out, Date in, String comment, String destination, String boat,
-			int distance) throws DatabaseError {
-		outingManager.modifyOuting(id, created, rowers, cox, out, in, comment,
-				destination, boat, distance);
+	public void modifyOuting(OutingInfo outing, long created, int[] rowers,
+			int cox, Date out, Date in, String comment, String destination,
+			String boat, int distance) throws DatabaseError {
+		outingManager.modifyOuting(outing.getId(), created, rowers, cox, out,
+				in, comment, destination, boat, distance);
 
 	}
 
@@ -1100,9 +1103,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 								+ "WHERE username = ?");
 			}
 			if (psGetRoot == null) {
-				psGetRoot = con
-						.prepareStatement("SELECT * FROM admins "
-								+ "WHERE isRoot = 1");
+				psGetRoot = con.prepareStatement("SELECT * FROM admins "
+						+ "WHERE isRoot = 1");
 			}
 			// Set the data
 			psGetAdminPermissionList.setString(1, username);
@@ -1115,7 +1117,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			psGetRoot.execute();
 			rs = psGetRoot.getResultSet();
 			rs.next();
-			if (rs.getString("username").equals(username)) isRoot = true;
+			if (rs.getString("username").equals(username))
+				isRoot = true;
 		} catch (SQLException e) {
 			log.error("Error getting the admin.");
 			log.errorException(e);
@@ -1650,6 +1653,48 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			}
 			year = null;
 		}
+	}
+
+	@Override
+	public void modifyAdmin(AdminInfo admin, String username, String name,
+			boolean isRoot, String comment) throws DatabaseError,
+			EntryAlreadyExistsException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void removeBoat(BoatInfo boat, BoatInfo replacement)
+			throws DatabaseError {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void removeGroup(GroupInfo group, GroupInfo replacement)
+			throws DatabaseError {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void removeMember(MemberInfo member, MemberInfo replacement)
+			throws DatabaseError {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void removeOuting(OutingInfo outing) throws DatabaseError {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setNewAdminPassword(AdminInfo admin, char[] password)
+			throws DatabaseError {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

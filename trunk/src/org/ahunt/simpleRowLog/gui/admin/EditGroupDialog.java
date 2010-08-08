@@ -356,7 +356,7 @@ public class EditGroupDialog extends JDialog {
 				// forename = Util.capitaliseName(forename);
 				// TODO: listener for fields.
 				try {
-					db.modifyGroup(group.getId(), nameEntry.getText(),
+					db.modifyGroup(group, nameEntry.getText(),
 							descriptionEntry.getText(), colourSelector
 									.getColor(), defaultCheckBox.isSelected());
 

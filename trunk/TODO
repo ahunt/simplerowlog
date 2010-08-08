@@ -63,6 +63,9 @@ update once the user has stopped changing the date.
         
 -- Tooltips
 
+-- Boats: use the type in the name if there are multiple boats, and have shared
+    key over the two columns. Check when making users and boats whether a
+        similar one exists.
 
 --------------------------------------------------------------------------------
 Code cleaning and documentation:

@@ -17,6 +17,8 @@
  *
  *
  *	Changelog:
+ *  07/08/2010: Added methods to delete members, boats, etc. Also added
+ *  			EntryAlreadyExistsException to all relevant methods.
  *  25/01/2010: Modified modifyOuting to use ints of members.
  *  29/11/2009: Completed.
  *  24/11/2009: Major restructuring, almost finalised now.
@@ -46,7 +48,7 @@ import org.ahunt.simpleRowLog.common.*;
  * 
  * 
  * @author Andrzej JR Hunt
- * @version draft6 - 25. November 2010
+ * @version draft7 - 7. August 2010
  */
 public interface Database {
 
@@ -77,12 +79,12 @@ public interface Database {
 
 	/*
 	 * Note: In the "categories below: The square bracketed code is to tell you
-	 * what type of methods are included: A is add, G is get, M is modify.
-	 * Additionally, a + sign indicated that the operation is for multiple
-	 * objects. (Just a help when designing the interface. Can be pretty much
-	 * ignored.)
+	 * what type of methods are included: A is add, G is get, M is modify, R is
+	 * remove. Additionally, a + sign indicated that the operation is for
+	 * multiple objects. (Just a help when designing the interface. Can be
+	 * pretty much ignored.)
 	 */
-	/* -------------------- BOATS (INDIVIDUAL) [AGM] ------------------- */
+	/* -------------------- BOATS (INDIVIDUAL) [AGMR] ------------------- */
 
 	/**
 	 * Add a new boat to the list of boats.
@@ -98,10 +100,14 @@ public interface Database {
 	 *             database.
 	 * @throws IllegalArgumentException
 	 *             If the supplied data is not valid.
+	 * @throws EntryAlreadyExistsException
+	 *             If there already is a boat with the specified name in the
+	 *             database.
 	 * @see BoatInfo
 	 */
 	public void addBoat(String name, String type, boolean inHouse)
-			throws DatabaseError, IllegalArgumentException;
+			throws DatabaseError, IllegalArgumentException,
+			EntryAlreadyExistsException;
 
 	/**
 	 * Get the information for a specific boat.
@@ -131,10 +137,29 @@ public interface Database {
 	 * @throws DatabaseError
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
+	 * @throws EntryAlreadyExistsException
+	 *             If there already is a boat with the specified name in the
+	 *             database.
 	 * @see BoatInfo
 	 */
 	public void modifyBoat(BoatInfo old, String name, String type,
-			boolean inHouse) throws DatabaseError;
+			boolean inHouse) throws DatabaseError, EntryAlreadyExistsException;
+
+	/**
+	 * Remove a boat from the database, replacing all its' entries in Outings
+	 * with a different boat.
+	 * 
+	 * @param boat
+	 *            The boat to be removed.
+	 * @param replacement
+	 *            The boat that should replace this boat in all relevant entries
+	 *            in the database, e.g. in Outings.
+	 * @throws DatabaseError
+	 *             If there is a problem connecting to or reading from the
+	 *             database.
+	 */
+	public void removeBoat(BoatInfo boat, BoatInfo replacement)
+			throws DatabaseError;
 
 	/* -------------------- BOATS (GROUP) [G+] ------------------- */
 
@@ -167,14 +192,14 @@ public interface Database {
 	/**
 	 * Get the statistics for a specific boat.
 	 * 
-	 * @param name
-	 *            The name of the boat.
+	 * @param boat
+	 *            The boat whose statistics are to be retrieved.
 	 * @return The boat's statistics.
 	 * @throws DatabaseError
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
 	 */
-	public BoatStatistic getBoatStatistic(String name);
+	public BoatStatistic getBoatStatistic(BoatInfo boat);
 
 	/**
 	 * Get the statistics for all the boats.
@@ -187,7 +212,7 @@ public interface Database {
 	 */
 	public BoatStatistic[] getBoatsStatistics();
 
-	/* -------------------- MEMBERS (INDIVIDUAL) [AGM] ----------------- */
+	/* -------------------- MEMBERS (INDIVIDUAL) [AGMR] ----------------- */
 
 	/**
 	 * 
@@ -204,6 +229,9 @@ public interface Database {
 	 *            The person's group. Must be a valid group id.
 	 * @throws DatabaseError
 	 *             If there is a problem connecting to or reading from the
+	 *             database.
+	 * @throws EntryAlreadyExistsException
+	 *             If there already is a member with the same names and dob in
 	 *             database.
 	 */
 	public int addMember(String surname, String forename, Date dob, int group)
@@ -229,8 +257,8 @@ public interface Database {
 	 * then use the information currently available. Leaving an argument empty
 	 * means that that property will be set as empty.
 	 * 
-	 * @param id
-	 *            The member's id.
+	 * @param member
+	 *            The member to be modified.
 	 * @param surname
 	 *            The member's new surname. Cannot be null or empty.
 	 * @param forename
@@ -242,10 +270,29 @@ public interface Database {
 	 * @throws DatabaseError
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
-	 * @throws EntryAlreadyExistsException 
+	 * @throws EntryAlreadyExistsException
+	 *             If there already is a member with the same names and dob in
+	 *             database.
 	 */
-	public void modifyMember(int id, String surname, String forename, Date dob,
-			int group) throws DatabaseError, EntryAlreadyExistsException;
+	public void modifyMember(MemberInfo member, String surname,
+			String forename, Date dob, int group) throws DatabaseError,
+			EntryAlreadyExistsException;
+
+	/**
+	 * Remove a member from the database, replacing all their entries in Outings
+	 * with a different member.
+	 * 
+	 * @param member
+	 *            The member to be removed.
+	 * @param replacement
+	 *            The member to replace the removed member in all relevant
+	 *            entries in the databse.
+	 * @throws DatabaseError
+	 *             If there is a problem connecting to or reading from the
+	 *             database.
+	 */
+	public void removeMember(MemberInfo member, MemberInfo replacement)
+			throws DatabaseError;
 
 	/* -------------------- MEMBERS (GROUP) [G+] ----------------- */
 
@@ -280,14 +327,15 @@ public interface Database {
 	/**
 	 * Get the statistics for a given member.
 	 * 
-	 * @param id
-	 *            The member's id.
+	 * @param member
+	 *            The member whose statistics are to be retrieved.
 	 * @return The member's statistics.
 	 * @throws DatabaseError
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
 	 */
-	public MemberStatistic getMemberStatistics(int id) throws DatabaseError;
+	public MemberStatistic getMemberStatistics(MemberInfo member)
+			throws DatabaseError;
 
 	/**
 	 * Get the statistics for all the members.
@@ -312,7 +360,7 @@ public interface Database {
 	public MemberStatistic[] getMembersStatistics(int sorting)
 			throws DatabaseError;
 
-	/* -------------------- GROUPS [AGM,G+] ----------------- */
+	/* -------------------- GROUPS [AGMR,G+] ----------------- */
 
 	/**
 	 * Add a group to the database.
@@ -327,9 +375,13 @@ public interface Database {
 	 * @throws DatabaseError
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
+	 * @throws EntryAlreadyExistsException
+	 *             If there already is a group with the same name in the
+	 *             database.
 	 */
 	public int addGroup(String name, String description, Color colour,
-			boolean isDefault) throws DatabaseError;
+			boolean isDefault) throws DatabaseError,
+			EntryAlreadyExistsException;
 
 	/**
 	 * Get the group information for a specific group
@@ -347,8 +399,8 @@ public interface Database {
 	 * Modify the group of given id. Also, all fields are overwritten using the
 	 * data here, so explicitly supply the old data if you don't modify it.
 	 * 
-	 * @param id
-	 *            The group's id.
+	 * @param group
+	 *            The group to be modified.
 	 * @param name
 	 *            The new name. Cannot be null or empty.
 	 * @param description
@@ -358,9 +410,28 @@ public interface Database {
 	 * @throws DatabaseError
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
+	 * @throws EntryAlreadyExistsException
+	 *             If there already is a group with the same name in the
+	 *             database.
 	 */
-	public void modifyGroup(int id, String name, String description,
-			Color colour, boolean isDefault) throws DatabaseError;
+	public void modifyGroup(GroupInfo group, String name, String description,
+			Color colour, boolean isDefault) throws DatabaseError,
+			EntryAlreadyExistsException;
+
+	/**
+	 * Remove a group from the database, changing all members of the group to a
+	 * different group.
+	 * 
+	 * @param group
+	 *            The group to be removed.
+	 * @param replacement
+	 *            The replacement group.
+	 * @throws DatabaseError
+	 *             If there is a problem connecting to or reading from the
+	 *             database.
+	 */
+	public void removeGroup(GroupInfo group, GroupInfo replacement)
+			throws DatabaseError;
 
 	/**
 	 * Get a list of all the groups.
@@ -407,7 +478,7 @@ public interface Database {
 	 */
 	public GroupStatistic[] getGroupsStatistics() throws DatabaseError;
 
-	/* -------------------- Outings [AG+M] ----------------- */
+	/* -------------------- Outings [AG+MR] ----------------- */
 
 	/**
 	 * Create a new outing in the database.
@@ -460,8 +531,8 @@ public interface Database {
 	/**
 	 * Modify an outing.
 	 * 
-	 * @param id
-	 *            The outing's id.
+	 * @param outing
+	 *            The outing to be modified.
 	 * @param created
 	 *            The creation time / day.
 	 * @param date
@@ -491,14 +562,48 @@ public interface Database {
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
 	 */
-	public void modifyOuting(long id, long day, int[] rowers, int cox,
-			Date out, Date in, String comment, String destination, String boat,
-			int distance) throws DatabaseError;
+	public void modifyOuting(OutingInfo outing, long day, int[] rowers,
+			int cox, Date out, Date in, String comment, String destination,
+			String boat, int distance) throws DatabaseError;
 
-	/* -------------------- Admins [AG,G+,M,R,AUTH] ----------------- */
+	/**
+	 * Remove an outing from the database.
+	 * 
+	 * @param outing
+	 *            The outing to be removed.
+	 * @throws DatabaseError
+	 *             If there is a problem connecting to or reading from the
+	 *             database.
+	 */
+	public void removeOuting(OutingInfo outing) throws DatabaseError;
 
+	/* -------------------- Admins [AG,G+,M,R] ----------------- */
+
+	/**
+	 * Add an administrator to the databse.
+	 * 
+	 * @param username
+	 *            The username for the administrator.
+	 * @param password
+	 *            The password: this array will be nulled after use by this
+	 *            method.
+	 * @param name
+	 *            The real name of the administrator.
+	 * @param isRoot
+	 *            Whether or not this admin is to be set as the root
+	 *            administrator.
+	 * @param comment
+	 *            Any comments about the administrator.
+	 * @throws DatabaseError
+	 *             If there is a problem connecting to or reading from the
+	 *             database.
+	 * @throws EntryAlreadyExistsException
+	 *             If an admin with the same username already exists in the
+	 *             database.
+	 */
 	public void addAdmin(String username, char[] password, String name,
-			boolean isRoot, String comment) throws DatabaseError;
+			boolean isRoot, String comment) throws DatabaseError,
+			EntryAlreadyExistsException;
 
 	/**
 	 * Get the admin info for a specific admin.
@@ -506,11 +611,62 @@ public interface Database {
 	 * @param username
 	 *            The username.
 	 * @return The AdminInfo for a specific admin.
+	 * @throws DatabaseError
+	 *             If there is a problem connecting to or reading from the
+	 *             database.
 	 */
 	public AdminInfo getAdmin(String username) throws DatabaseError;
 
+	/**
+	 * Get a list of the admins in the databse.
+	 * 
+	 * @return A list of all admins.
+	 * @throws DatabaseError
+	 *             If there is a problem connecting to or reading from the
+	 *             database.
+	 */
 	public AdminInfo[] getAdmins() throws DatabaseError;
-	
-	public AdminPermissionList getAdminPermissionList(String username) throws DatabaseError;
+
+	/**
+	 * Modify an administrators information in the database. Note that to change
+	 * their password you will need to use
+	 * {@link #setNewAdminPassword(AdminInfo, char[])}.
+	 * 
+	 * @param admin
+	 *            The administrator to be modified.
+	 * @param username
+	 *            The username for the administrator.
+	 * @param name
+	 *            The real name of the administrator.
+	 * @param isRoot
+	 *            Whether or not this admin is to be set as the root
+	 *            administrator.
+	 * @param comment
+	 *            Any comments about the administrator.
+	 * @throws DatabaseError
+	 *             If there is a problem connecting to or reading from the
+	 *             database.
+	 * @throws EntryAlreadyExistsException
+	 *             If an admin with the same username already exists in the
+	 *             database.
+	 */
+	public void modifyAdmin(AdminInfo admin, String username, String name,
+			boolean isRoot, String comment) throws DatabaseError,
+			EntryAlreadyExistsException;
+
+	/**
+	 * Change an admins password.
+	 * 
+	 * @param admin
+	 *            The admin whose password is to be changed.
+	 * @param password
+	 *            The new password: this array will be nulled after use by this
+	 *            method.
+	 * @throws DatabaseError
+	 *             If there is a problem connecting to or reading from the
+	 *             database.
+	 */
+	public void setNewAdminPassword(AdminInfo admin, char[] password)
+			throws DatabaseError;
 
 }

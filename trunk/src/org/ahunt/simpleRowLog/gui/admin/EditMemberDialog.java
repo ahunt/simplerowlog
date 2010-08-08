@@ -332,7 +332,7 @@ public class EditMemberDialog extends JDialog {
 				// forename = Util.capitaliseName(forename);
 				// TODO: listener for fields.
 				try {
-					db.modifyMember(member.getKey(), surnameEntry.getText(),
+					db.modifyMember(member, surnameEntry.getText(),
 							forenameEntry.getText(), dobEntry.getDate(),
 							groups[groupSelector.getSelectedIndex()].getId());
 					// Dialog stating success?

@@ -42,6 +42,7 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellRenderer;
 
 import org.ahunt.simpleRowLog.common.AdminInfo;
+import org.ahunt.simpleRowLog.common.EntryAlreadyExistsException;
 import org.ahunt.simpleRowLog.common.ErrorHandler;
 import org.ahunt.simpleRowLog.common.GroupInfo;
 import org.ahunt.simpleRowLog.common.MemberInfo;
@@ -231,9 +232,15 @@ public class GroupManagementPanel extends AbstractTableModel implements
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
 		if (arg0.getSource() == makeDefaultGroupButton) {
-			GroupInfo g = groups[groupTable.getSelectedRow()];
-			db.modifyGroup(g.getId(), g.getName(), g.getDescription(), g
-					.getDisplayColour(), true);
+			if (groupTable.getSelectedRow() >= 0) { // A row is selected.
+				GroupInfo g = groups[groupTable.getSelectedRow()];
+				try {
+					db.modifyGroup(g, g.getName(), g.getDescription(), g
+							.getDisplayColour(), true);
+				} catch (EntryAlreadyExistsException e) {
+					// TODO: inform that such a group already exists.
+				}
+			}
 		} else if (arg0.getSource() == addGroupButton) {
 			groupDialog.addGroup();
 		} else if (arg0.getSource() == editGroupButton) {
