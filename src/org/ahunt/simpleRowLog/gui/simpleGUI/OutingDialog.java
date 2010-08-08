@@ -710,7 +710,7 @@ public class OutingDialog extends JDialog {
 									destinationEntry.getText(), boatEntry
 											.getText(), distance);
 						} else {
-							db.modifyOuting(outing.getId(), outing.getDay()
+							db.modifyOuting(outing, outing.getDay()
 									.getTime(), new int[] {
 									getRowerForName(rowerEntry[0].getText()),
 									getRowerForName(rowerEntry[1].getText()),
