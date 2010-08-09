@@ -68,7 +68,7 @@ public class BoatManagementPanel extends AbstractTableModel implements
 	private ResourceBundle loc = ResourceBundle.getBundle("admin");
 
 	/** The database we are working upon. */
-	Database db;
+	private Database db;
 
 	/**
 	 * The list of boats currently in the database. Is updated after any
@@ -318,6 +318,11 @@ public class BoatManagementPanel extends AbstractTableModel implements
 	@Override
 	public void mouseReleased(MouseEvent arg0) {
 
+	}
+
+	@Override
+	public String getName() {
+		return loc.getString("dialog.conf.edit_boats.title");
 	}
 
 }

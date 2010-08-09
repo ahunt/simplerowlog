@@ -73,7 +73,7 @@ public class GroupManagementPanel extends AbstractTableModel implements
 	private ResourceBundle locCommon = ResourceBundle.getBundle("common");
 
 	/** The database we are working upon. */
-	Database db;
+	private Database db;
 
 	private JPanel displayPanel = new JPanel();
 
@@ -311,5 +311,10 @@ public class GroupManagementPanel extends AbstractTableModel implements
 			return this;
 		}
 
+	}
+
+	@Override
+	public String getName() {
+		return loc.getString("dialog.conf.edit_groups.title");
 	}
 }
