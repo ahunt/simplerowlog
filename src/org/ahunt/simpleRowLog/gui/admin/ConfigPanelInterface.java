@@ -35,4 +35,6 @@ public interface ConfigPanelInterface {
 	
 	public JPanel getPanel();
 	
+	public String getName();
+	
 }

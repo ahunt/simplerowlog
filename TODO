@@ -2,7 +2,9 @@ simple rowLog TODO file.
 
 ------------------ [HIGH PRIORITY] ---------------------------------------------
 
--- Finish the db: add deletion of items. Refactor all modify methods to use the original Boat/Admin/MemberInfo as opposed to id.
+-- Finish the db: implement deletion of items.
+
+-- Change listeners in config panels where necessary, and then change the apply button.
 
 -- All tables: add check to make sure a row is selected if using a button to modify.
 
@@ -16,7 +18,6 @@ simple rowLog TODO file.
 
 -- Language files system for when files aren't found. Also clean up locations.
 
--- R
 
 ------------------ [MEDIUM PRIORITY] -------------------------------------------
 -- Admin error log for minor messages, e.g. MemberInfo.getName etc.

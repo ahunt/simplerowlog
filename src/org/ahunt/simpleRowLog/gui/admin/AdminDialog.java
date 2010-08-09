@@ -23,7 +23,12 @@
  */
 package org.ahunt.simpleRowLog.gui.admin;
 
+import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.ResourceBundle;
 
 import javax.swing.GroupLayout;
@@ -31,7 +36,6 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JTabbedPane;
 import javax.swing.LayoutStyle;
-
 
 import org.ahunt.simpleRowLog.common.AdminInfo;
 import org.ahunt.simpleRowLog.common.ErrorHandler;
@@ -42,7 +46,7 @@ import org.ahunt.simpleRowLog.interfaces.Database;
  * @author Andrzej JR Hunt
  * 
  */
-public class AdminDialog extends JDialog {
+public class AdminDialog extends JDialog implements ActionListener {
 
 	/**
 	 * serialVersionUID
@@ -71,6 +75,8 @@ public class AdminDialog extends JDialog {
 	 */
 	private AdminInfo admin;
 
+	private ArrayList<ConfigPanelInterface> configPanels = new ArrayList<ConfigPanelInterface>();
+
 	// TODO: add reset button, loading default configuration.
 
 	/**
@@ -88,6 +94,9 @@ public class AdminDialog extends JDialog {
 		}
 		// TODO: the rest of the dialog.
 
+		applyButton.addActionListener(this);
+		exitButton.addActionListener(this);
+		
 		this.setModal(true);
 		updateLabels();
 
@@ -109,23 +118,30 @@ public class AdminDialog extends JDialog {
 								.addComponent(applyButton).addComponent(
 										exitButton)));
 
-		// TODO: find size
-		this.setSize(900, 600);
-
-		// Add all the appropriate panels.
+		// Create all the appropriate panels.
+		configPanels.add(new LogbookConfigPanel(db, admin));
 		if (admin.getPermissionList().isPermissionSet("member_list")) {
-			tabPane.addTab(rb.getString("dialog.conf.edit_members.title"),
-					new MemberManagementPanel(db, admin).getPanel());
+			configPanels.add(new MemberManagementPanel(db, admin));
 		}
 		if (admin.getPermissionList().isPermissionSet("group_list")) {
-			tabPane.addTab(rb.getString("dialog.conf.edit_groups.title"),
-					new GroupManagementPanel(db, admin).getPanel());
+			configPanels.add(new GroupManagementPanel(db, admin));
 		}
 		if (admin.getPermissionList().isPermissionSet("boat_list")) {
-			tabPane.addTab(rb.getString("dialog.conf.edit_boats.title"),
-					new BoatManagementPanel(db, admin).getPanel());
+			configPanels.add(new BoatManagementPanel(db, admin));
 		}
 
+		// Add the panels to the dialog
+		for (ConfigPanelInterface c : configPanels) {
+			tabPane.addTab(c.getName(), c.getPanel());
+		}
+
+		// Set the dialog to 7/10 of screen size and center
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		setSize(screenSize.width * 7 / 10, screenSize.height * 7 / 10);
+		setLocation(screenSize.width / 2 - getSize().width / 2,
+				screenSize.height / 2 - screenSize.height / 12 - getSize().height / 2);
+		// We move the dialog to middle, and move up 1/12 of screen
+		
 		this.setVisible(true);
 	}
 
@@ -136,6 +152,21 @@ public class AdminDialog extends JDialog {
 		// Buttons
 		applyButton.setText(rb.getString("dialog.conf.apply"));
 		exitButton.setText(rb.getString("dialog.conf.exit"));
+		// Window title
+		setTitle(rb.getString("dialog.conf.title"));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		if (e.getSource() == applyButton) {
+			configPanels.get(tabPane.getSelectedIndex()).apply();
+		} else if (e.getSource() == exitButton) {
+			setVisible(false);
+		}
+
 	}
 
 }

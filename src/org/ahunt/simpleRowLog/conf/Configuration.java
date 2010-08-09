@@ -1,6 +1,6 @@
 /*
  *    This file is part of simple rowLog: the open rowing logbook.
- *    Copyright (C) 2009  Andrzej JR Hunt
+ *    Copyright (C) 2009, 2010  Andrzej JR Hunt
  *    
  *    simple rowLog is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
  *
  *
  *	Changelog:
+ *  08/08/2010: Added checking of autosaving.
  *  30/11/2009: Added the error throwing to constructor.
  *	08/10/2009:	Changelog added.
  */
@@ -144,7 +145,7 @@ public class Configuration {
 	}
 
 	/**
-	 * Select whether the properties file should automativally be saved on
+	 * Select whether the properties file should automatically be saved on
 	 * modification. By default this is on.
 	 * 
 	 * @param storeOnModify
@@ -152,6 +153,14 @@ public class Configuration {
 	 */
 	public synchronized void setStoreOnModify(boolean storeOnModify) {
 		this.storeOnModify = storeOnModify;
+	}
+	
+	/**
+	 * Determine whether or not automatic saving is enabled.
+	 * @return Whether automatic saving is enabled.
+	 */
+	public boolean getStoreOnModify() {
+		return storeOnModify;
 	}
 
 	/**

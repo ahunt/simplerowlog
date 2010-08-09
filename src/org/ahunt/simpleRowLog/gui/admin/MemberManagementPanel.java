@@ -70,7 +70,7 @@ public class MemberManagementPanel extends AbstractTableModel implements
 	private ResourceBundle locCommon = ResourceBundle.getBundle("common");
 
 	/** The database we are working upon. */
-	Database db;
+	private Database db;
 
 	/**
 	 * The list of members currently in the database. Is updated after any
@@ -325,6 +325,11 @@ public class MemberManagementPanel extends AbstractTableModel implements
 	 */
 	@Override
 	public void mouseReleased(MouseEvent arg0) {
+	}
+
+	@Override
+	public String getName() {
+		return loc.getString("dialog.conf.edit_members.title");
 	}
 
 }
