@@ -22,19 +22,26 @@
 package org.ahunt.simpleRowLog.gui.admin;
 
 import java.awt.Color;
+import java.awt.Font;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.ResourceBundle;
 
+import javax.swing.ButtonGroup;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JTextField;
+import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
@@ -74,14 +81,17 @@ public class LogbookConfigPanel implements ConfigPanelInterface, ActionListener 
 	// Main configuration components.
 	private JPanel mainConfigPanel = new JPanel();
 
-	private JLabel nameFormatEditLabel = new JLabel();
-	private JTextField nameFormatEdit = new JTextField();
+	private JLabel main_nameFormatEditLabel = new JLabel();
+	private JTextField main_nameFormatEdit = new JTextField();
 
-	private JLabel dateFormatEditLabel = new JLabel();
-	private JTextField dateFormatEdit = new JTextField();
+	private JLabel main_dateFormatEditLabel = new JLabel();
+	private JTextField main_dateFormatEdit = new JTextField();
 
-	private JLabel exitAuthenticationLabel = new JLabel();
-	private JCheckBox exitAuthentication = new JCheckBox();
+	private JLabel main_exitAuthenticationLabel = new JLabel();
+	private JCheckBox main_exitAuthentication = new JCheckBox();
+
+	private JLabel main_lafSelectionLabel = new JLabel();
+	private LAFRadioButton[] main_lafSelectionButtons;
 
 	public LogbookConfigPanel(Database db, AdminInfo admin) {
 		super();
@@ -103,19 +113,50 @@ public class LogbookConfigPanel implements ConfigPanelInterface, ActionListener 
 	}
 
 	private void prepareMain() {
-		nameFormatEdit.setText(configMain.getProperty("srl.name_format"));
-		dateFormatEdit.setText(configMain.getProperty("srl.date_format"));
+
+		main_nameFormatEdit.setText(configMain.getProperty("srl.name_format"));
+		main_dateFormatEdit.setText(configMain.getProperty("srl.date_format"));
 		if (configMain.getProperty("authenticate_for_exit").equals("true")) {
-			exitAuthentication.setSelected(true);
+			main_exitAuthentication.setSelected(true);
 		}
 
+		// Set up the LAF selection.
+		UIManager.LookAndFeelInfo[] availableLAFs = UIManager
+				.getInstalledLookAndFeels();
+
+		ButtonGroup bg = new ButtonGroup(); // Containers
+		ArrayList<LAFRadioButton> buttons_lafs = new ArrayList<LAFRadioButton>();
+		JPanel lafSelectionPanel = new JPanel(new GridLayout(0, 1));
+
+		for (UIManager.LookAndFeelInfo laf : availableLAFs) {
+			LAFRadioButton b = new LAFRadioButton(laf.getName(), laf
+					.getClassName());
+			// TODO: Once LAF updating is availble, remove this highlighting.
+			if (laf.getClassName().equals(
+					UIManager.getLookAndFeel().getClass().getCanonicalName())) {
+				b.setFont(b.getFont().deriveFont(Font.ITALIC)); // If this is
+				// the current
+				// in use laf.
+			}
+			if (laf.getClassName()
+					.equals(configMain.getProperty("gui.toolkit"))) {
+				b.setSelected(true); // If this is the stored LAF.
+			}
+			buttons_lafs.add(b);
+			bg.add(b);
+			lafSelectionPanel.add(b);
+		}
+		main_lafSelectionButtons = buttons_lafs.toArray(new LAFRadioButton[1]);
+		// Put the radio buttons in a column in a panel.
+
 		// Localisation
-		nameFormatEditLabel.setText(loc
+		main_nameFormatEditLabel.setText(loc
 				.getString("dialog.conf.main.config.name_format"));
-		dateFormatEditLabel.setText(loc
+		main_dateFormatEditLabel.setText(loc
 				.getString("dialog.conf.main.config.date_format"));
-		exitAuthenticationLabel.setText(loc
+		main_exitAuthenticationLabel.setText(loc
 				.getString("dialog.conf.main.config.exit_authentication"));
+		main_lafSelectionLabel.setText(loc.getString("dialog.conf.main.laf"));
 
 		// Layouting and prettiness
 		Border border = new TitledBorder(new LineBorder(Color.BLACK), loc
@@ -128,22 +169,27 @@ public class LogbookConfigPanel implements ConfigPanelInterface, ActionListener 
 		l.setAutoCreateContainerGaps(true);
 		l.setHorizontalGroup(l.createSequentialGroup().addGroup(
 				l.createParallelGroup(GroupLayout.Alignment.TRAILING)
-						.addComponent(nameFormatEditLabel).addComponent(
-								dateFormatEditLabel).addComponent(
-								exitAuthenticationLabel)).addGroup(
-				l.createParallelGroup().addComponent(nameFormatEdit)
-						.addComponent(dateFormatEdit).addComponent(
-								exitAuthentication)));
+						.addComponent(main_nameFormatEditLabel).addComponent(
+								main_dateFormatEditLabel).addComponent(
+								main_exitAuthenticationLabel).addComponent(
+								main_lafSelectionLabel)).addGroup(
+				l.createParallelGroup().addComponent(main_nameFormatEdit)
+						.addComponent(main_dateFormatEdit).addComponent(
+								main_exitAuthentication).addComponent(
+								lafSelectionPanel)));
 		l.setVerticalGroup(l.createSequentialGroup().addGroup(
 				l.createParallelGroup(GroupLayout.Alignment.BASELINE)
-						.addComponent(nameFormatEditLabel).addComponent(
-								nameFormatEdit)).addGroup(
+						.addComponent(main_nameFormatEditLabel).addComponent(
+								main_nameFormatEdit)).addGroup(
 				l.createParallelGroup(GroupLayout.Alignment.BASELINE)
-						.addComponent(dateFormatEditLabel).addComponent(
-								dateFormatEdit)).addGroup(
+						.addComponent(main_dateFormatEditLabel).addComponent(
+								main_dateFormatEdit)).addGroup(
 				l.createParallelGroup(GroupLayout.Alignment.BASELINE)
-						.addComponent(exitAuthenticationLabel).addComponent(
-								exitAuthentication)));
+						.addComponent(main_exitAuthenticationLabel)
+						.addComponent(main_exitAuthentication)).addGroup(
+				l.createParallelGroup(GroupLayout.Alignment.BASELINE)
+						.addComponent(main_lafSelectionLabel).addComponent(
+								lafSelectionPanel)));
 	}
 
 	/**
@@ -154,20 +200,40 @@ public class LogbookConfigPanel implements ConfigPanelInterface, ActionListener 
 		// Save all details required.
 		try {
 			// Main configuration
-			boolean storeOnModifyMain = false;
-			if (configMain.getStoreOnModify()) {
-				storeOnModifyMain = true;
-				configMain.setStoreOnModify(false);
+			if (mainConfigPanel != null) {
+				boolean storeOnModifyMain = false;
+				if (configMain.getStoreOnModify()) {
+					storeOnModifyMain = true;
+					configMain.setStoreOnModify(false);
+				}
+				configMain.setProperty("srl.name_format", main_nameFormatEdit
+						.getText());
+				configMain.setProperty("srl.date_format", main_dateFormatEdit
+						.getText());
+				if (main_exitAuthentication.isSelected()) {
+					configMain.setProperty("authenticate_for_exit", "true");
+				} else {
+					configMain.setProperty("authenticate_for_exit", "false");
+				}
+				for (LAFRadioButton b : main_lafSelectionButtons) {
+					if (b.isSelected()) {
+						if (!b.getClassName().equals(
+								configMain.getProperty("gui.toolkit"))) {
+							JOptionPane
+									.showMessageDialog(
+											null,
+											loc
+													.getString("dialog.conf.main.laf.restart_required"),
+											loc
+													.getString("dialog.conf.main.laf.restart_required.title"),
+											JOptionPane.WARNING_MESSAGE);
+						}
+						configMain.setProperty("gui.toolkit", b.getClassName());
+					}
+				}
+				configMain.save();
+				configMain.setStoreOnModify(storeOnModifyMain);
 			}
-			configMain.setProperty("srl.name_format", nameFormatEdit.getText());
-			configMain.setProperty("srl.date_format", dateFormatEdit.getText());
-			if (exitAuthentication.isSelected()) {
-				configMain.setProperty("authenticate_for_exit", "true");
-			} else {
-				configMain.setProperty("authenticate_for_exit", "false");
-			}
-			configMain.save();
-			configMain.setStoreOnModify(storeOnModifyMain);
 		} catch (IOException e) {
 			// TODO: inform of problem.
 		}
@@ -190,6 +256,48 @@ public class LogbookConfigPanel implements ConfigPanelInterface, ActionListener 
 	public void actionPerformed(ActionEvent e) {
 		// TODO Auto-generated method stub
 
+	}
+
+	/**
+	 * A Look and Feel radio-button. A simple wrapper around JRadioButton
+	 * allowing storing of the class name for look and feels, since it isn't
+	 * possible to use the name of the look and feel to get back to a class
+	 * name, and that is all the normal button could store.
+	 * 
+	 */
+	private class LAFRadioButton extends JRadioButton {
+
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
+		/**
+		 * The name of the class for this LAF.
+		 */
+		private String className;
+
+		/**
+		 * Create a new LAFRadioButton
+		 * 
+		 * @param name
+		 *            The name of this LAF.
+		 * @param className
+		 *            The class name for the LAF.
+		 */
+		public LAFRadioButton(String name, String className) {
+			super(name);
+			this.className = className;
+		}
+
+		/**
+		 * Get the class name for this LAF.
+		 * 
+		 * @return The class name for the LAF.
+		 */
+		public String getClassName() {
+			return className;
+		}
 	}
 
 }
