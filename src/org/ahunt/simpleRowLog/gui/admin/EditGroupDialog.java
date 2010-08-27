@@ -290,7 +290,8 @@ public class EditGroupDialog extends JDialog {
 		entryPanelBorder.setTitle(loc.getString("group.add.entryframe"));
 
 		nameEntryLabel.setText(locCommon.getString("group_name") + ":");
-		descriptionEntryLabel.setText(locCommon.getString("group_description") + ":");
+		descriptionEntryLabel.setText(locCommon.getString("group_description")
+				+ ":");
 		defaultCheckBox.setText(loc.getString("group.set_as_default"));
 		colourSelectorLabel.setText(loc.getString("group.colour") + ":");
 
@@ -302,7 +303,17 @@ public class EditGroupDialog extends JDialog {
 
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
-
+			// Check that all required details are filled in or warn.
+			if (arg0.getSource() == saveButton) {
+				if (nameEntry.getText().length() == 0
+						|| colourSelector.getColor() == null) {
+					JOptionPane.showMessageDialog(null, loc
+							.getString("group.add.missing_details"), loc
+							.getString("group.add.missing_details.title"),
+							JOptionPane.WARNING_MESSAGE);
+					return;
+				}
+			}
 			if (arg0.getSource() == cancelButton) {
 				setVisible(false);
 			} else if (arg0.getSource() == saveButton
@@ -320,7 +331,7 @@ public class EditGroupDialog extends JDialog {
 					// groups[groupSelector.getSelectedIndex()].getId());
 					// Dialog stating success?
 					setVisible(false);
-				} catch (Exception  e) {
+				} catch (Exception e) {
 					// TODO: process, check that the exceptions can be thrown in
 					// db. EntryAlreadyExistsException
 					// String message =
@@ -356,9 +367,9 @@ public class EditGroupDialog extends JDialog {
 				// forename = Util.capitaliseName(forename);
 				// TODO: listener for fields.
 				try {
-					db.modifyGroup(group, nameEntry.getText(),
-							descriptionEntry.getText(), colourSelector
-									.getColor(), defaultCheckBox.isSelected());
+					db.modifyGroup(group, nameEntry.getText(), descriptionEntry
+							.getText(), colourSelector.getColor(),
+							defaultCheckBox.isSelected());
 
 					// modifyMember(group.getKey(), surnameEntry.getText(),
 					// forenameEntry.getText(), dobEntry.getDate(),

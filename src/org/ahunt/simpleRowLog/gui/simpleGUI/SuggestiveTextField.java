@@ -64,9 +64,12 @@ public class SuggestiveTextField extends JTextField implements
 		this.container = container;
 		this.mustBeFilled = mustBeFilled;
 		this.options = options;
+		if (options == null) this.options = new String[0]; // Just to prevent later problems
 		getDocument().addDocumentListener(this);
 		popup.addMenuKeyListener(this);
-
+		if (!mustBeFilled) {
+			validEntry = true;
+		}
 	}
 
 	/**
@@ -112,8 +115,7 @@ public class SuggestiveTextField extends JTextField implements
 			}
 			// Validation: Either correct, or empty (for any apart from
 			// first rower
-			if (s.compareToIgnoreCase(entryText) == 0
-					| (entryLength == 0 && !mustBeFilled)) {
+			if (s.compareToIgnoreCase(entryText) == 0) {
 				// Input is valid, save
 				validEntry = true;
 			}
@@ -121,6 +123,9 @@ public class SuggestiveTextField extends JTextField implements
 			if (s.compareToIgnoreCase(entryText) == 0 && !s.equals(entryText)) {
 				setText(s);
 			}
+		}
+		if (entryLength == 0 && !mustBeFilled) {
+			validEntry = true;
 		}
 		if (entryLength > 0) {
 			isFilled = true;
@@ -200,4 +205,7 @@ public class SuggestiveTextField extends JTextField implements
 		this.options = options;
 	}
 
+	public boolean isValidEntry() {
+		return validEntry;
+	}
 }

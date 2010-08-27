@@ -553,12 +553,12 @@ public class OutingDialog extends JDialog {
 	 * @return Whether the input data is valid.
 	 */
 	private boolean isValidInput() {
-		if (boatEntry.isValid() && coxEntry.isValid()
-				&& rowerEntry[0].isValid() && rowerEntry[1].isValid()
-				&& rowerEntry[2].isValid() && rowerEntry[3].isValid()
-				&& rowerEntry[4].isValid() && rowerEntry[5].isValid()
-				&& rowerEntry[6].isValid() && rowerEntry[7].isValid()
-				&& timeOutEntry.isValid() && timeInEntry.isValid()
+		if (boatEntry.isValidEntry() && coxEntry.isValidEntry()
+				&& rowerEntry[0].isValidEntry() && rowerEntry[1].isValidEntry()
+				&& rowerEntry[2].isValidEntry() && rowerEntry[3].isValidEntry()
+				&& rowerEntry[4].isValidEntry() && rowerEntry[5].isValidEntry()
+				&& rowerEntry[6].isValidEntry() && rowerEntry[7].isValidEntry()
+				&& timeOutEntry.isValidEntry() && timeInEntry.isValidEntry()
 				&& validDistance) {
 			return true;
 		} else {
@@ -664,12 +664,8 @@ public class OutingDialog extends JDialog {
 			changedUpdate(arg0);
 		}
 
-		public boolean isValid() {
+		public boolean isValidEntry() {
 			return isValid;
-		}
-
-		public boolean isFilled() {
-			return isFilled;
 		}
 
 	}
@@ -710,16 +706,24 @@ public class OutingDialog extends JDialog {
 									destinationEntry.getText(), boatEntry
 											.getText(), distance);
 						} else {
-							db.modifyOuting(outing, outing.getDay()
-									.getTime(), new int[] {
-									getRowerForName(rowerEntry[0].getText()),
-									getRowerForName(rowerEntry[1].getText()),
-									getRowerForName(rowerEntry[2].getText()),
-									getRowerForName(rowerEntry[3].getText()),
-									getRowerForName(rowerEntry[4].getText()),
-									getRowerForName(rowerEntry[5].getText()),
-									getRowerForName(rowerEntry[6].getText()),
-									getRowerForName(rowerEntry[7].getText()) },
+							db.modifyOuting(outing, outing.getDay().getTime(),
+									new int[] {
+											getRowerForName(rowerEntry[0]
+													.getText()),
+											getRowerForName(rowerEntry[1]
+													.getText()),
+											getRowerForName(rowerEntry[2]
+													.getText()),
+											getRowerForName(rowerEntry[3]
+													.getText()),
+											getRowerForName(rowerEntry[4]
+													.getText()),
+											getRowerForName(rowerEntry[5]
+													.getText()),
+											getRowerForName(rowerEntry[6]
+													.getText()),
+											getRowerForName(rowerEntry[7]
+													.getText()) },
 									getRowerForName(coxEntry.getText()),
 									timeOutEntry.getTime(), timeInEntry
 											.getTime(), commentEntry.getText(),
@@ -735,10 +739,10 @@ public class OutingDialog extends JDialog {
 				} else {
 					// Warn about incorrect data, and where.
 					// TODO: update this outdated method.
-					JOptionPane.showMessageDialog(null, rb
+					JOptionPane.showMessageDialog(dialog, rb
 							.getString("outing.invalid_input"), rb
 							.getString("outing.invalid_input.title"),
-							JOptionPane.ERROR_MESSAGE);
+							JOptionPane.WARNING_MESSAGE);
 				}
 
 			}

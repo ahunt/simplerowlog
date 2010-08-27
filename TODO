@@ -2,23 +2,17 @@ simple rowLog TODO file.
 
 ------------------ [HIGH PRIORITY] ---------------------------------------------
 
--- Use: getInstalledLookAndFeels()
-
 -- Finish the db: implement deletion of items.
 
 -- Change listeners in config panels where necessary, and then change the apply button.
-
--- All tables: add check to make sure a row is selected if using a button to modify.
 
 -- Verify that the test classes AREN'T included in the ant jar command.
 
 -- ErrorHandler for all the program, with a command line version implemented.
 
--- Check non 0 zero length in add/edit member dialogs and full length.
-
 -- In OutingDialog warn what fields aren't filled in, and check first before submitting due to crash otherwise.
 
--- Language files system for when files aren't found. Also clean up locations.
+-- Language files system for when files aren't found. Also clean up locations. (Add the default language files to the jar?)
 
 -- Initial LAF: javax.swing.UIManager.getSystemLookAndFeelClassName()
 (Add initial configurator)
@@ -37,6 +31,9 @@ simple rowLog TODO file.
 -- Auto backup tool for db and settings.
 
 ------------------ [LOW PRIORITY] ----------------------------------------------
+-- Tell the admin / person logging in if they have failed an attempt, by displaying
+    a red text at the top of the dialog, similarly to kde unlock dialogs.
+
 -- In the database, for all getGroups etc, extract data directly from one request
     (instead of simply getting ids, then single groups).
     
