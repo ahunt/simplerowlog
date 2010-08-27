@@ -269,7 +269,15 @@ public class EditBoatDialog extends JDialog {
 
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
-
+			if (arg0.getSource() == saveButton) {
+				if (nameEntry.getText().length() == 0) {
+					JOptionPane.showMessageDialog(null, loc
+							.getString("boat.add.no_name"), loc
+							.getString("boat.add.no_name.title"),
+							JOptionPane.WARNING_MESSAGE);
+					return;
+				}
+			}
 			if (arg0.getSource() == cancelButton) {
 				setVisible(false);
 			} else if (arg0.getSource() == saveButton
@@ -317,8 +325,8 @@ public class EditBoatDialog extends JDialog {
 				// forename = Util.capitaliseName(forename);
 				// TODO: listener for fields.
 				try {
-					db.modifyBoat(boat, nameEntry.getText(),
-							typeEntry.getText(), inHouseCheckBox.isSelected());
+					db.modifyBoat(boat, nameEntry.getText(), typeEntry
+							.getText(), inHouseCheckBox.isSelected());
 					setVisible(false);
 				} catch (Exception e) {
 					// TODO: check that this can be thrown etc. and process:

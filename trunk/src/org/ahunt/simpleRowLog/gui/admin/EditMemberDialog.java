@@ -285,7 +285,16 @@ public class EditMemberDialog extends JDialog {
 
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
-
+			// Check that all required details are filled in or warn.
+			if (arg0.getSource() == saveButton) {
+				if (surnameEntry.getText().length() == 0 || dobEntry.getDate() == null) {
+					JOptionPane.showMessageDialog(null, loc
+							.getString("member.add.missing_details"), loc
+							.getString("member.add.missing_details.title"),
+							JOptionPane.WARNING_MESSAGE);
+					return;
+				}
+			}
 			if (arg0.getSource() == cancelButton) {
 				setVisible(false);
 			} else if (arg0.getSource() == saveButton
@@ -324,7 +333,8 @@ public class EditMemberDialog extends JDialog {
 							+ "</td></tr></table></html>";
 					JOptionPane.showMessageDialog(null, message, loc
 							.getString("member.add.exists.title"),
-							JOptionPane.ERROR_MESSAGE);
+							JOptionPane.WARNING_MESSAGE);
+					return;
 				}
 			} else if (arg0.getSource() == saveButton
 					&& mode == DIALOG_MODE.EDIT) { // EDIT
@@ -362,7 +372,8 @@ public class EditMemberDialog extends JDialog {
 							+ "</td></tr></table></html>";
 					JOptionPane.showMessageDialog(null, message, loc
 							.getString("member.add.exists.title"),
-							JOptionPane.ERROR_MESSAGE);
+							JOptionPane.WARNING_MESSAGE);
+					return;
 				}
 			}
 

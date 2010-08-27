@@ -225,6 +225,31 @@ public class AddMemberDialog extends JDialog {
 			if (arg0.getSource() == cancelButton) {
 				setVisible(false);
 			} else if (arg0.getSource() == saveButton) {
+				if (surnameEntry.getText().length() == 0) {
+					if (dobEntry.getDate() == null) {
+						JOptionPane.showMessageDialog(null, loc
+								.getString("addMember.noSurnameAndDOB"), loc
+								.getString("addMember.noSurnameAndDOB.title"),
+								JOptionPane.WARNING_MESSAGE);
+					} else {
+						JOptionPane.showMessageDialog(null, loc
+								.getString("addMember.noSurname"), loc
+								.getString("addMember.noSurname.title"),
+								JOptionPane.WARNING_MESSAGE);
+					}
+					return;
+				}
+				if (dobEntry.getDate() == null) {
+					JOptionPane.showMessageDialog(null, loc
+							.getString("addMember.noDOB"), loc
+							.getString("addMember.noDOB.title"),
+							JOptionPane.WARNING_MESSAGE);
+					return;
+				}
+				
+				
+				
+				
 				// surname = Util.capitaliseName(surname);
 				// forename = Util.capitaliseName(forename);
 				// TODO: listener for fields.
