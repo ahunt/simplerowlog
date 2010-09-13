@@ -282,6 +282,9 @@ public class SimpleGUI extends JFrame implements ChangeListener {
 		menuHelp.add(menuHelpAbout);
 		menuHelpAbout.addActionListener(ml);
 
+		// TODO: remove once implemented
+		menuHelpHelp.setEnabled(false);
+		
 		// TODO: Move the keyboard shortcuts
 		menuFileExit.setAccelerator(KeyStroke.getKeyStroke(new Character('q'),
 				java.awt.event.InputEvent.CTRL_DOWN_MASK));

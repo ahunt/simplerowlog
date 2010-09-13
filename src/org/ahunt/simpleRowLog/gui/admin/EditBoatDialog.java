@@ -53,7 +53,7 @@ import javax.swing.border.TitledBorder;
 
 import org.ahunt.simpleRowLog.common.AdminInfo;
 import org.ahunt.simpleRowLog.common.BoatInfo;
-import org.ahunt.simpleRowLog.common.EntryAlreadyExistsException;
+import org.ahunt.simpleRowLog.common.InvalidDataException;
 import org.ahunt.simpleRowLog.common.ErrorHandler;
 import org.ahunt.simpleRowLog.common.GroupInfo;
 import org.ahunt.simpleRowLog.common.MemberInfo;

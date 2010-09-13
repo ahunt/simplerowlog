@@ -30,8 +30,6 @@ package org.ahunt.simpleRowLog.db.simpleDB;
 import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
-import java.nio.CharBuffer;
-import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -56,7 +54,7 @@ import org.ahunt.simpleRowLog.common.AdminPermissionList;
 import org.ahunt.simpleRowLog.common.BoatInfo;
 import org.ahunt.simpleRowLog.common.BoatStatistic;
 import org.ahunt.simpleRowLog.common.DatabaseError;
-import org.ahunt.simpleRowLog.common.EntryAlreadyExistsException;
+import org.ahunt.simpleRowLog.common.InvalidDataException;
 import org.ahunt.simpleRowLog.common.GroupInfo;
 import org.ahunt.simpleRowLog.common.GroupStatistic;
 import org.ahunt.simpleRowLog.common.MemberInfo;
@@ -121,6 +119,10 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	private PreparedStatement psGetMember;
 	/** To modify a member. */
 	private PreparedStatement psModifyMember;
+	/** To remove a member. */
+	private PreparedStatement psRemoveMember;
+	/** Replace a member with another member in the outings tables. */
+	private PreparedStatement psReplaceMemberOutings;
 
 	/** To get all members. */
 	private PreparedStatement psGetMembers;
@@ -140,6 +142,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	private PreparedStatement psGetRoot;
 	private PreparedStatement psRemoveAllPermissions;
 	private PreparedStatement psAddPermission;
+	private PreparedStatement psRemoveAdmin;
 
 	// TODO: Implement a "locking" mechanism so that users can hold on to the
 	// db,
@@ -292,7 +295,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 					new java.sql.Date(0), guestGroup);
 			addMember(rb.getString("deletedMemberName"), "", new java.sql.Date(
 					0), deletedGroup);
-		} catch (EntryAlreadyExistsException e) {
+		} catch (InvalidDataException e) {
 			// Do nothing, it won't happen, or we don't care.
 			// TODO: mass alarm HERE.
 		}
@@ -395,7 +398,6 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			psModifyBoat.setString(2, type);
 			psModifyBoat.setBoolean(3, inHouse);
 			psModifyBoat.execute();
-			// TODO: complete
 		} catch (SQLException e) {
 			log.error("Failed to modify boat: " + name);
 			log.errorException(e);
@@ -446,12 +448,11 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	 */
 	@Override
 	public BoatInfo[] getBoats(boolean inHouse) throws DatabaseError {
-		// TODO: change all these to entry. (Direct getting of data.)
 		log.verbose("getBoats(boolean)");
 		try {
 			// Check whether prepared statement exists. Create if necessary.
 			if (psGetBoatsSelection == null) {
-				psGetBoatsSelection = con.prepareStatement("SELECT name FROM"
+				psGetBoatsSelection = con.prepareStatement("SELECT * FROM"
 						+ " boats WHERE inHouse = ? ORDER BY name");
 			}
 			psGetBoatsSelection.setBoolean(1, inHouse);
@@ -462,7 +463,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			ArrayList<BoatInfo> a = new ArrayList<BoatInfo>();
 			// Go through the groups.
 			while (rs.next()) {
-				a.add(getBoat(rs.getString("name")));
+				a.add(new BoatInfo(rs.getString("name"), rs.getString("type"),
+						rs.getBoolean("inHouse")));
 			}
 			log.verbose("Data gotten, returning groups");
 			// Return a GroupInfo.
@@ -491,7 +493,6 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	/**
 	 * Not yet implemented.
 	 */
-
 	@Override
 	public BoatStatistic[] getBoatsStatistics() {
 		// TODO: implement (low priority)
@@ -505,7 +506,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	 */
 	@Override
 	public int addMember(String surname, String forename, Date dob, int group)
-			throws DatabaseError, EntryAlreadyExistsException {
+			throws DatabaseError, InvalidDataException {
 		log.verbose("addMember(... " + group + ")");
 		if (surname == null | surname.length() == 0) {
 			throw new IllegalArgumentException("Surname cannot be null or"
@@ -538,8 +539,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 				throw new DatabaseError(rb.getString("commandError"), null);
 			}
 		} catch (SQLIntegrityConstraintViolationException e) {
-			throw new EntryAlreadyExistsException("A member named " + surname
-					+ ":" + forename + " with dob " + dob
+			throw new InvalidDataException("A member named " + surname + ":"
+					+ forename + " with dob " + dob
 					+ " already is in the database.", e);
 		} catch (SQLException e) {
 			log.errorException(e);
@@ -579,7 +580,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	@Override
 	public void modifyMember(MemberInfo member, String surname,
 			String forename, Date dob, int group) throws DatabaseError,
-			EntryAlreadyExistsException {
+			InvalidDataException {
 		log.verbose("modifyMember(...)");
 		// Check the data
 		if (getMember(member.getKey()) == null) {
@@ -611,8 +612,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			psModifyMember.setInt(5, member.getKey());
 			psModifyMember.execute();
 		} catch (SQLIntegrityConstraintViolationException e) {
-			throw new EntryAlreadyExistsException("A member named " + surname
-					+ ":" + forename + " with dob " + dob
+			throw new InvalidDataException("A member named " + surname + ":"
+					+ forename + " with dob " + dob
 					+ " already is in the database.", e);
 		} catch (SQLException e) {
 			log.error("Failed to modify member.");
@@ -637,11 +638,19 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			psGetMembers.execute();
 			ResultSet rs = psGetMembers.getResultSet();
 			ArrayList<MemberInfo> a = new ArrayList<MemberInfo>();
-			// TODO: caching of groups to save call of getGroup for each group.
+			GroupInfo[] groups = getGroups();
 			while (rs.next()) {
-				a.add(new MemberInfo(rs.getInt("id"), rs.getString("surname"),
-						rs.getString("forename"), rs.getDate("dob"),
-						getGroup(rs.getInt("usergroup"))));
+				GroupInfo thisGroup = null;
+				for (int i = 0; i < groups.length; i++) {
+					if (groups[i].getId() == rs.getInt("usergroup")) {
+						thisGroup = groups[i];
+					}
+				}
+				a
+						.add(new MemberInfo(rs.getInt("id"), rs
+								.getString("surname"),
+								rs.getString("forename"), rs.getDate("dob"),
+								thisGroup));
 			}
 			if (a.size() == 0) {
 				return null;
@@ -1026,8 +1035,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 					return false;
 				}
 			} catch (Exception e) {
-				return false;
-				// TODO: Help?
+				return false; // If there are errors we won't authenticate.
 			}
 		}
 
@@ -1090,7 +1098,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 
 	}
 
-	public AdminPermissionList getAdminPermissionList(String username)
+	private AdminPermissionList getAdminPermissionList(String username)
 			throws DatabaseError {
 		log.entry("getAdminPermissionList(" + username + ")");
 		ArrayList<String> permissions = new ArrayList<String>();
@@ -1177,14 +1185,6 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	@Override
 	public AdminInfo[] getAdmins() throws DatabaseError {
 		return null;
-	}
-
-	public void modifyAdmin(String formerUsername) throws DatabaseError {
-
-	}
-
-	public void removeAdmin(String username) throws DatabaseError {
-
 	}
 
 	/* -------------------- OutingManager (INTERNAL) ----------------- */
@@ -1285,7 +1285,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 				PreparedStatement ps = getOutingStatementSet(
 						cal.get(GregorianCalendar.YEAR)).getPreparedStatement(
 						OutingStatementType.ADD_OUTING);
-				ps.setDate(1, new java.sql.Date(date.getTime()));
+				java.sql.Date created = new java.sql.Date(date.getTime());
+				ps.setDate(1, created);
 				ps.setInt(2, rowers[0]);
 				// Go through all rowers and set to null if inexistant
 				short i;
@@ -1333,13 +1334,12 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 					ps.setNull(16, java.sql.Types.INTEGER);
 				}
 				ps.execute();
+				log.exit("OutingManager.addOuting(...)");
+				return created.getTime();
 			} catch (SQLException e) {
 				log.errorException(e);
 				throw new DatabaseError(rb.getString("commandError"), e);
 			}
-			log.exit("OutingManager.addOuting(...)");
-			return 0;
-			// TODO: get the id returned.
 		}
 
 		public void modifyOuting(long id, long day, int[] rowers, int cox,
@@ -1347,7 +1347,6 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 				String boat, int distance) {
 			log.entry("OutingManager.modifyOuting(...)");
 			log.info("Adding outing");
-			// TODO : check whether the id is valid.
 			if (getMember(rowers[0]) == null) {
 				throw new IllegalArgumentException("rowers[0] must be a valid"
 						+ " member");
@@ -1572,13 +1571,16 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 									"SELECT * FROM outings_{0} WHERE day = ? ORDER BY time_out",
 									year.toString()));
 			psAddOuting = con
-					.prepareStatement(MessageFormat
-							.format(
-									"INSERT INTO outings_{0} (day, rower1, rower2,"
-											+ " rower3, rower4, rower5, rower6, rower7, rower8, "
-											+ "cox, time_out, time_in, comment, destination,"
-											+ "boat, distance) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?"
-											+ ",?,?,?)", year.toString()));
+					.prepareStatement(
+							MessageFormat
+									.format(
+											"INSERT INTO outings_{0} (day, rower1, rower2,"
+													+ " rower3, rower4, rower5, rower6, rower7, rower8, "
+													+ "cox, time_out, time_in, comment, destination,"
+													+ "boat, distance) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?"
+													+ ",?,?,?)", year
+													.toString()),
+							PreparedStatement.KEEP_CURRENT_RESULT);
 			psModifyOuting = con.prepareStatement(MessageFormat.format(
 			// "UPDATE boats SET name=?,"
 					// + " type=?, inHouse=? WHERE name = ?"
@@ -1658,43 +1660,93 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	@Override
 	public void modifyAdmin(AdminInfo admin, String username, String name,
 			boolean isRoot, String comment) throws DatabaseError,
-			EntryAlreadyExistsException {
+			InvalidDataException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void removeBoat(BoatInfo boat, BoatInfo replacement)
 			throws DatabaseError {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void removeGroup(GroupInfo group, GroupInfo replacement)
 			throws DatabaseError {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void removeMember(MemberInfo member, MemberInfo replacement)
 			throws DatabaseError {
-		// TODO Auto-generated method stub
-		
+		// TODO: complete
+		log.entry("removeMember(...)");
+		try {
+// TODO: get the replacement in place for the outings table.
+			if (psReplaceMemberOutings == null) {
+				psReplaceMemberOutings = con.prepareStatement("DELETE FROM members "
+						+ "WHERE id = ? ");
+			}
+			if (psRemoveMember == null) {
+				psRemoveMember = con.prepareStatement("DELETE FROM members "
+						+ "WHERE id = ? ");
+			}
+			// TODO: check correct order.
+			psReplaceMemberOutings.setLong(1, member.getKey());
+			psReplaceMemberOutings.setLong(2, replacement.getKey());
+			psReplaceMemberOutings.execute();
+			psRemoveMember.setLong(1, member.getKey());
+			psRemoveMember.execute();
+		} catch (SQLException e) {
+			log.error("Error removing member " + member.getName() + " .");
+			log.errorException(e);
+			throw new DatabaseError(rb.getString("commandError"), e);
+		}
+		log.exit("removeMember(...)");
+
 	}
 
 	@Override
 	public void removeOuting(OutingInfo outing) throws DatabaseError {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void setNewAdminPassword(AdminInfo admin, char[] password)
 			throws DatabaseError {
 		// TODO Auto-generated method stub
-		
+
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void removeAdmin(String username) throws DatabaseError,
+			InvalidDataException {
+		log.entry("removeAdmin(" + username + ")");
+		if (getAdmin(username).isRoot()) {
+			throw new InvalidDataException("Admin " + username
+					+ " is root and cannot be removed.", null);
+		}
+		try {
+
+			if (psRemoveAdmin == null) {
+				psRemoveAdmin = con.prepareStatement("DELETE FROM admins "
+						+ "WHERE username = ? ");
+			}
+			psRemoveAdmin.setString(1, username);
+			psRemoveAdmin.execute();
+		} catch (SQLException e) {
+			log.error("Error removing admin " + username + " .");
+			log.errorException(e);
+			throw new DatabaseError(rb.getString("commandError"), e);
+		}
+		log.exit("removeAdmin(" + username + ")");
 	}
 
 }

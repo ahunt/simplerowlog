@@ -100,14 +100,14 @@ public interface Database {
 	 *             database.
 	 * @throws IllegalArgumentException
 	 *             If the supplied data is not valid.
-	 * @throws EntryAlreadyExistsException
+	 * @throws InvalidDataException
 	 *             If there already is a boat with the specified name in the
 	 *             database.
 	 * @see BoatInfo
 	 */
 	public void addBoat(String name, String type, boolean inHouse)
 			throws DatabaseError, IllegalArgumentException,
-			EntryAlreadyExistsException;
+			InvalidDataException;
 
 	/**
 	 * Get the information for a specific boat.
@@ -137,13 +137,13 @@ public interface Database {
 	 * @throws DatabaseError
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
-	 * @throws EntryAlreadyExistsException
+	 * @throws InvalidDataException
 	 *             If there already is a boat with the specified name in the
 	 *             database.
 	 * @see BoatInfo
 	 */
 	public void modifyBoat(BoatInfo old, String name, String type,
-			boolean inHouse) throws DatabaseError, EntryAlreadyExistsException;
+			boolean inHouse) throws DatabaseError, InvalidDataException;
 
 	/**
 	 * Remove a boat from the database, replacing all its' entries in Outings
@@ -230,12 +230,12 @@ public interface Database {
 	 * @throws DatabaseError
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
-	 * @throws EntryAlreadyExistsException
+	 * @throws InvalidDataException
 	 *             If there already is a member with the same names and dob in
 	 *             database.
 	 */
 	public int addMember(String surname, String forename, Date dob, int group)
-			throws DatabaseError, EntryAlreadyExistsException;
+			throws DatabaseError, InvalidDataException;
 
 	/**
 	 * Get the information for a certain member.
@@ -270,13 +270,13 @@ public interface Database {
 	 * @throws DatabaseError
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
-	 * @throws EntryAlreadyExistsException
+	 * @throws InvalidDataException
 	 *             If there already is a member with the same names and dob in
 	 *             database.
 	 */
 	public void modifyMember(MemberInfo member, String surname,
 			String forename, Date dob, int group) throws DatabaseError,
-			EntryAlreadyExistsException;
+			InvalidDataException;
 
 	/**
 	 * Remove a member from the database, replacing all their entries in Outings
@@ -375,13 +375,12 @@ public interface Database {
 	 * @throws DatabaseError
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
-	 * @throws EntryAlreadyExistsException
+	 * @throws InvalidDataException
 	 *             If there already is a group with the same name in the
 	 *             database.
 	 */
 	public int addGroup(String name, String description, Color colour,
-			boolean isDefault) throws DatabaseError,
-			EntryAlreadyExistsException;
+			boolean isDefault) throws DatabaseError, InvalidDataException;
 
 	/**
 	 * Get the group information for a specific group
@@ -410,13 +409,13 @@ public interface Database {
 	 * @throws DatabaseError
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
-	 * @throws EntryAlreadyExistsException
+	 * @throws InvalidDataException
 	 *             If there already is a group with the same name in the
 	 *             database.
 	 */
 	public void modifyGroup(GroupInfo group, String name, String description,
 			Color colour, boolean isDefault) throws DatabaseError,
-			EntryAlreadyExistsException;
+			InvalidDataException;
 
 	/**
 	 * Remove a group from the database, changing all members of the group to a
@@ -597,13 +596,13 @@ public interface Database {
 	 * @throws DatabaseError
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
-	 * @throws EntryAlreadyExistsException
+	 * @throws InvalidDataException
 	 *             If an admin with the same username already exists in the
 	 *             database.
 	 */
 	public void addAdmin(String username, char[] password, String name,
 			boolean isRoot, String comment) throws DatabaseError,
-			EntryAlreadyExistsException;
+			InvalidDataException;
 
 	/**
 	 * Get the admin info for a specific admin.
@@ -646,13 +645,13 @@ public interface Database {
 	 * @throws DatabaseError
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
-	 * @throws EntryAlreadyExistsException
+	 * @throws InvalidDataException
 	 *             If an admin with the same username already exists in the
 	 *             database.
 	 */
 	public void modifyAdmin(AdminInfo admin, String username, String name,
 			boolean isRoot, String comment) throws DatabaseError,
-			EntryAlreadyExistsException;
+			InvalidDataException;
 
 	/**
 	 * Change an admins password.
@@ -668,5 +667,20 @@ public interface Database {
 	 */
 	public void setNewAdminPassword(AdminInfo admin, char[] password)
 			throws DatabaseError;
+
+	/**
+	 * Delete an admin from the database.
+	 * 
+	 * @param username
+	 *            Username of the admin to be deleted. This admin CANNOT be the
+	 *            root administrator, or else an exception will be thrown.
+	 * @throws DatabaseError
+	 *             If there is a problem connecting to or reading from the
+	 *             database.
+	 * @throws InvalidDataException
+	 *             If the admin to be deleted is set as root.
+	 */
+	public void removeAdmin(String username) throws DatabaseError,
+			InvalidDataException;
 
 }

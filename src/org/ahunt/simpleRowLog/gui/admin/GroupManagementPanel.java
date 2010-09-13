@@ -42,7 +42,7 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellRenderer;
 
 import org.ahunt.simpleRowLog.common.AdminInfo;
-import org.ahunt.simpleRowLog.common.EntryAlreadyExistsException;
+import org.ahunt.simpleRowLog.common.InvalidDataException;
 import org.ahunt.simpleRowLog.common.ErrorHandler;
 import org.ahunt.simpleRowLog.common.GroupInfo;
 import org.ahunt.simpleRowLog.common.MemberInfo;
@@ -237,7 +237,7 @@ public class GroupManagementPanel extends AbstractTableModel implements
 				try {
 					db.modifyGroup(g, g.getName(), g.getDescription(), g
 							.getDisplayColour(), true);
-				} catch (EntryAlreadyExistsException e) {
+				} catch (InvalidDataException e) {
 					// TODO: inform that such a group already exists.
 				}
 			}
