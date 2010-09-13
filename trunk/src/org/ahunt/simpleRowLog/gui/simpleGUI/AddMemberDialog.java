@@ -54,7 +54,7 @@ import javax.swing.border.TitledBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import org.ahunt.simpleRowLog.common.EntryAlreadyExistsException;
+import org.ahunt.simpleRowLog.common.InvalidDataException;
 import org.ahunt.simpleRowLog.common.ErrorHandler;
 import org.ahunt.simpleRowLog.common.Util;
 import org.ahunt.simpleRowLog.conf.Configuration;
@@ -259,7 +259,7 @@ public class AddMemberDialog extends JDialog {
 									.getDefaultGroup().getId());
 					// Dialog stating success?
 					setVisible(false);
-				} catch (EntryAlreadyExistsException e) {
+				} catch (InvalidDataException e) {
 					String message = "<html><table><tr><td width=300 align=\"left\">"
 							+ MessageFormat
 									.format(

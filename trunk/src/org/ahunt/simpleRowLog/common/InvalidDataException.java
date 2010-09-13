@@ -23,13 +23,15 @@
 package org.ahunt.simpleRowLog.common;
 
 /**
- * An error thrown by the database if the entry (member, boat, etc.) being added
- * already exists.
+ * An error thrown by the database if there are errors with the data
+ * 
+ * for this entry (member, boat, etc.), e.g. if the entry already exists, or if
+ * another condition isn't fulfilled.
  * 
  * @author Andrzej JR Hunt
  * @see org.ahunt.simpleRowLog.interfaces.Database
  */
-public class EntryAlreadyExistsException extends Exception {
+public class InvalidDataException extends Exception {
 
 	/**
 	 * serialVersionUID.
@@ -37,14 +39,14 @@ public class EntryAlreadyExistsException extends Exception {
 	private static final long serialVersionUID = -2360816381244841420L;
 
 	/**
-	 * Create a new EntryAlreadyExistsException.
+	 * Create a new InvalidDataException.
 	 * 
 	 * @param errorMessage
 	 *            The error message. It will be shown to the user.
 	 * @param cause
 	 *            The cause of this error (if available).
 	 */
-	public EntryAlreadyExistsException(String errorMessage, Throwable cause) {
+	public InvalidDataException(String errorMessage, Throwable cause) {
 		super(errorMessage, cause);
 	}
 }

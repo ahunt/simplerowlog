@@ -48,7 +48,7 @@ import javax.swing.LayoutStyle;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 
-import org.ahunt.simpleRowLog.common.EntryAlreadyExistsException;
+import org.ahunt.simpleRowLog.common.InvalidDataException;
 import org.ahunt.simpleRowLog.common.ErrorHandler;
 import org.ahunt.simpleRowLog.common.GroupInfo;
 import org.ahunt.simpleRowLog.common.MemberInfo;
@@ -308,7 +308,7 @@ public class EditMemberDialog extends JDialog {
 							groups[groupSelector.getSelectedIndex()].getId());
 					// Dialog stating success?
 					setVisible(false);
-				} catch (EntryAlreadyExistsException e) {
+				} catch (InvalidDataException e) {
 					String message = "<html><table><tr><td width=300 align=\"left\">"
 							+ MessageFormat
 									.format(
@@ -347,7 +347,7 @@ public class EditMemberDialog extends JDialog {
 							groups[groupSelector.getSelectedIndex()].getId());
 					// Dialog stating success?
 					setVisible(false);
-				} catch (EntryAlreadyExistsException e) {
+				} catch (InvalidDataException e) {
 					String message = "<html><table><tr><td width=300 align=\"left\">"
 							+ MessageFormat
 									.format(

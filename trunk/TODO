@@ -2,15 +2,18 @@ simple rowLog TODO file.
 
 ------------------ [HIGH PRIORITY] ---------------------------------------------
 
--- Finish the db: implement deletion of items.
+-- Finish the db: implement deletion of items, rearrange order as necessary.
+
+-- Replacement of a member in ALL exisiting outings tables. We need to store a
+    list, but where?
+
+-- Admin management interface add.
 
 -- Change listeners in config panels where necessary, and then change the apply button.
 
 -- Verify that the test classes AREN'T included in the ant jar command.
 
 -- ErrorHandler for all the program, with a command line version implemented.
-
--- In OutingDialog warn what fields aren't filled in, and check first before submitting due to crash otherwise.
 
 -- Language files system for when files aren't found. Also clean up locations. (Add the default language files to the jar?)
 
@@ -29,6 +32,8 @@ simple rowLog TODO file.
 -- Documentation: incorporate into packaging.
 
 -- Auto backup tool for db and settings.
+
+-- Logging of everything on the db.
 
 ------------------ [LOW PRIORITY] ----------------------------------------------
 -- Tell the admin / person logging in if they have failed an attempt, by displaying
