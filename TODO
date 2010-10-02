@@ -20,6 +20,8 @@ simple rowLog TODO file.
 -- Initial LAF: javax.swing.UIManager.getSystemLookAndFeelClassName()
 (Add initial configurator)
 
+-- Create a way of listing the outings tables in the admin interface, and deleting them as appropriate.
+
 ------------------ [MEDIUM PRIORITY] -------------------------------------------
 -- Admin error log for minor messages, e.g. MemberInfo.getName etc.
 

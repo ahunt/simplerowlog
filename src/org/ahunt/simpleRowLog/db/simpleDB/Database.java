@@ -121,8 +121,6 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	private PreparedStatement psModifyMember;
 	/** To remove a member. */
 	private PreparedStatement psRemoveMember;
-	/** Replace a member with another member in the outings tables. */
-	private PreparedStatement psReplaceMemberOutings;
 
 	/** To get all members. */
 	private PreparedStatement psGetMembers;
@@ -158,6 +156,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		} else {
 			return new Database();
 		}
+
 	}
 
 	/**
@@ -225,6 +224,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		// Store this database as the running db.
 		db = this;
 		log.exit("Database()");
+		db.removeMember(db.getMember(1), db.getMember(2));
 	}
 
 	/**
@@ -261,6 +261,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		s.execute(Util.loadScript("setupAdminsTrigger2"));
 		log.debug("setupAdminsPermissions");
 		s.execute(Util.loadScript("setupAdminsPermissions"));
+		log.debug("setupMeta");
+		s.execute(Util.loadScript("setupMeta"));
 
 		// The default data.
 		log.info("Beginning creation of default data.");
@@ -1516,6 +1518,58 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			}
 		}
 
+		/**
+		 * Replace a member in all Outings tables.
+		 * 
+		 * @param member
+		 *            The member to be replaced.
+		 * @param replacement
+		 *            The replacement member
+		 * @throws DatabaseError
+		 *             If there was a problem accessing the database.
+		 */
+		public void replaceMember(MemberInfo member, MemberInfo replacement)
+				throws DatabaseError {
+			try {
+				for (int year : getYears()) {
+					getOutingStatementSet(year).replaceMember(member,
+							replacement);
+				}
+			} catch (SQLException e) {
+				log
+						.error("Problem when trying to replace a member: getting outingStatementSet failed.");
+				log.errorException(e);
+				throw new DatabaseError(rb.getString("commandError"), e);
+			}
+		}
+	}
+
+	/**
+	 * Get a list of all the years that an outings table has been created for in
+	 * the database.
+	 * 
+	 * @return An array of the years.
+	 * @throws SQLException
+	 *             If there are problems reading the database.
+	 */
+	private int[] getYears() throws DatabaseError {
+		try {
+			ResultSet r = con.getMetaData().getTables(null, null,
+					"OUTINGS_____", null);
+			ArrayList<Integer> a = new ArrayList<Integer>();
+			while (r.next()) {
+				a.add(new Integer(r.getString("TABLE_NAME").substring(8)));
+			}
+			int[] years = new int[a.size()];
+			for (int i = 0; i < a.size(); i++) {
+				years[i] = a.get(i);
+			}
+			return years;
+		} catch (SQLException e) {
+			log.error("Error getting years.");
+			log.errorException(e);
+			throw new DatabaseError(rb.getString("commandError"), e);
+		}
 	}
 
 	/* -------------------- OutingStatementSet (INTERNAL) ----------------- */
@@ -1550,12 +1604,14 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 				Hashtable<Integer, OutingStatementSet> statementCache)
 				throws SQLException {
 			log.entry("OutingStatementSet(Integer, HashTable");
+			this.year = year;
 			try {
 				log.info("Trying to create a new table for year " + year + ".");
 				con.createStatement().execute(
 						MessageFormat.format(Util.loadScript("createOutings"),
 								year.toString()));
 				log.info("New Outings table for year " + year + " created.");
+
 			} catch (SQLException e) {
 				// Just ignore. Not worrying. This means the table exists.
 				log.info("Outings table for this year already exists.");
@@ -1615,6 +1671,38 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 				return psGetMemberStatistics;
 			}
 			return null;
+		}
+
+		/**
+		 * Replace a member in the outings table with another member.
+		 * 
+		 * @param member
+		 *            The member to be replaced.
+		 * @param replacement
+		 *            The replacement member
+		 * @throws DatabaseError
+		 *             If there is a problem accessing the database.
+		 */
+		public void replaceMember(MemberInfo member, MemberInfo replacement)
+				throws DatabaseError {
+			try {
+				Statement s = con.createStatement();
+				for (int i = 0; i < 8; i++) {
+					s.addBatch(MessageFormat.format("UPDATE OUTINGS_{2}  "
+							+ "SET rower{3} = {1} WHERE rower{3} = {0}", member
+							.getKey(), replacement.getKey(), year.toString(), i + 1));
+
+				}
+				s.addBatch(MessageFormat.format("UPDATE OUTINGS_{2}  "
+						+ "SET cox = {1} WHERE cox = {0}", member
+						.getKey(), replacement.getKey(), year.toString()));
+				s.executeBatch();
+			} catch (SQLException e) {
+				log.error("Error replacing member " + member.getName()
+						+ " with member " + replacement.getName() + ".");
+				log.errorException(e);
+				throw new DatabaseError(rb.getString("commandError"), e);
+			}
 		}
 
 		/**
@@ -1682,22 +1770,13 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	@Override
 	public void removeMember(MemberInfo member, MemberInfo replacement)
 			throws DatabaseError {
-		// TODO: complete
 		log.entry("removeMember(...)");
 		try {
-// TODO: get the replacement in place for the outings table.
-			if (psReplaceMemberOutings == null) {
-				psReplaceMemberOutings = con.prepareStatement("DELETE FROM members "
-						+ "WHERE id = ? ");
-			}
+			outingManager.replaceMember(member, replacement);
 			if (psRemoveMember == null) {
 				psRemoveMember = con.prepareStatement("DELETE FROM members "
 						+ "WHERE id = ? ");
 			}
-			// TODO: check correct order.
-			psReplaceMemberOutings.setLong(1, member.getKey());
-			psReplaceMemberOutings.setLong(2, replacement.getKey());
-			psReplaceMemberOutings.execute();
 			psRemoveMember.setLong(1, member.getKey());
 			psRemoveMember.execute();
 		} catch (SQLException e) {
