@@ -37,8 +37,8 @@ import org.ahunt.simpleRowLog.conf.Configuration;
  */
 public class MemberInfo {
 
-	/** Stores the members key. */
-	private int key;
+	/** Stores the members id. */
+	private int id;
 
 	/** Stores the members surname. */
 	private String surname;
@@ -55,8 +55,8 @@ public class MemberInfo {
 	/**
 	 * Create the information for a member
 	 * 
-	 * @param key
-	 *            The members key.
+	 * @param id
+	 *            The members id.
 	 * @param surname
 	 *            The members surname. Cannot be null or empty.
 	 * @param forename
@@ -66,9 +66,9 @@ public class MemberInfo {
 	 * @param groupInfo
 	 *            The Group Information for this member. Cannot be null.
 	 */
-	public MemberInfo(int key, String surname, String forename, Date dob,
+	public MemberInfo(int id, String surname, String forename, Date dob,
 			GroupInfo groupInfo) {
-		this.key = key;
+		this.id = id;
 		if (surname != null && surname.length() != 0) {
 			this.surname = surname;
 		} else {
@@ -93,12 +93,12 @@ public class MemberInfo {
 	}
 
 	/**
-	 * Get the members key, a unique identifier for the member.
+	 * Get the members's id, a unique identifier for the member.
 	 * 
-	 * @return The members key.
+	 * @return The member's id.
 	 */
-	public int getKey() {
-		return key;
+	public int getId() {
+		return id;
 	}
 
 	/**

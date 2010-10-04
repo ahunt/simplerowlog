@@ -17,6 +17,9 @@
  *
  *
  *	Changelog:
+ *  04/10/2010: Boats changed to have id's.
+ *  02/10/2010: Added static final ints defining the guest and deleted member
+ *  			id's.
  *  07/08/2010: Added methods to delete members, boats, etc. Also added
  *  			EntryAlreadyExistsException to all relevant methods.
  *  25/01/2010: Modified modifyOuting to use ints of members.
@@ -48,7 +51,7 @@ import org.ahunt.simpleRowLog.common.*;
  * 
  * 
  * @author Andrzej JR Hunt
- * @version draft7 - 7. August 2010
+ * @version draft9 - 4. October 2010
  */
 public interface Database {
 
@@ -77,6 +80,21 @@ public interface Database {
 	 */
 	public static final int SORTED_INDIVIDUAL = 0;
 
+	/**
+	 * The id for the guest member.
+	 */
+	public static final int GUEST_MEMBER_ID = 1;
+
+	/**
+	 * The id for the deleted (former) member.
+	 */
+	public static final int DELETED_MEMBER_ID = 2;
+	
+	/**
+	 * The id for the "other" boat.
+	 */
+	public static final int OTHER_BOAT_ID = 1;
+
 	/*
 	 * Note: In the "categories below: The square bracketed code is to tell you
 	 * what type of methods are included: A is add, G is get, M is modify, R is
@@ -103,24 +121,25 @@ public interface Database {
 	 * @throws InvalidDataException
 	 *             If there already is a boat with the specified name in the
 	 *             database.
+	 * @return The id of the new boat.
 	 * @see BoatInfo
 	 */
-	public void addBoat(String name, String type, boolean inHouse)
+	public int addBoat(String name, String type, boolean inHouse)
 			throws DatabaseError, IllegalArgumentException,
 			InvalidDataException;
 
 	/**
 	 * Get the information for a specific boat.
 	 * 
-	 * @param name
-	 *            The name of the boat.
+	 * @param id
+	 *            The boat's id.
 	 * @return The information about this boat. <code>null</code> if there is no
 	 *         boat named such.
 	 * @throws DatabaseError
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
 	 */
-	public BoatInfo getBoat(String name) throws DatabaseError;
+	public BoatInfo getBoat(int id) throws DatabaseError;
 
 	/**
 	 * Modify a boat entry in the database.
@@ -247,6 +266,9 @@ public interface Database {
 	 * @throws DatabaseError
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
+	 * @see #GUEST_MEMBER_ID
+	 * @see #DELETED_MEMBER_ID
+	 * 
 	 */
 	public MemberInfo getMember(int id) throws DatabaseError;
 
@@ -501,8 +523,7 @@ public interface Database {
 	 * @param dest
 	 *            The destination. Can be <code>null</null>.
 	 * @param boat
-	 *            The name of the boat. Must be a valid reference to the name of
-	 *            a boat from <code>getBoats()</code>.
+	 *            The id of the boat.
 	 * @param distance
 	 *            The distance rowed. Can be 0 to denote no distance.
 	 * @return The outing's creation time (id).
@@ -511,7 +532,7 @@ public interface Database {
 	 *             database.
 	 */
 	public long addOuting(Date date, int[] rowers, int cox, Date timeOut,
-			Date timeIn, String comment, String dest, String boat, int distance)
+			Date timeIn, String comment, String dest, int boat, int distance)
 			throws DatabaseError;
 
 	/**
@@ -563,7 +584,7 @@ public interface Database {
 	 */
 	public void modifyOuting(OutingInfo outing, long day, int[] rowers,
 			int cox, Date out, Date in, String comment, String destination,
-			String boat, int distance) throws DatabaseError;
+			int boat, int distance) throws DatabaseError;
 
 	/**
 	 * Remove an outing from the database.

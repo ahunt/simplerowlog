@@ -105,7 +105,7 @@ public class EditBoatDialog extends JDialog {
 	private JButton cancelButton = new JButton();
 	private JButton saveButton = new JButton();
 
-	// The current member being modified (if applicable).
+	// The current boat being modified (if applicable).
 	private BoatInfo boat;
 
 	private AdminInfo admin;
