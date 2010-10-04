@@ -2,6 +2,10 @@ simple rowLog TODO file.
 
 ------------------ [HIGH PRIORITY] ---------------------------------------------
 
+-- Change Boats to have an id.
+
+-- Make the delete member dialog more informative.
+
 -- Finish the db: implement deletion of items, rearrange order as necessary.
 
 -- Replacement of a member in ALL exisiting outings tables. We need to store a
@@ -21,6 +25,8 @@ simple rowLog TODO file.
 (Add initial configurator)
 
 -- Create a way of listing the outings tables in the admin interface, and deleting them as appropriate.
+
+-- Tooltips for info in the admin dialog.
 
 ------------------ [MEDIUM PRIORITY] -------------------------------------------
 -- Admin error log for minor messages, e.g. MemberInfo.getName etc.

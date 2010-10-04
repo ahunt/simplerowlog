@@ -102,6 +102,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	private PreparedStatement psGetBoat;
 	/** To modify a boat. */
 	private PreparedStatement psModifyBoat;
+	/** To remove a boat. */
+	private PreparedStatement psRemoveBoat;
 
 	/** To get all the boats. */
 	private PreparedStatement psGetBoats;
@@ -224,7 +226,6 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		// Store this database as the running db.
 		db = this;
 		log.exit("Database()");
-		db.removeMember(db.getMember(1), db.getMember(2));
 	}
 
 	/**
@@ -261,8 +262,6 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		s.execute(Util.loadScript("setupAdminsTrigger2"));
 		log.debug("setupAdminsPermissions");
 		s.execute(Util.loadScript("setupAdminsPermissions"));
-		log.debug("setupMeta");
-		s.execute(Util.loadScript("setupMeta"));
 
 		// The default data.
 		log.info("Beginning creation of default data.");
@@ -322,7 +321,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void addBoat(String name, String type, boolean inHouse)
+	public int addBoat(String name, String type, boolean inHouse)
 			throws DatabaseError {
 		log.verbose("addBoat(...)");
 		// Do data checking.
@@ -332,15 +331,22 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		}
 		try {
 			if (psAddBoat == null) { // Check if ps exists, create if necessary.
-				psAddBoat = con
-						.prepareStatement("INSERT INTO boats (name, type,"
-								+ "inHouse) VALUES (?,?,?)");
+				psAddBoat = con.prepareStatement(
+						"INSERT INTO boats (name, type,"
+								+ "inHouse) VALUES (?,?,?)",
+						Statement.RETURN_GENERATED_KEYS);
 			}
 			// Set the data
 			psAddBoat.setString(1, name);
 			psAddBoat.setString(2, type);
 			psAddBoat.setBoolean(3, inHouse);
 			psAddBoat.execute();
+			ResultSet rs = psAddBoat.getGeneratedKeys();
+			if (rs.next()) {
+				return rs.getInt(1);
+			} else {
+				throw new DatabaseError(rb.getString("commandError"), null);
+			}
 		} catch (SQLException e) {
 			log.errorException(e);
 			throw new DatabaseError(rb.getString("commandError"), e);
@@ -351,24 +357,24 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public BoatInfo getBoat(String name) throws DatabaseError {
+	public BoatInfo getBoat(int id) throws DatabaseError {
 		log.verbose("getBoat(String)");
 		try {
 			if (psGetBoat == null) {
 				psGetBoat = con.prepareStatement("SELECT * FROM boats WHERE"
-						+ " name = ?");
+						+ " id = ?");
 			}
-			psGetBoat.setString(1, name);
+			psGetBoat.setInt(1, id);
 			psGetBoat.execute();
 			ResultSet rs = psGetBoat.getResultSet();
 			if (rs.next()) {
-				return new BoatInfo(rs.getString("name"), rs.getString("type"),
-						rs.getBoolean("inHouse"));
+				return new BoatInfo(rs.getInt("id"), rs.getString("name"), rs
+						.getString("type"), rs.getBoolean("inHouse"));
 			} else { // No such boat.
 				return null;
 			}
 		} catch (SQLException e) {
-			log.error("Failed to get boat: " + name);
+			log.error("Failed to get boat: " + id);
 			log.errorException(e);
 			throw new DatabaseError(rb.getString("commandError"), e);
 		}
@@ -419,9 +425,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		try {
 			// Check whether prepared statement exists. Create if necessary.
 			if (psGetBoats == null) {
-				psGetBoats = con
-						.prepareStatement("SELECT name FROM boats ORDER"
-								+ " BY name");
+				psGetBoats = con.prepareStatement("SELECT * FROM boats ORDER"
+						+ " BY name");
 			}
 			// Get the data.
 			psGetBoats.execute();
@@ -430,7 +435,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			ArrayList<BoatInfo> a = new ArrayList<BoatInfo>();
 			// Go through the groups.
 			while (rs.next()) {
-				a.add(getBoat(rs.getString("name")));
+				a.add(new BoatInfo(rs.getInt("id"), rs.getString("name"), rs
+						.getString("type"), rs.getBoolean("inHouse")));
 			}
 			log.verbose("Data gotten, returning boats");
 			// Return a GroupInfo.
@@ -465,8 +471,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			ArrayList<BoatInfo> a = new ArrayList<BoatInfo>();
 			// Go through the groups.
 			while (rs.next()) {
-				a.add(new BoatInfo(rs.getString("name"), rs.getString("type"),
-						rs.getBoolean("inHouse")));
+				a.add(new BoatInfo(rs.getInt("id"), rs.getString("name"), rs
+						.getString("type"), rs.getBoolean("inHouse")));
 			}
 			log.verbose("Data gotten, returning groups");
 			// Return a GroupInfo.
@@ -585,7 +591,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			InvalidDataException {
 		log.verbose("modifyMember(...)");
 		// Check the data
-		if (getMember(member.getKey()) == null) {
+		if (getMember(member.getId()) == null) {
 			throw new IllegalArgumentException(
 					"member must already exist in order to modify");
 		}
@@ -611,7 +617,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			psModifyMember.setString(2, forename);
 			psModifyMember.setDate(3, new java.sql.Date(dob.getTime()));
 			psModifyMember.setInt(4, group);
-			psModifyMember.setInt(5, member.getKey());
+			psModifyMember.setInt(5, member.getId());
 			psModifyMember.execute();
 		} catch (SQLIntegrityConstraintViolationException e) {
 			throw new InvalidDataException("A member named " + surname + ":"
@@ -681,7 +687,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	@Override
 	public MemberStatistic getMemberStatistics(MemberInfo member)
 			throws DatabaseError {
-		return outingManager.getMemberStatistics(member.getKey());
+		return outingManager.getMemberStatistics(member.getId());
 	}
 
 	/**
@@ -919,7 +925,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	 */
 	@Override
 	public long addOuting(Date date, int[] rowers, int cox, Date timeOut,
-			Date timeIn, String comment, String dest, String boat, int distance)
+			Date timeIn, String comment, String dest, int boat, int distance)
 			throws DatabaseError {
 		return outingManager.addOuting(date, rowers, cox, timeOut, timeIn,
 				comment, dest, boat, distance);
@@ -939,7 +945,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	@Override
 	public void modifyOuting(OutingInfo outing, long created, int[] rowers,
 			int cox, Date out, Date in, String comment, String destination,
-			String boat, int distance) throws DatabaseError {
+			int boat, int distance) throws DatabaseError {
 		outingManager.modifyOuting(outing.getId(), created, rowers, cox, out,
 				in, comment, destination, boat, distance);
 
@@ -1249,7 +1255,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 					}
 					String comment = res.getString("comment");
 					String destination = res.getString("destination");
-					BoatInfo boat = getBoat(res.getString("boat"));
+					BoatInfo boat = getBoat(res.getInt("boat"));
 					int distance = res.getInt("distance");
 					array.add(new OutingInfo(out_id, day, seats, cox, timeOut,
 							timeIn, comment, destination, boat, distance));
@@ -1263,8 +1269,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		}
 
 		public long addOuting(Date date, int[] rowers, int cox, Date timeOut,
-				Date timeIn, String comment, String dest, String boat,
-				int distance) throws DatabaseError {
+				Date timeIn, String comment, String dest, int boat, int distance)
+				throws DatabaseError {
 			log.entry("OutingManager.addOuting(...)");
 			log.info("Adding outing");
 			if (date == null) {
@@ -1277,7 +1283,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			if (timeOut == null) {
 				throw new IllegalArgumentException("timeOut cannot be null");
 			}
-			if (boat == null || boat.length() == 0 || getBoat(boat) == null) {
+			if (getBoat(boat) == null) {
 				throw new IllegalArgumentException("boat must be a valid "
 						+ "boat, cannot be null");
 			}
@@ -1328,7 +1334,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 					ps.setNull(14, java.sql.Types.VARCHAR);
 				}
 				// Boat
-				ps.setString(15, boat);
+				ps.setInt(15, boat);
 				// Distance
 				if (distance != 0) {
 					ps.setInt(16, distance);
@@ -1346,7 +1352,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 
 		public void modifyOuting(long id, long day, int[] rowers, int cox,
 				Date timeOut, Date timeIn, String comment, String destination,
-				String boat, int distance) {
+				int boat, int distance) {
 			log.entry("OutingManager.modifyOuting(...)");
 			log.info("Adding outing");
 			if (getMember(rowers[0]) == null) {
@@ -1356,7 +1362,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			if (timeOut == null) {
 				throw new IllegalArgumentException("timeOut cannot be null");
 			}
-			if (boat == null || boat.length() == 0 || getBoat(boat) == null) {
+			if (getBoat(boat) == null) {
 				throw new IllegalArgumentException("boat must be a valid "
 						+ "boat, cannot be null");
 			}
@@ -1406,7 +1412,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 					ps.setNull(13, java.sql.Types.VARCHAR);
 				}
 				// Boat
-				ps.setString(14, boat);
+				ps.setInt(14, boat);
 				// Distance
 				if (distance != 0) {
 					ps.setInt(15, distance);
@@ -1524,7 +1530,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		 * @param member
 		 *            The member to be replaced.
 		 * @param replacement
-		 *            The replacement member
+		 *            The replacement member.
 		 * @throws DatabaseError
 		 *             If there was a problem accessing the database.
 		 */
@@ -1538,6 +1544,30 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			} catch (SQLException e) {
 				log
 						.error("Problem when trying to replace a member: getting outingStatementSet failed.");
+				log.errorException(e);
+				throw new DatabaseError(rb.getString("commandError"), e);
+			}
+		}
+
+		/**
+		 * Replace a boat in all Outings tables.
+		 * 
+		 * @param boat
+		 *            The boat to be replaced.
+		 * @param replacement
+		 *            The replacement boat.
+		 * @throws DatabaseError
+		 *             If there was a problem accessing the database.
+		 */
+		public void replaceBoat(BoatInfo boat, BoatInfo replacement)
+				throws DatabaseError {
+			try {
+				for (int year : getYears()) {
+					getOutingStatementSet(year).replaceBoat(boat, replacement);
+				}
+			} catch (SQLException e) {
+				log
+						.error("Problem when trying to replace a boat: getting outingStatementSet failed.");
 				log.errorException(e);
 				throw new DatabaseError(rb.getString("commandError"), e);
 			}
@@ -1688,18 +1718,44 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			try {
 				Statement s = con.createStatement();
 				for (int i = 0; i < 8; i++) {
-					s.addBatch(MessageFormat.format("UPDATE OUTINGS_{2}  "
+					s.addBatch(MessageFormat.format("UPDATE OUTINGS_{2} "
 							+ "SET rower{3} = {1} WHERE rower{3} = {0}", member
-							.getKey(), replacement.getKey(), year.toString(), i + 1));
-
+							.getId(), replacement.getId(), year.toString(),
+							i + 1));
 				}
 				s.addBatch(MessageFormat.format("UPDATE OUTINGS_{2}  "
-						+ "SET cox = {1} WHERE cox = {0}", member
-						.getKey(), replacement.getKey(), year.toString()));
+						+ "SET cox = {1} WHERE cox = {0}", member.getId(),
+						replacement.getId(), year.toString()));
 				s.executeBatch();
 			} catch (SQLException e) {
 				log.error("Error replacing member " + member.getName()
 						+ " with member " + replacement.getName() + ".");
+				log.errorException(e);
+				throw new DatabaseError(rb.getString("commandError"), e);
+			}
+		}
+
+		/**
+		 * Replace a boat in the outings table with another boat.
+		 * 
+		 * @param member
+		 *            The member to be replaced.
+		 * @param replacement
+		 *            The replacement member
+		 * @throws DatabaseError
+		 *             If there is a problem accessing the database.
+		 */
+		public void replaceBoat(BoatInfo boat, BoatInfo replacement)
+				throws DatabaseError {
+			try {
+				Statement s = con.createStatement();
+				s.addBatch(MessageFormat.format("UPDATE OUTINGS_{2} "
+						+ "SET boat = {1} WHERE boat = {0}", boat.getId(),
+						replacement.getId(), year.toString()));
+				s.executeBatch();
+			} catch (SQLException e) {
+				log.error("Error replacing boat " + boat.getId()
+						+ " with boat " + replacement.getId() + ".");
 				log.errorException(e);
 				throw new DatabaseError(rb.getString("commandError"), e);
 			}
@@ -1756,7 +1812,24 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	@Override
 	public void removeBoat(BoatInfo boat, BoatInfo replacement)
 			throws DatabaseError {
-		// TODO Auto-generated method stub
+		log.entry("removeBoat(...)");
+		if (boat.getId() == OTHER_BOAT_ID) {
+			return;
+		}
+		try {
+			outingManager.replaceBoat(boat, replacement);
+			if (psRemoveBoat == null) {
+				psRemoveBoat = con.prepareStatement("DELETE FROM boats "
+						+ "WHERE id = ? ");
+			}
+			psRemoveBoat.setLong(1, boat.getId());
+			psRemoveBoat.execute();
+		} catch (SQLException e) {
+			log.error("Error removing boat " + boat.getName() + " .");
+			log.errorException(e);
+			throw new DatabaseError(rb.getString("commandError"), e);
+		}
+		log.exit("removeBoat(...)");
 
 	}
 
@@ -1771,13 +1844,17 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	public void removeMember(MemberInfo member, MemberInfo replacement)
 			throws DatabaseError {
 		log.entry("removeMember(...)");
+		if (member.getId() == GUEST_MEMBER_ID
+				|| member.getId() == DELETED_MEMBER_ID) {
+			return;
+		}
 		try {
 			outingManager.replaceMember(member, replacement);
 			if (psRemoveMember == null) {
 				psRemoveMember = con.prepareStatement("DELETE FROM members "
 						+ "WHERE id = ? ");
 			}
-			psRemoveMember.setLong(1, member.getKey());
+			psRemoveMember.setLong(1, member.getId());
 			psRemoveMember.execute();
 		} catch (SQLException e) {
 			log.error("Error removing member " + member.getName() + " .");

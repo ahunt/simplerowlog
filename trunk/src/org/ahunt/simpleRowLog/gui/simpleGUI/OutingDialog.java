@@ -703,8 +703,9 @@ public class OutingDialog extends JDialog {
 									getRowerForName(coxEntry.getText()),
 									timeOutEntry.getTime(), timeInEntry
 											.getTime(), commentEntry.getText(),
-									destinationEntry.getText(), boatEntry
-											.getText(), distance);
+									destinationEntry.getText(),
+									getBoatForName(boatEntry.getText()),
+									distance);
 						} else {
 							db.modifyOuting(outing, outing.getDay().getTime(),
 									new int[] {
@@ -727,8 +728,9 @@ public class OutingDialog extends JDialog {
 									getRowerForName(coxEntry.getText()),
 									timeOutEntry.getTime(), timeInEntry
 											.getTime(), commentEntry.getText(),
-									destinationEntry.getText(), boatEntry
-											.getText(), distance);
+									destinationEntry.getText(),
+									getBoatForName(boatEntry.getText()),
+									distance);
 						}
 
 						// Save the data
@@ -756,10 +758,19 @@ public class OutingDialog extends JDialog {
 		}
 		for (MemberInfo m : members) {
 			if (m.getName().equals(s)) {
-				return m.getKey();
+				return m.getId();
 			}
 		}
-		return 1; // Guest elsewise.
+		return Database.GUEST_MEMBER_ID; // Guest elsewise.
+	}
+
+	private int getBoatForName(String s) {
+		for (BoatInfo b : boats) {
+			if (b.getName().equals(s)) {
+				return b.getId();
+			}
+		}
+		return Database.OTHER_BOAT_ID;
 	}
 
 	private class InvalidEntryException extends Exception {

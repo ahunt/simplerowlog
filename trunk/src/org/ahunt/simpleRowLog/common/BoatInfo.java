@@ -1,6 +1,6 @@
 /*
  *    This file is part of simple rowLog: the open rowing logbook.
- *    Copyright (C) 2009  Andrzej JR Hunt
+ *    Copyright (C) 2009, 2010  Andrzej JR Hunt
  *    
  *    simple rowLog is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
  *
  *
  *	Changelog:
+ *  04/10/2010: Added an id field.
  *  24/11/2009: Cleaned up the documentation and added an exception for the
  *  			Constructor. Added data checking.
  *	23/08/2009:	Changelog added.
@@ -35,7 +36,10 @@ package org.ahunt.simpleRowLog.common;
  */
 public class BoatInfo {
 
-	/** Stores the name of the group. */
+	/** Stores the boat's id. */
+	private int id;
+
+	/** Stores the name of the baot. */
 	private String name;
 
 	/** Type of Boat. E.g. 4x, 8+... */
@@ -47,6 +51,8 @@ public class BoatInfo {
 	/**
 	 * Create the information for a Boat.
 	 * 
+	 * @param id
+	 *            The boat's id.
 	 * @param name
 	 *            The name of the boat. Cannot be null or empty.
 	 * @param type
@@ -60,18 +66,30 @@ public class BoatInfo {
 	 * @throws IllegalArgumentException
 	 *             If the data is supplied incorrectly.
 	 */
-	public BoatInfo(String name, String type, boolean inHouse)
+	public BoatInfo(int id, String name, String type, boolean inHouse)
 			throws IllegalArgumentException {
-		if (name == null | name.length() == 0) { // Check that the boat has a name.
-			throw new IllegalArgumentException("Name of boat cannot be null or length 0.");
+		if (name == null | name.length() == 0) { // Check that the boat has a
+			// name.
+			throw new IllegalArgumentException(
+					"Name of boat cannot be null or length 0.");
 		}
+		this.id = id;
 		this.name = name;
-		if (type.length() != 0) { //If there is a string or is null assign it.
+		if (type.length() != 0) { // If there is a string or is null assign it.
 			this.type = type;
 		} else { // But for zero length set to null.
 			this.type = null;
 		}
 		this.inHouse = inHouse;
+	}
+
+	/**
+	 * Get the boat's id.
+	 * 
+	 * @return The boat's id.
+	 */
+	public int getId() {
+		return id;
 	}
 
 	/**

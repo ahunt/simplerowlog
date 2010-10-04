@@ -41,7 +41,7 @@ CREATE TABLE outings_{0} (
 	time_in BIGINT,
 	comment VARCHAR(256),
 	destination VARCHAR(128),
-	boat VARCHAR(32) NOT NULL,
+	boat int NOT NULL,
 	distance INT,
 	CONSTRAINT rw1_fk_{0} FOREIGN KEY (rower1) references members (id),
 	CONSTRAINT rw2_fk_{0} FOREIGN KEY (rower2) references members (id),
@@ -52,5 +52,5 @@ CREATE TABLE outings_{0} (
 	CONSTRAINT rw7_fk_{0} FOREIGN KEY (rower7) references members (id),
 	CONSTRAINT rw8_fk_{0} FOREIGN KEY (rower8) references members (id),
 	CONSTRAINT cox_fk_{0} FOREIGN KEY (cox) references members (id),
-	CONSTRAINT boat_fk_{0} FOREIGN KEY (boat) references boats (name)
+	CONSTRAINT boat_fk_{0} FOREIGN KEY (boat) references boats (id)
 )

@@ -93,6 +93,9 @@ public class MemberManagementPanel extends AbstractTableModel implements
 	/** Dialog allowing editing of members. */
 	private EditMemberDialog memberDialog;
 
+	/** Dialog allowing deletion of members. */
+	private DeleteMemberDialog deleteMemberDialog;
+
 	/**
 	 * Create the MemberManagementPanel, allowing access to and modification of
 	 * the list of members currently in the database.
@@ -110,6 +113,7 @@ public class MemberManagementPanel extends AbstractTableModel implements
 
 		// Setup the editing dialog (used throughout)
 		memberDialog = new EditMemberDialog(db);
+		deleteMemberDialog = new DeleteMemberDialog(db);
 
 		memberTable = new JTable(this);
 		memberTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
@@ -221,7 +225,7 @@ public class MemberManagementPanel extends AbstractTableModel implements
 	public Object getValueAt(int row, int col) {
 		switch (col) {
 		case 0:
-			return members[row].getKey();
+			return members[row].getId();
 		case 1:
 			return members[row].getName();
 		case 2:
@@ -291,10 +295,9 @@ public class MemberManagementPanel extends AbstractTableModel implements
 			if (memberTable.getSelectedRow() >= 0)
 				editMemberAt(memberTable.getSelectedRow());
 		} else if (arg0.getSource() == deleteMemberButton) {
-			// TODO: ask for confirmation and then do. Also include a relinking
-			// dialog, i.e. what the outings with this member should be
-			// reassigned
-			// to.
+			if (memberTable.getSelectedRow() >= 0)
+				deleteMemberDialog.deleteMember(members[memberTable
+						.getSelectedRow()]);
 		}
 		updateMembers();
 	}
