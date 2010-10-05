@@ -21,6 +21,8 @@
  */
 package org.ahunt.simpleRowLog.common;
 
+import java.util.Random;
+
 import junit.framework.TestCase;
 
 public class BoatInfoTest extends TestCase {
@@ -29,9 +31,10 @@ public class BoatInfoTest extends TestCase {
 	 * Do a complete test of the class, i.e. construct and test getters.
 	 */
 	public void testBoatInfo() {
+		int id = new Random().nextInt();
 		String name = "Name";
 		String type = "ACoolType";
-		BoatInfo b = new BoatInfo(name, type, true);
+		BoatInfo b = new BoatInfo(id, name, type, true);
 		if (!b.getName().equals(name)) {
 			fail("getName() not returning correct String.");
 		}
@@ -41,7 +44,10 @@ public class BoatInfoTest extends TestCase {
 		if (b.inHouse() != true) {
 			fail("inHouse has changed.");
 		}
-		b = new BoatInfo(name, type, false); // Test again with false for inHouse
+		if (b.getId() != id) {
+			fail("id changed.");
+		}
+		b = new BoatInfo(id, name, type, false); // Test again with false for inHouse
 		if (!b.getName().equals(name)) {
 			fail("getName() not returning correct String.");
 		}
@@ -50,6 +56,9 @@ public class BoatInfoTest extends TestCase {
 		}
 		if (b.inHouse() != false) {
 			fail("inHouse has changed.");
+		}
+		if (b.getId() != id) {
+			fail("id changed.");
 		}
 		// All fine.
 	}

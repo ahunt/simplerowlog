@@ -39,7 +39,7 @@ public class BoatInfo {
 	/** Stores the boat's id. */
 	private int id;
 
-	/** Stores the name of the baot. */
+	/** Stores the name of the boat. */
 	private String name;
 
 	/** Type of Boat. E.g. 4x, 8+... */

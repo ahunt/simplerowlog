@@ -2,7 +2,7 @@ simple rowLog TODO file.
 
 ------------------ [HIGH PRIORITY] ---------------------------------------------
 
--- Change Boats to have an id.
+-- Add in a delete button to the Modify* dialogs.
 
 -- Make the delete member dialog more informative.
 

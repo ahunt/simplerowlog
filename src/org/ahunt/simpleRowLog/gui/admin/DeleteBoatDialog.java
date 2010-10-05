@@ -154,7 +154,7 @@ public class DeleteBoatDialog extends JDialog {
 	 * @return The id for the new member, or 0 if the dialog was cancelled or
 	 *         otherwise failed.
 	 */
-	public void deleteMember(BoatInfo boat) {
+	public void deleteBoat(BoatInfo boat) {
 		this.boat = boat;
 
 
