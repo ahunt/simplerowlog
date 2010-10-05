@@ -50,6 +50,8 @@ public class BoatStatistic extends BoatInfo implements RowingStatistic {
 	/**
 	 * Create a new BoatStatistic.
 	 * 
+	 * @param id
+	 *            The boat's id.
 	 * @param name
 	 *            The name of the group. Cannot be null or empty.
 	 * @param type
@@ -68,10 +70,10 @@ public class BoatStatistic extends BoatInfo implements RowingStatistic {
 	 * 
 	 * @see GroupInfo#GroupInfo()
 	 */
-	public BoatStatistic(String name, String type, boolean inHouse,
+	public BoatStatistic(int id, String name, String type, boolean inHouse,
 			int thisYearOutings, int thisYearKM, int lastYearOutings,
 			int lastYearKM) {
-		super(name, type, inHouse);
+		super(id, name, type, inHouse);
 		this.thisYearOutings = thisYearOutings;
 		this.thisYearKM = thisYearKM;
 		this.lastYearOutings = thisYearOutings;

@@ -91,6 +91,9 @@ public class BoatManagementPanel extends AbstractTableModel implements
 	/** Dialog allowing editing of boats. */
 	private EditBoatDialog boatDialog;
 
+	/** Dialog allowing the deletion of boats. */
+	private DeleteBoatDialog deleteBoatDialog;
+
 	/**
 	 * Create the BoatManagementPanel, allowing access to and modification of
 	 * the list of boats currently in the database.
@@ -108,6 +111,7 @@ public class BoatManagementPanel extends AbstractTableModel implements
 
 		// Set up the boat dialog (it's reused throughout)
 		boatDialog = new EditBoatDialog(db, admin);
+		deleteBoatDialog = new DeleteBoatDialog(db);
 
 		boatTable = new JTable(this);
 		boatTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
@@ -267,9 +271,8 @@ public class BoatManagementPanel extends AbstractTableModel implements
 			if (boatTable.getSelectedRow() >= 0)
 				editBoatAt(boatTable.getSelectedRow());
 		} else if (arg0.getSource() == deleteBoatButton) {
-			// TODO: ask for confirmation and then do. Also include a relinking
-			// dialog, i.e. what the outings with this boat should be reassigned
-			// to.
+			if (boatTable.getSelectedRow() >= 0)
+				deleteBoatDialog.deleteBoat(boats[boatTable.getSelectedRow()]);
 		}
 		updateBoats();
 	}

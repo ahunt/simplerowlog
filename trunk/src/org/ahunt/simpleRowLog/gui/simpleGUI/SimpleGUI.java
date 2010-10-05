@@ -554,6 +554,8 @@ public class SimpleGUI extends JFrame implements ChangeListener {
 				} else {
 					// TODO: Rejection.
 				}
+				// In case any data is changed we reload.
+				outingTableManager.updateOutings();
 			}
 		}
 
