@@ -4,14 +4,8 @@ simple rowLog TODO file.
 
 -- Add in a delete button to the Modify* dialogs.
 
--- Make the delete member dialog more informative.
-
 -- Finish the db: implement deletion of items, rearrange order as necessary.
-
--- Replacement of a member in ALL exisiting outings tables. We need to store a
-    list, but where?
-
--- Admin management interface add.
+(Done: Boat, Member)
 
 -- Change listeners in config panels where necessary, and then change the apply button.
 

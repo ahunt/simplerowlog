@@ -86,6 +86,8 @@ public class DeleteBoatDialog extends JDialog {
 	private BoatInfo[] boats;
 	private int otherBoatIndex;
 
+	private boolean boatWasDeleted;
+
 	/**
 	 * Create and show a new AddMemberDialog.
 	 */
@@ -149,15 +151,14 @@ public class DeleteBoatDialog extends JDialog {
 
 	/**
 	 * 
-	 * @param surname
-	 * @param forename
-	 * @return The id for the new member, or 0 if the dialog was cancelled or
-	 *         otherwise failed.
+	 * @param boat
+	 *            The boat to be deleted.
+	 * @return Whether or not the boat was deleted. False e.g. if the user
+	 *         cancelled.
 	 */
-	public void deleteBoat(BoatInfo boat) {
+	public boolean deleteBoat(BoatInfo boat) {
 		this.boat = boat;
-
-
+		boatWasDeleted = false;
 
 		updateLocalisation();
 		this.setResizable(true);
@@ -189,10 +190,12 @@ public class DeleteBoatDialog extends JDialog {
 		setVisible(true);
 
 		this.setResizable(true);
-		
+
 		// We free the memory as far as possible.
 		boat = null;
 		boats = null;
+		
+		return boatWasDeleted;
 	}
 
 	public void updateLocalisation() {
@@ -225,6 +228,7 @@ public class DeleteBoatDialog extends JDialog {
 					// TODO: provide warning that this can take a while.
 					db.removeBoat(boat, boats[replacementSelection
 							.getSelectedIndex()]);
+					boatWasDeleted = true;
 					setVisible(false);
 				} catch (Exception e) {
 					// TODO: process, check that the exceptions can be thrown in
