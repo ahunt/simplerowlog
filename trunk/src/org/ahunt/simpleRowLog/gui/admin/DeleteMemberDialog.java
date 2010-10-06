@@ -85,6 +85,8 @@ public class DeleteMemberDialog extends JDialog {
 	private MemberInfo[] members;
 	private int deletedMemberIndex;
 
+	private boolean memberWasDeleted;
+
 	/**
 	 * Create and show a new AddMemberDialog.
 	 */
@@ -153,10 +155,9 @@ public class DeleteMemberDialog extends JDialog {
 	 * @return The id for the new member, or 0 if the dialog was cancelled or
 	 *         otherwise failed.
 	 */
-	public void deleteMember(MemberInfo member) {
+	public boolean deleteMember(MemberInfo member) {
 		this.member = member;
-
-
+		memberWasDeleted = false;
 
 		updateLocalisation();
 		this.setResizable(true);
@@ -188,10 +189,12 @@ public class DeleteMemberDialog extends JDialog {
 		setVisible(true);
 
 		this.setResizable(true);
-		
+
 		// We free the memory as far as possible.
 		member = null;
 		members = null;
+
+		return memberWasDeleted;
 	}
 
 	public void updateLocalisation() {
@@ -224,6 +227,7 @@ public class DeleteMemberDialog extends JDialog {
 					// TODO: provide warning that this can take a while.
 					db.removeMember(member, members[replacementSelection
 							.getSelectedIndex()]);
+					memberWasDeleted = true;
 					setVisible(false);
 				} catch (Exception e) {
 					// TODO: process, check that the exceptions can be thrown in
