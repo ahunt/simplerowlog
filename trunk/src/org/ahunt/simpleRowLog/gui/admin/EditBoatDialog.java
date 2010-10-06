@@ -102,6 +102,8 @@ public class EditBoatDialog extends JDialog {
 	private JLabel inHouseCheckBoxLabel = new JLabel();
 	private JCheckBox inHouseCheckBox = new JCheckBox();
 
+	private JButton deleteBoatButton = new JButton();
+
 	private JButton cancelButton = new JButton();
 	private JButton saveButton = new JButton();
 
@@ -140,6 +142,7 @@ public class EditBoatDialog extends JDialog {
 		ButtonListener bl = new ButtonListener();
 		cancelButton.addActionListener(bl);
 		saveButton.addActionListener(bl);
+		deleteBoatButton.addActionListener(bl);
 		this.getRootPane().setDefaultButton(saveButton);
 	}
 
@@ -171,33 +174,19 @@ public class EditBoatDialog extends JDialog {
 								typeEntryLabel).addComponent(
 								inHouseCheckBoxLabel)).addGroup(
 				r.createParallelGroup().addComponent(nameEntry).addComponent(
-						typeEntry).addComponent(inHouseCheckBox)));
+						typeEntry).addComponent(inHouseCheckBox).addComponent(
+						deleteBoatButton, GroupLayout.Alignment.TRAILING)));
 		r.setVerticalGroup(r.createSequentialGroup().addGroup(
 				r.createParallelGroup().addComponent(nameEntryLabel)
 						.addComponent(nameEntry)).addGroup(
 				r.createParallelGroup().addComponent(typeEntryLabel)
 						.addComponent(typeEntry)).addGroup(
 				r.createParallelGroup().addComponent(inHouseCheckBoxLabel)
-						.addComponent(inHouseCheckBox)));
-	}
+						.addComponent(inHouseCheckBox)).addComponent(
+				deleteBoatButton)
 
-	// /**
-	// * Set up the group selector by placing all relevant choices in it.
-	// */
-	// private void setupGroupSelector() {
-	// groupSelector.removeAllItems();
-	// groups = db.getGroups();
-	// GroupInfo defaultGroup = db.getDefaultGroup();
-	// int defaultSelectionPosition = 0;
-	// String[] groupNames = new String[groups.length];
-	// for (int i = 0; i < groups.length; i++) {
-	// groupNames[i] = groups[i].getName();
-	// groupSelector.addItem(groups[i].getName());
-	// if (groups[i] == defaultGroup)
-	// defaultSelectionPosition = i;
-	// }
-	// groupSelector.setSelectedIndex(defaultSelectionPosition);
-	// }
+		);
+	}
 
 	/**
 	 * 
@@ -212,6 +201,8 @@ public class EditBoatDialog extends JDialog {
 		boat = null;
 
 		setTitle(loc.getString("boat.add"));
+
+		deleteBoatButton.setVisible(false);
 
 		updateLocalisation();
 		this.pack();
@@ -235,6 +226,8 @@ public class EditBoatDialog extends JDialog {
 		this.boat = boat;
 		mode = DIALOG_MODE.EDIT;
 		setTitle(loc.getString("boat.edit"));
+
+		deleteBoatButton.setVisible(true);
 
 		updateLocalisation();
 		this.pack();
@@ -260,6 +253,7 @@ public class EditBoatDialog extends JDialog {
 		nameEntryLabel.setText(loc.getString("boat.name") + ":");
 		typeEntryLabel.setText(loc.getString("boat.type") + ":");
 		inHouseCheckBox.setText(loc.getString("boat.in_house"));
+		deleteBoatButton.setText(loc.getString("boat.delete"));
 
 		cancelButton.setText(locCommon.getString("cancel"));
 		saveButton.setText(locCommon.getString("save"));
@@ -358,6 +352,10 @@ public class EditBoatDialog extends JDialog {
 					// .getString("member.add.exists.title"),
 					// JOptionPane.ERROR_MESSAGE);
 				}
+			} else if (arg0.getSource() == deleteBoatButton
+					&& mode == DIALOG_MODE.EDIT) {
+				if (new DeleteBoatDialog(db).deleteBoat(boat))
+					setVisible(false);
 			}
 
 		}
