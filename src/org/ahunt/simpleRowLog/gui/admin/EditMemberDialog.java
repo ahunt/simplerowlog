@@ -96,6 +96,7 @@ public class EditMemberDialog extends JDialog {
 	private JDateChooser dobEntry = new JDateChooser();
 	private JLabel groupSelectorLabel = new JLabel();
 	private JComboBox groupSelector = new JComboBox();
+	private JButton deleteMemberButton = new JButton();
 
 	/**
 	 * The currently available groups on show.
@@ -165,21 +166,23 @@ public class EditMemberDialog extends JDialog {
 		r.setHorizontalGroup(r.createSequentialGroup().addGroup(
 				r.createParallelGroup(GroupLayout.Alignment.TRAILING)
 						.addComponent(forenameEntryLabel).addComponent(
-								surnameEntryLabel).addComponent(dobEntryLabel).addComponent(groupSelectorLabel))
-				.addGroup(
-						r.createParallelGroup().addComponent(forenameEntry)
-								.addComponent(surnameEntry).addComponent(
-										dobEntry).addComponent(groupSelector)));
+								surnameEntryLabel).addComponent(dobEntryLabel)
+						.addComponent(groupSelectorLabel)).addGroup(
+				r.createParallelGroup().addComponent(forenameEntry)
+						.addComponent(surnameEntry).addComponent(dobEntry)
+						.addComponent(groupSelector).addComponent(
+								deleteMemberButton,
+								GroupLayout.Alignment.TRAILING)));
 		r.setVerticalGroup(r.createSequentialGroup().addGroup(
 				r.createParallelGroup().addComponent(forenameEntryLabel)
 						.addComponent(forenameEntry)).addGroup(
 				r.createParallelGroup().addComponent(surnameEntryLabel)
 						.addComponent(surnameEntry)).addGroup(
 				r.createParallelGroup().addComponent(dobEntryLabel)
-						.addComponent(dobEntry))
-						.addGroup(
-								r.createParallelGroup().addComponent(groupSelectorLabel)
-										.addComponent(groupSelector)));
+						.addComponent(dobEntry)).addGroup(
+				r.createParallelGroup().addComponent(groupSelectorLabel)
+						.addComponent(groupSelector)).addComponent(
+				deleteMemberButton));
 	}
 
 	/**
@@ -211,6 +214,7 @@ public class EditMemberDialog extends JDialog {
 		setupGroupSelector();
 		mode = DIALOG_MODE.ADD;
 		member = null;
+		deleteMemberButton.setVisible(false);
 
 		setTitle(loc.getString("member.add"));
 		createdMemberId = 0;
@@ -244,6 +248,14 @@ public class EditMemberDialog extends JDialog {
 		mode = DIALOG_MODE.EDIT;
 		setTitle(loc.getString("member.edit"));
 
+		deleteMemberButton.setVisible(true);
+		// In case we have one of the undeletable members.
+		if (member.getId() == Database.DELETED_MEMBER_ID
+				|| member.getId() == Database.GUEST_MEMBER_ID) {
+			deleteMemberButton.setEnabled(false);
+		} else {
+			deleteMemberButton.setEnabled(true);
+		}
 
 		dobEntry.setDateFormatString(conf.getProperty("srl.date_format"));
 		updateLocalisation();
@@ -277,6 +289,8 @@ public class EditMemberDialog extends JDialog {
 		dobEntryLabel.setText(locCommon.getString("dob") + ":");
 		groupSelectorLabel.setText(locCommon.getString("group") + ":");
 
+		deleteMemberButton.setText(loc.getString("member.delete"));
+
 		cancelButton.setText(locCommon.getString("cancel"));
 		saveButton.setText(locCommon.getString("save"));
 	}
@@ -287,7 +301,8 @@ public class EditMemberDialog extends JDialog {
 		public void actionPerformed(ActionEvent arg0) {
 			// Check that all required details are filled in or warn.
 			if (arg0.getSource() == saveButton) {
-				if (surnameEntry.getText().length() == 0 || dobEntry.getDate() == null) {
+				if (surnameEntry.getText().length() == 0
+						|| dobEntry.getDate() == null) {
 					JOptionPane.showMessageDialog(null, loc
 							.getString("member.add.missing_details"), loc
 							.getString("member.add.missing_details.title"),
@@ -375,6 +390,11 @@ public class EditMemberDialog extends JDialog {
 							JOptionPane.WARNING_MESSAGE);
 					return;
 				}
+			} else if (arg0.getSource() == deleteMemberButton
+					&& mode == DIALOG_MODE.EDIT) {
+				if (new DeleteMemberDialog(db).deleteMember(member))
+					setVisible(false); // Check whether deleted, and hide if
+				// true
 			}
 
 		}

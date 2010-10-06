@@ -174,8 +174,9 @@ public class BoatManagementPanel extends AbstractTableModel implements
 	/**
 	 * The columns in the table.
 	 */
-	private String[] columnNames = { loc.getString("boat.name"),
-			loc.getString("boat.type"), loc.getString("boat.in_house") };
+	private String[] columnNames = { loc.getString("boat.id"),
+			loc.getString("boat.name"), loc.getString("boat.type"),
+			loc.getString("boat.in_house") };
 
 	/**
 	 * {@inheritDoc}
@@ -218,10 +219,12 @@ public class BoatManagementPanel extends AbstractTableModel implements
 	public Object getValueAt(int row, int col) {
 		switch (col) {
 		case 0:
-			return boats[row].getName();
+			return boats[row].getId();
 		case 1:
-			return boats[row].getType();
+			return boats[row].getName();
 		case 2:
+			return boats[row].getType();
+		case 3:
 			return boats[row].inHouse();
 		default:
 			return null;

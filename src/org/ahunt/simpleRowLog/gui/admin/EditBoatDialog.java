@@ -228,7 +228,12 @@ public class EditBoatDialog extends JDialog {
 		setTitle(loc.getString("boat.edit"));
 
 		deleteBoatButton.setVisible(true);
-
+		if (boat.getId() == Database.OTHER_BOAT_ID) {
+			deleteBoatButton.setEnabled(false);
+		} else {
+			deleteBoatButton.setEnabled(true);
+		}
+		
 		updateLocalisation();
 		this.pack();
 		this.setResizable(false);
