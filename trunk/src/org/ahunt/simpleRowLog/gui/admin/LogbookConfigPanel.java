@@ -33,9 +33,7 @@ import java.util.ResourceBundle;
 
 import javax.swing.ButtonGroup;
 import javax.swing.GroupLayout;
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -131,7 +129,7 @@ public class LogbookConfigPanel implements ConfigPanelInterface, ActionListener 
 		for (UIManager.LookAndFeelInfo laf : availableLAFs) {
 			LAFRadioButton b = new LAFRadioButton(laf.getName(), laf
 					.getClassName());
-			// TODO: Once LAF updating is availble, remove this highlighting.
+			// TODO: Once LAF updating is available, remove this highlighting.
 			if (laf.getClassName().equals(
 					UIManager.getLookAndFeel().getClass().getCanonicalName())) {
 				b.setFont(b.getFont().deriveFont(Font.ITALIC)); // If this is

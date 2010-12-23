@@ -138,8 +138,11 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 
 	private PreparedStatement psAddAdmin;
 	private PreparedStatement psGetAdmin;
+	private PreparedStatement psGetAdmins;
 	private PreparedStatement psGetAdminPermissionList;
 	private PreparedStatement psGetRoot;
+	private PreparedStatement psModifyAdmin;
+	private PreparedStatement psSetAdminPassword;
 	private PreparedStatement psRemoveAllPermissions;
 	private PreparedStatement psAddPermission;
 	private PreparedStatement psRemoveAdmin;
@@ -1192,6 +1195,37 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	 */
 	@Override
 	public AdminInfo[] getAdmins() throws DatabaseError {
+		log.entry("getAdmins()");
+		ArrayList<AdminInfo> admins = new ArrayList<AdminInfo>();
+
+		try {
+			// Check whether prepared statement exists. Create if necessary.
+			if (psGetAdmins == null) {
+				psGetAdmins = con.prepareStatement("SELECT * FROM admins");
+			}
+			// Run
+			psGetAdmins.execute();
+			// Get results.
+			ResultSet rs = psGetAdmins.getResultSet();
+			while (rs.next()) {
+				String name = rs.getString("name");
+				String username = rs.getString("username");
+				byte[] salt = rs.getBytes("salt");
+				byte[] hash = rs.getBytes("password");
+				boolean isRoot = rs.getBoolean("isRoot");
+				String comment = rs.getString("comment");
+				admins.add(new SimpleDBAdminInfo(name, username, hash, salt,
+						isRoot, comment, getAdminPermissionList(username)));
+			}
+			return admins.toArray(new AdminInfo[0]);
+
+		} catch (SQLException e) {
+			log.error("Error getting the admin.");
+			log.errorException(e);
+			throw new DatabaseError(rb.getString("commandError"), e);
+		} catch (Exception e) {
+			// TODO: deal with the no encoding / algorithm exceptions.
+		}
 		return null;
 	}
 
@@ -1805,8 +1839,31 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	public void modifyAdmin(AdminInfo admin, String username, String name,
 			boolean isRoot, String comment) throws DatabaseError,
 			InvalidDataException {
-		// TODO Auto-generated method stub
-
+		log.entry("modifyAdmin(...)");
+		if (admin == null) {
+			throw new InvalidDataException("Cannot modify null admin.", null);
+		} else if (username == null || username.length() == 0) {
+			throw new InvalidDataException(
+					"Username cannot be null or zero length.", null);
+		}
+		try {
+			if (psModifyAdmin == null) {
+				psModifyAdmin = con
+						.prepareStatement("UPDATE admins SET username=?,"
+								+ " name=?, isRoot=?, comment=? WHERE username = ?");
+			}
+			psModifyAdmin.setString(1, username);
+			psModifyAdmin.setString(2, name);
+			psModifyAdmin.setBoolean(3, isRoot);
+			psModifyAdmin.setString(4, comment);
+			psModifyAdmin.setString(5, admin.getUsername());
+			psModifyAdmin.execute();
+		} catch (SQLException e) {
+			log.error("Error modifying admin " + admin.getUsername() + " .");
+			log.errorException(e);
+			throw new DatabaseError(rb.getString("commandError"), e);
+		}
+		log.exit("modifyAdmin(...)");
 	}
 
 	@Override
@@ -1874,7 +1931,40 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	@Override
 	public void setNewAdminPassword(AdminInfo admin, char[] password)
 			throws DatabaseError {
-		// TODO Auto-generated method stub
+		// private PreparedStatement psModifyAdmin;
+		// private PreparedStatement pdSetAdminPassword;
+		// TODO Auto-generated method stub : TEST
+		log.entry("setNewAdminPassword(...)");
+		try {
+			if (psSetAdminPassword == null) {
+				psSetAdminPassword = con
+						.prepareStatement("UPDATE admins SET hash=?, salt=? " +
+								"where username=?");
+			}
+			// Generate a salt.
+			Random r = new Random();
+			byte[] salt = new byte[64];
+			r.nextBytes(salt);
+			// Generate a hash.
+
+			MessageDigest digest = MessageDigest.getInstance("SHA-256");
+			digest.update(salt);
+			byte[] hash = digest.digest(new String(password)
+					.getBytes("UTF-16BE"));
+			psSetAdminPassword.setBytes(1, hash);
+			psSetAdminPassword.setBytes(2, salt);
+			psSetAdminPassword.setString(3, admin.getUsername());
+			psSetAdminPassword.execute();
+			psSetAdminPassword.clearParameters();
+		} catch (SQLException e) {
+			log.error("Error setting a new password for admin "
+					+ admin.getUsername() + " .");
+			log.errorException(e);
+			throw new DatabaseError(rb.getString("commandError"), e);
+		} catch (Exception e) {
+			// TODO: deal with the no encoding / algorithm exceptions.
+		}
+		log.exit("setNewAdminPassword(...)");
 
 	}
 

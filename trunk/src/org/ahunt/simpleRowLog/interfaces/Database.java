@@ -89,7 +89,7 @@ public interface Database {
 	 * The id for the deleted (former) member.
 	 */
 	public static final int DELETED_MEMBER_ID = 2;
-	
+
 	/**
 	 * The id for the "other" boat.
 	 */
@@ -655,7 +655,8 @@ public interface Database {
 	 * @param admin
 	 *            The administrator to be modified.
 	 * @param username
-	 *            The username for the administrator.
+	 *            The username for the administrator. Cannot be null or zero
+	 *            length.
 	 * @param name
 	 *            The real name of the administrator.
 	 * @param isRoot
