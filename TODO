@@ -2,10 +2,17 @@ simple rowLog TODO file.
 
 ------------------ [HIGH PRIORITY] ---------------------------------------------
 
--- Add in a delete button to the Modify* dialogs.
+-- Add an outing managmenet panel part thingy-ma-jig.
+-- Create a way of listing the outings tables in the admin interface, and deleting them as appropriate.
+
+-- Launcher check javadoc properties returning null string (or not).
+
+-- FIx the popup / Enter button in the outing dialog.
+
+-- Test adding of duplicate admins/members, in case of InvalidDataExceptions.
 
 -- Finish the db: implement deletion of items, rearrange order as necessary.
-(Done: Boat, Member)
+(Done: Boat, Member) (TODO: Outing, Group)
 
 -- Change listeners in config panels where necessary, and then change the apply button.
 
@@ -17,8 +24,6 @@ simple rowLog TODO file.
 
 -- Initial LAF: javax.swing.UIManager.getSystemLookAndFeelClassName()
 (Add initial configurator)
-
--- Create a way of listing the outings tables in the admin interface, and deleting them as appropriate.
 
 -- Tooltips for info in the admin dialog.
 
@@ -77,6 +82,11 @@ update once the user has stopped changing the date.
         similar one exists.
         
 -- Active LAF changing on request.
+
+-- equals method for all info classes.
+
+-- Admin dialog: check whether a certain admin/boat can be deleted both from the
+    edit dialog and the main dialog part.
 
 --------------------------------------------------------------------------------
 Code cleaning and documentation:

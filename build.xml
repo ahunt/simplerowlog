@@ -69,14 +69,14 @@ Build Targets:
 
 	<target name="build" depends="init">
 		<echo message="Compiling sources to .class files." />
-		<javac srcdir="${src}" destdir="${bin}" debug="on" source="1.6">
+		<javac srcdir="${src}" destdir="${bin}" debug="on" source="1.6" includeantruntime="false">
 			<classpath>
 				<pathelement location="${lib}/derby.jar" />
 				<pathelement location="${lib}/simple-log.jar" />
 				<pathelement location="${lib}/jcal.jar" />
 			</classpath>
 		</javac>
-		<javac srcdir="${testcases}" destdir="${bin}" debug="on" source="1.6">
+		<javac srcdir="${testcases}" destdir="${bin}" debug="on" source="1.6" includeantruntime="false">
 			<classpath>
 				<pathelement location="${lib}/derby.jar" />
 				<pathelement location="${lib}/simple-log.jar" />

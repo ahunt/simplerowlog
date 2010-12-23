@@ -88,8 +88,11 @@ public class Launch {
 		try {
 			conf = Configuration.getConf("main");
 			// Set Desired L&F
-			javax.swing.UIManager.setLookAndFeel(conf
-					.getProperty("gui.toolkit"));
+			String desiredLaf = conf.getProperty("gui.toolkit");
+			javax.swing.UIManager
+					.setLookAndFeel((!desiredLaf.equals("") ? desiredLaf
+							: javax.swing.UIManager
+									.getSystemLookAndFeelClassName()));
 			// Tell the user it is loaded
 			System.out.println(MessageFormat.format(">> "
 					+ rb.getString("tkLoaded"), javax.swing.UIManager

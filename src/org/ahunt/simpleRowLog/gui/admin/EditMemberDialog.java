@@ -31,7 +31,6 @@ import java.awt.event.FocusListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.FileNotFoundException;
-import java.lang.reflect.Member;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.ResourceBundle;
@@ -138,6 +137,7 @@ public class EditMemberDialog extends JDialog {
 		ButtonListener bl = new ButtonListener();
 		cancelButton.addActionListener(bl);
 		saveButton.addActionListener(bl);
+		deleteMemberButton.addActionListener(bl);
 		this.getRootPane().setDefaultButton(saveButton);
 	}
 

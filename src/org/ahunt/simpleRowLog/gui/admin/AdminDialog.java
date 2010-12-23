@@ -129,6 +129,9 @@ public class AdminDialog extends JDialog implements ActionListener {
 		if (admin.getPermissionList().isPermissionSet("boat_list")) {
 			configPanels.add(new BoatManagementPanel(db, admin));
 		}
+		if (admin.getPermissionList().isPermissionSet("admin_list")) {
+			configPanels.add(new AdminManagementPanel(db, admin));
+		}
 
 		// Add the panels to the dialog
 		for (ConfigPanelInterface c : configPanels) {
