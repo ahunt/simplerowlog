@@ -36,6 +36,8 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JTabbedPane;
 import javax.swing.LayoutStyle;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import org.ahunt.simpleRowLog.common.AdminInfo;
 import org.ahunt.simpleRowLog.common.ErrorHandler;
@@ -129,6 +131,9 @@ public class AdminDialog extends JDialog implements ActionListener {
 		if (admin.getPermissionList().isPermissionSet("boat_list")) {
 			configPanels.add(new BoatManagementPanel(db, admin));
 		}
+		if (admin.getPermissionList().isPermissionSet("outings_list")) {
+			configPanels.add(new OutingManagementPanel(db, admin));
+		}
 		if (admin.getPermissionList().isPermissionSet("admin_list")) {
 			configPanels.add(new AdminManagementPanel(db, admin));
 		}
@@ -140,9 +145,9 @@ public class AdminDialog extends JDialog implements ActionListener {
 
 		// Set the dialog to 7/10 of screen size and center
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-		setSize(screenSize.width * 7 / 10, screenSize.height * 7 / 10);
+		setSize(screenSize.width * 9 / 10, screenSize.height * 9 / 10);
 		setLocation(screenSize.width / 2 - getSize().width / 2,
-				screenSize.height / 2 - screenSize.height / 12 - getSize().height / 2);
+				screenSize.height / 2 - getSize().height / 2);
 		// We move the dialog to middle, and move up 1/12 of screen
 		
 		this.setVisible(true);

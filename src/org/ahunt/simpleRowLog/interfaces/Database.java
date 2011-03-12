@@ -1,6 +1,6 @@
 /*
  *    This file is part of simple rowLog: the open rowing logbook.
- *    Copyright (C) 2009, 2010  Andrzej JR Hunt
+ *    Copyright (C) 2009, 2010, 2011  Andrzej JR Hunt
  *    
  *    simple rowLog is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -17,6 +17,11 @@
  *
  *
  *	Changelog:
+ *  11/03/2011: Added getOutings (member, boat, startDate, endDate), see below.
+ *  17/01/2011: Added getOutings(startDate, endDate),
+ *  			getOutings(member, startDate, endDate),
+ *              getOutings(boat, startDate, endDate) as these are required for
+ *  			the admin interface.
  *  04/10/2010: Boats changed to have id's.
  *  02/10/2010: Added static final ints defining the guest and deleted member
  *  			id's.
@@ -536,17 +541,101 @@ public interface Database {
 			throws DatabaseError;
 
 	/**
-	 * Get all the outings for a specific date.
+	 * Get all the outings for a specific date. Is equivalent to running
+	 * <code>getOutings(date, date)</code>.
 	 * 
 	 * @param date
 	 *            The date for which outings are to be found. Can be any time
 	 *            during the day from 00:00 to 23:59:59.99.
-	 * @return
+	 * @return An array of the outings. This will never be <code>null</code>,
+	 *         i.e. an empty array is returned if there are no outings..
 	 * @throws DatabaseError
 	 *             If there is a problem connecting to or reading from the
 	 *             database.
 	 */
 	public OutingInfo[] getOutings(Date date) throws DatabaseError;
+
+	/**
+	 * Get all the outings between two dates.
+	 * 
+	 * @param startDate
+	 *            The beginning date, is included. Only the date and not time
+	 *            part of the date is utilised.
+	 * @param endDate
+	 *            The end date, is also included. Must be the same as, or after,
+	 *            the startDate.
+	 * @return An array of the outings. This will never be <code>null</code>,
+	 *         i.e. an empty array is returned if there are no outings..
+	 * @throws DatabaseError
+	 *             If there is a problem connecting to or reading from the
+	 *             database.
+	 */
+	public OutingInfo[] getOutings(Date startDate, Date endDate)
+			throws DatabaseError;
+
+	/**
+	 * Get all the outings for a given member between two dates, filterd by
+	 * member.
+	 * 
+	 * @param member
+	 *            The member for whom the outings are to be found.
+	 * @param startDate
+	 *            The beginning date, is included. Only the date and not time
+	 *            part of the date is utilised.
+	 * @param endDate
+	 *            The end date, is also included. Must be the same as, or after,
+	 *            the startDate.
+	 * @return An array of the outings. This will never be <code>null</code>,
+	 *         i.e. an empty array is returned if there are no outings..
+	 * @throws DatabaseError
+	 *             If there is a problem connecting to or reading from the
+	 *             database.
+	 */
+	public OutingInfo[] getOutings(MemberInfo member, Date startDate,
+			Date endDate) throws DatabaseError;
+
+	/**
+	 * Get all the outings between two dates, filtered by boat.
+	 * 
+	 * @param boat
+	 *            The boat for which the outings are to be found.
+	 * @param startDate
+	 *            The beginning date, is included. Only the date and not time
+	 *            part of the date is utilised.
+	 * @param endDate
+	 *            The end date, is also included. Must be the same as, or after,
+	 *            the startDate.
+	 * @return An array of the outings. This will never be <code>null</code>,
+	 *         i.e. an empty array is returned if there are no outings..
+	 * @throws DatabaseError
+	 *             If there is a problem connecting to or reading from the
+	 *             database.
+	 */
+	public OutingInfo[] getOutings(BoatInfo boat, Date startDate, Date endDate)
+			throws DatabaseError;
+
+	/**
+	 * Get all the outings between two dates, filtered by member and boat.
+	 * 
+	 * @param member
+	 *            The member for whom the outings are to be found.
+	 * @param boat
+	 *            The boat for which the outings are to be found.
+	 * 
+	 * @param startDate
+	 *            The beginning date, is included. Only the date and not time
+	 *            part of the date is utilised.
+	 * @param endDate
+	 *            The end date, is also included. Must be the same as, or after,
+	 *            the startDate.
+	 * @return An array of the outings. This will never be <code>null</code>,
+	 *         i.e. an empty array is returned if there are no outings..
+	 * @throws DatabaseError
+	 *             If there is a problem connecting to or reading from the
+	 *             database.
+	 */
+	public OutingInfo[] getOutings(MemberInfo member, BoatInfo boat,
+			Date startDate, Date endDate) throws DatabaseError;
 
 	/**
 	 * Modify an outing.

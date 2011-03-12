@@ -20,7 +20,7 @@
  *	24/01/2010:	Created to clean up the mess in OutingDialog.
  */
 
-package org.ahunt.simpleRowLog.gui.simpleGUI;
+package org.ahunt.simpleRowLog.common;
 
 import java.awt.Color;
 import java.awt.Container;
@@ -41,6 +41,8 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.MenuKeyEvent;
 import javax.swing.event.MenuKeyListener;
+
+import org.ahunt.simpleRowLog.gui.simpleGUI.OutingDialog;
 
 public class SuggestiveTextField extends JTextField implements
 		DocumentListener, MenuKeyListener, ActionListener {
