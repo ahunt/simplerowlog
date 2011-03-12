@@ -22,7 +22,7 @@
 #
 #
 # Script: createOutings
-# Requires: mebers, boats
+# Requires: members, boats
 # note: a seperate table is made for each year. (Question mark in outings_? is
 # for the year.) This must be called using MessageFormat.format(loadFile(), year);
 CREATE TABLE outings_{0} (

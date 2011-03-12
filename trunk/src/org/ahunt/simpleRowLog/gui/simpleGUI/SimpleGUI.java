@@ -164,8 +164,8 @@ public class SimpleGUI extends JFrame implements ChangeListener {
 				if (!c.getBackground().equals(getSelectionBackground())) {
 					Object timeOut = getModel().getValueAt(row, 3);
 					// Sets colours for completed rows.
-					c.setBackground(timeOut == null ? Color.LIGHT_GRAY
-							: Color.WHITE);
+					c.setBackground(timeOut == null ? Color.WHITE
+							: Color.LIGHT_GRAY);
 				}
 				return c;
 			}

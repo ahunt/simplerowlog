@@ -1,6 +1,6 @@
 /*
  *    This file is part of simple rowLog: the open rowing logbook.
- *    Copyright (C) 2010  Andrzej JR Hunt
+ *    Copyright (C) 2010, 2011  Andrzej JR Hunt
  *    
  *    simple rowLog is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -17,33 +17,21 @@
  *
  *
  *	Changelog:
- *  17/01/2010: Bugfix: error on trying to save an outing with a distance
- *  			> 999 units.
- *  07/08/2010: Added Baseline alignment in parallel groups (layout)for better
- *  			looks.
- *  25/01/2010: Worked on dialog: added validation of text fields (except for
- *  			distance entry), added possibility of saving outings (albeit no
- *  			editing yet).
- *	18/01/2010:	Changelog added.
+ *  06/01/2011: Created from the ModifyOutingDialog in simpleGUI.
  */
-package org.ahunt.simpleRowLog.gui.simpleGUI;
+package org.ahunt.simpleRowLog.gui.admin;
 
+import org.ahunt.simpleRowLog.common.SuggestiveTextField;
 import java.awt.Color;
-import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.Insets;
 import java.awt.KeyboardFocusManager;
-import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.awt.event.KeyEvent;
-import java.io.IOException;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
-import java.text.Format;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -60,10 +48,8 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -74,18 +60,16 @@ import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.event.MenuKeyEvent;
-import javax.swing.event.MenuKeyListener;
-import javax.swing.text.DateFormatter;
+
 import javax.swing.text.MaskFormatter;
 import javax.swing.text.NumberFormatter;
 
 import org.ahunt.simpleRowLog.common.BoatInfo;
 import org.ahunt.simpleRowLog.common.MemberInfo;
 import org.ahunt.simpleRowLog.common.OutingInfo;
-import org.ahunt.simpleRowLog.common.SuggestiveTextField;
-import org.ahunt.simpleRowLog.common.Util;
 import org.ahunt.simpleRowLog.interfaces.Database;
+
+import com.toedter.calendar.JDateChooser;
 
 /**
  * Show the dialog to modify the information for an outing.
@@ -93,7 +77,7 @@ import org.ahunt.simpleRowLog.interfaces.Database;
  * @author Andrzej JR Hunt
  * 
  */
-public class OutingDialog extends JDialog {
+public class EditOutingDialog extends JDialog {
 
 	private JDialog dialog = this;
 
@@ -108,6 +92,10 @@ public class OutingDialog extends JDialog {
 	private BoatInfo[] boats;
 	/** A list of members. */
 	private MemberInfo[] members;
+
+	// The GUI elements
+	private JDateChooser dateChooser = new JDateChooser();
+	private JLabel dateLabel = new JLabel();
 
 	private SuggestiveTextField boatEntry;
 	private JLabel boatEntryLabel = new JLabel();
@@ -128,6 +116,8 @@ public class OutingDialog extends JDialog {
 	private JLabel destinationEntryLabel = new JLabel();
 	private JTextArea commentEntry = new JTextArea(3, 32);
 	private JLabel commentEntryLabel = new JLabel();
+
+	private JButton deleteOutingButton = new JButton();
 
 	private JButton confirmButton = new JButton();
 	private JButton cancelButton = new JButton();
@@ -153,29 +143,28 @@ public class OutingDialog extends JDialog {
 	/**
 	 * ResourceBundle for l10n data.
 	 */
-	private ResourceBundle rb;
+	private ResourceBundle locGUI = ResourceBundle.getBundle("gui");
+	private ResourceBundle locAdmin = ResourceBundle.getBundle("admin");
 
 	/**
-	 * Create a new OutingDialog. It will not be shown by default. Since this is
-	 * an often used dialog it is recommended that one is created at the
-	 * beginning of a session and reused.
+	 * Create a new EditOutingDialog, used for adding and editing outings in the
+	 * admin dialog.
 	 */
-	public OutingDialog(Database db) {
+	public EditOutingDialog(Database db) {
 		this.db = db;
-		rb = ResourceBundle.getBundle("gui");
 
-		// Button's icons
-		confirmButton.setIcon(new ImageIcon("img/icons/gnome-confirm-24.png"));
-		cancelButton.setIcon(new ImageIcon("img/icons/gnome-cancel-24.png"));
 		// Boat input
-		boatEntryLabel.setText("<html><b>" + rb.getString("outing.boat")
-				+ ":</b></html>");
+		boatEntryLabel.setText(locGUI.getString("outing.boat"));
 		boatEntry = new SuggestiveTextField(this, true, null, 16);
+		dateLabel.setText(locAdmin.getString("outing.date"));
 
 		// Bottom buttons
-		confirmButton.setText(rb.getString("outing.confirm"));
-		confirmButton.addActionListener(new ButtonListener());
-		cancelButton.addActionListener(new ButtonListener());
+		confirmButton.setText(locGUI.getString("outing.confirm"));
+		deleteOutingButton.setText(locAdmin.getString("outing.delete"));
+		ButtonListener bl = new ButtonListener();
+		confirmButton.addActionListener(bl);
+		cancelButton.addActionListener(bl);
+		deleteOutingButton.addActionListener(bl);
 
 		distanceEntry.setValue(new Integer(0));
 		JPanel rowerPanel = setupRowerPanel();
@@ -189,6 +178,11 @@ public class OutingDialog extends JDialog {
 		// Grouping in layout
 		l.setHorizontalGroup(l.createSequentialGroup().addGroup(
 				l.createParallelGroup(GroupLayout.Alignment.LEADING).addGroup(
+						l.createSequentialGroup().addComponent(dateLabel)
+								.addComponent(dateChooser).addPreferredGap(
+										LayoutStyle.ComponentPlacement.RELATED,
+										GroupLayout.DEFAULT_SIZE,
+										Short.MAX_VALUE)).addGroup(
 						l.createSequentialGroup().addComponent(boatEntryLabel)
 								.addComponent(boatEntry).addPreferredGap(
 										LayoutStyle.ComponentPlacement.RELATED,
@@ -198,12 +192,22 @@ public class OutingDialog extends JDialog {
 						l.createSequentialGroup().addPreferredGap(
 								LayoutStyle.ComponentPlacement.RELATED,
 								GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+								.addComponent(deleteOutingButton)).addGroup(
+						l.createSequentialGroup().addPreferredGap(
+								LayoutStyle.ComponentPlacement.RELATED,
+								GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 								.addComponent(confirmButton).addComponent(
 										cancelButton))));
 		l.setVerticalGroup(l.createSequentialGroup().addGroup(
 				l.createParallelGroup(GroupLayout.Alignment.BASELINE)
-						.addComponent(boatEntryLabel).addComponent(boatEntry))
-				.addComponent(rowerPanel).addComponent(infoPanel).addGroup(
+						.addComponent(dateLabel).addComponent(dateChooser))
+				.addGroup(
+						l.createParallelGroup(GroupLayout.Alignment.BASELINE)
+								.addComponent(boatEntryLabel).addComponent(
+										boatEntry)).addComponent(rowerPanel)
+				.addComponent(infoPanel).addGroup(
+						l.createParallelGroup(GroupLayout.Alignment.TRAILING)
+								.addComponent(deleteOutingButton)).addGroup(
 						l.createParallelGroup(GroupLayout.Alignment.TRAILING)
 								.addComponent(confirmButton).addComponent(
 										cancelButton)));
@@ -236,18 +240,16 @@ public class OutingDialog extends JDialog {
 						rowerEntry[i]));
 			}
 			// rowerEntry[i] = new JTextField(32);
-			rowerEntryLabel[i] = new JLabel("<html><b>"
-					+ MessageFormat.format(rb.getString("outing.rowerNum")
-							+ ":</b></html>", i + 1));
+			rowerEntryLabel[i] = new JLabel(MessageFormat.format(locGUI
+					.getString("outing.rowerNum"), i + 1));
 			// new EntryListener(rowerPanel, rowerEntry[i], i);
 		}
 		coxEntry = new SuggestiveTextField(rowerPanel, false, null, 32);
 		coxEntry.addFocusListener(new NameEntryListener(coxEntry));
-		coxEntryLabel = new JLabel("<html><b><i>" + rb.getString("outing.cox")
-				+ ":</i></b></html>");
+		coxEntryLabel = new JLabel(locGUI.getString("outing.cox"));
 		// new EntryListener(rowerPanel, coxEntry, -1);
-		rowerPanel.setBorder(new TitledBorder(new LineBorder(Color.BLACK), rb
-				.getString("outing.rowers")));
+		rowerPanel.setBorder(new TitledBorder(new LineBorder(Color.BLACK),
+				locGUI.getString("outing.rowers")));
 		GroupLayout r = new GroupLayout(rowerPanel); // Layouting
 		rowerPanel.setLayout(r);
 
@@ -323,12 +325,9 @@ public class OutingDialog extends JDialog {
 
 	private JPanel setupInfoPanel() {
 		JPanel ret = new JPanel();
-		distanceEntryLabel.setText("<html><b>"
-				+ rb.getString("outing.distance") + ":</b></html>");
-		destinationEntryLabel.setText("<html><b>"
-				+ rb.getString("outing.destination") + ":</b></html>");
-		commentEntryLabel.setText("<html><b>" + rb.getString("outing.comment")
-				+ ":</b></html>");
+		distanceEntryLabel.setText(locGUI.getString("outing.distance"));
+		destinationEntryLabel.setText(locGUI.getString("outing.destination"));
+		commentEntryLabel.setText(locGUI.getString("outing.comment"));
 		// Set up the line-wrapping
 		destinationEntry.setLineWrap(true);
 		destinationEntry.setWrapStyleWord(true);
@@ -362,8 +361,7 @@ public class OutingDialog extends JDialog {
 			// TODO: clean
 		}
 		timeOutEntry.setHorizontalAlignment(JTextField.CENTER);
-		timeOutEntryLabel = new JLabel("<html><b>"
-				+ rb.getString("outing.timeOut") + ":</b></html>");
+		timeOutEntryLabel = new JLabel(locGUI.getString("outing.timeOut"));
 		// timeInEntry = new JFormattedTextField(new DateFormatter(
 		// new SimpleDateFormat("HH:mm")));
 		try {
@@ -372,8 +370,7 @@ public class OutingDialog extends JDialog {
 			// TODO: clean
 		}
 		timeInEntry.setHorizontalAlignment(JTextField.CENTER);
-		timeInEntryLabel = new JLabel("<html><b>"
-				+ rb.getString("outing.timeIn") + ":</b></html>");
+		timeInEntryLabel = new JLabel(locGUI.getString("outing.timeIn"));
 		// timeInEntry.getDocument().addDocumentListener(null);
 		// TODO: listener for validation
 		// Layout
@@ -451,13 +448,15 @@ public class OutingDialog extends JDialog {
 	/**
 	 * Show the dialog in order to add a new outing.
 	 */
-	public void doNewOuting() {
+	public void addOuting() {
 		this.outing = null;
 		isNewOuting = true;
-		this.setTitle(rb.getString("outingDialog.title.newOuting"));
-		cancelButton.setText(rb.getString("outing.cancel_new"));
+		this.setTitle(locGUI.getString("outingDialog.title.newOuting"));
+		cancelButton.setText(locGUI.getString("outing.cancel_new"));
+		deleteOutingButton.setEnabled(false);
 
 		// Clear all boxes
+		dateChooser.setDate(new Date()); // Today's date by default
 		boatEntry.setText("");
 		for (int i = 0; i < 8; i++) {
 			rowerEntry[i].setText("");
@@ -491,13 +490,16 @@ public class OutingDialog extends JDialog {
 	 * @param id
 	 *            The id of the outing.
 	 */
-	public void doModifyOuting(OutingInfo outing) {
+	public void modifyOuting(OutingInfo outing) {
 		this.outing = outing;
 		updateDBInfo();
 		isNewOuting = false;
-		cancelButton.setText(rb.getString("outing.cancel_modify"));
+		cancelButton.setText(locGUI.getString("outing.cancel_modify"));
+		deleteOutingButton.setEnabled(false);
+
 		// TODO: if cancel is pressed ask for confirmation.
 		// Clear all boxes
+		dateChooser.setDate(outing.getDay());
 		boatEntry.setText(outing.getBoat().getName());
 		for (int i = 0; i < 8; i++) {
 			if (outing.getRowers()[i] != null) {
@@ -537,7 +539,7 @@ public class OutingDialog extends JDialog {
 		for (BoatInfo b : boats) {
 			a.add(b.getName());
 		}
-		boatEntry.setOptions(a.toArray(new String[a.size()]));
+		boatEntry.setOptions(a.toArray(new String[0]));
 		// Members
 		members = db.getMembers();
 		a.clear();
@@ -685,6 +687,8 @@ public class OutingDialog extends JDialog {
 			} else if (arg0.getSource() == cancelButton && !isNewOuting) {
 				// TODO: dialog
 				setVisible(false);
+			} else if (arg0.getSource() == deleteOutingButton) {
+				db.removeOuting(outing);
 			} else if (arg0.getSource() == confirmButton) {
 				if (isValidInput()) {
 					try {
@@ -696,15 +700,15 @@ public class OutingDialog extends JDialog {
 								distance = Integer
 									.parseInt(distanceEntry.getText());
 							} catch (NumberFormatException e) {
-								JOptionPane.showMessageDialog(dialog, rb
-										.getString("outing.invalid_input_distance"), rb
+								JOptionPane.showMessageDialog(dialog, locGUI
+										.getString("outing.invalid_input_distance"), locGUI
 										.getString("outing.invalid_input.title"),
 										JOptionPane.WARNING_MESSAGE);
 								return;
 							}
 						}
 						if (isNewOuting) {
-							db.addOuting(new Date(), new int[] {
+							db.addOuting(dateChooser.getDate(), new int[] {
 									getRowerForName(rowerEntry[0].getText()),
 									getRowerForName(rowerEntry[1].getText()),
 									getRowerForName(rowerEntry[2].getText()),
@@ -720,24 +724,16 @@ public class OutingDialog extends JDialog {
 									getBoatForName(boatEntry.getText()),
 									distance);
 						} else {
-							db.modifyOuting(outing, outing.getDay().getTime(),
-									new int[] {
-											getRowerForName(rowerEntry[0]
-													.getText()),
-											getRowerForName(rowerEntry[1]
-													.getText()),
-											getRowerForName(rowerEntry[2]
-													.getText()),
-											getRowerForName(rowerEntry[3]
-													.getText()),
-											getRowerForName(rowerEntry[4]
-													.getText()),
-											getRowerForName(rowerEntry[5]
-													.getText()),
-											getRowerForName(rowerEntry[6]
-													.getText()),
-											getRowerForName(rowerEntry[7]
-													.getText()) },
+							db.modifyOuting(outing, dateChooser.getDate()
+									.getTime(), new int[] {
+									getRowerForName(rowerEntry[0].getText()),
+									getRowerForName(rowerEntry[1].getText()),
+									getRowerForName(rowerEntry[2].getText()),
+									getRowerForName(rowerEntry[3].getText()),
+									getRowerForName(rowerEntry[4].getText()),
+									getRowerForName(rowerEntry[5].getText()),
+									getRowerForName(rowerEntry[6].getText()),
+									getRowerForName(rowerEntry[7].getText()) },
 									getRowerForName(coxEntry.getText()),
 									timeOutEntry.getTime(), timeInEntry
 											.getTime(), commentEntry.getText(),
@@ -754,8 +750,8 @@ public class OutingDialog extends JDialog {
 				} else {
 					// Warn about incorrect data, and where.
 					// TODO: update this outdated method.
-					JOptionPane.showMessageDialog(dialog, rb
-							.getString("outing.invalid_input"), rb
+					JOptionPane.showMessageDialog(dialog, locGUI
+							.getString("outing.invalid_input"), locGUI
 							.getString("outing.invalid_input.title"),
 							JOptionPane.WARNING_MESSAGE);
 				}

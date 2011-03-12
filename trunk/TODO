@@ -1,31 +1,40 @@
 simple rowLog TODO file.
+--------------_CURRENT:
+
+Delete button OMGP, Reset Button for filter
+implement currentlabel in th Outingmanagement panel.
+fix filter layout left hand side.
 
 ------------------ [HIGH PRIORITY] ---------------------------------------------
+-- Set Log level to 4 for release.
+-- Implement the permissions.
+-- getOutings hashtable caching of members: for  all.
 
--- Add an outing managmenet panel part thingy-ma-jig.
--- Create a way of listing the outings tables in the admin interface, and deleting them as appropriate.
+-- Implement all getOutings.
+
+-- Check the listing of Outings tables in the database in the implementation.
+   Maybe add some sort of display and selection and deletion in the admin
+   panel, with additional permissions regulating its use. Also warn if the 
+   number of outings to be shown is too large.
+   
+   -- In the Admin Panel add filtering options, by default showing only todays outings,
+   but allowing sorting by week, month, up to showing an entire year. No more than
+   one years outings need be shown, load a different year table by separate selection.
+   -- Nah, actually just use a start and end date to select, making things flexible and easy to implement.
 
 -- Launcher check javadoc properties returning null string (or not).
 
 -- FIx the popup / Enter button in the outing dialog.
 
--- Test adding of duplicate admins/members, in case of InvalidDataExceptions.
+-- Implement differentiation of members with the same name.
 
 -- Finish the db: implement deletion of items, rearrange order as necessary.
 (Done: Boat, Member) (TODO: Outing, Group)
 
--- Change listeners in config panels where necessary, and then change the apply button.
-
--- Verify that the test classes AREN'T included in the ant jar command.
-
--- ErrorHandler for all the program, with a command line version implemented.
-
--- Language files system for when files aren't found. Also clean up locations. (Add the default language files to the jar?)
-
 -- Initial LAF: javax.swing.UIManager.getSystemLookAndFeelClassName()
 (Add initial configurator)
 
--- Tooltips for info in the admin dialog.
+-- Statistics: rower with most km, comparison, etc.
 
 ------------------ [MEDIUM PRIORITY] -------------------------------------------
 -- Admin error log for minor messages, e.g. MemberInfo.getName etc.
@@ -43,6 +52,22 @@ simple rowLog TODO file.
 -- Logging of everything on the db.
 
 ------------------ [LOW PRIORITY] ----------------------------------------------
+-- Build in some sort of system for hard compiling the default language files,
+    so that srl can run without them if necessary/damaged/missing.
+    -- Language files system for when files aren't found. Also clean up locations.
+   (Add the default language files to the jar?)
+
+-- Tooltips for info in the admin dialog.
+
+-- Admin Dialog global shortcuts, to add, edit member and outings and boats
+   from any location.
+
+-- Change listeners in config panels where necessary, and then change the apply button.
+
+-- Verify that the test classes AREN'T included in the ant jar command.
+
+-- ErrorHandler for all the program, with a command line version implemented.
+
 -- Tell the admin / person logging in if they have failed an attempt, by displaying
     a red text at the top of the dialog, similarly to kde unlock dialogs.
 
@@ -50,6 +75,8 @@ simple rowLog TODO file.
     (instead of simply getting ids, then single groups).
     
 -- Security log.
+
+-- Groups Colour.
     
 -- Error cleaning on opening of database.
 
@@ -88,6 +115,19 @@ update once the user has stopped changing the date.
 -- Admin dialog: check whether a certain admin/boat can be deleted both from the
     edit dialog and the main dialog part.
 
+-- Refactor modify outing from long time to Date time.
+
+-- Sort out the layouting in the Edit/Modify Outing Dialogs, to make the
+    grouping logical, and align the delete button with the rest of the components.
+    
+-- Selectable columns OutingManagementPanel.
+
+-- Database.createDefaultData() : add some sort of file based verification that
+   the user setting up the system has root data, e.g. a random string in a text
+   file -- probably best to have the admin put a string in a file during install.
+   Mention this in the install instructions.
+   
+-- Filter boats by type.
 --------------------------------------------------------------------------------
 Code cleaning and documentation:
 --------------------------------

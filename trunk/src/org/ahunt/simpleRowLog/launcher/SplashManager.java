@@ -17,6 +17,8 @@
  *.
  *
  *	Changelog:
+ *  21/01/2011: Bugfix: on setProgress, we first check whether the splash screen
+ *              is still visible, to prevent exceptions if it's been closed.
  *	24/01/2010:	Created
  */
 
@@ -131,7 +133,7 @@ public class SplashManager {
 	 *            inclusive.
 	 */
 	public void setProgress(int progress) {
-		if (noSplash)
+		if (noSplash || !splash.isVisible())
 			return; // If disabled we do nothing.
 		// Draw the on part (left)
 		g.drawImage(progressbarOn, topLeftX, topLeftY, width * progress / 100,

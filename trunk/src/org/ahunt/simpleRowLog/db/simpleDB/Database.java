@@ -1,6 +1,6 @@
 /*
  *    This file is part of simple rowLog: the open rowing logbook.
- *    Copyright (C) 2009, 2010  Andrzej JR Hunt
+ *    Copyright (C) 2009, 2010, 2011  Andrzej JR Hunt
  *    
  *    simple rowLog is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
  *
  *
  *	Changelog:
+ *  11/02/2011: Added HashMap for getOutings, added delete().
  *  27/04/2010: Implemented getMemberStatistics.
  *	23/08/2009:	Changelog added.
  */
@@ -45,6 +46,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Random;
 import java.util.ResourceBundle;
@@ -147,9 +149,6 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	private PreparedStatement psAddPermission;
 	private PreparedStatement psRemoveAdmin;
 
-	// TODO: Implement a "locking" mechanism so that users can hold on to the
-	// db,
-	// and once everyone has released it it automatically closes.
 	/**
 	 * Get an instance of the database.
 	 * 
@@ -281,18 +280,15 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	 *             If there are problems creating the data.
 	 */
 	private void createDefaultData() throws SQLException {
-		// TODO: check colours here.
 		log.entry("createDefaultData()");
 		log.info("Setting up default groups and users.");
 		// Groups: guest (default), deleted, and standard member
 		int guestGroup = addGroup(rb.getString("guestGroupName"), rb
-				.getString("guestGroupDescription"), new Color(-16776961), true);
+				.getString("guestGroupDescription"), Color.BLUE, true);
 		int deletedGroup = addGroup(rb.getString("deletedGroupName"), rb
-				.getString("deletedGroupDescription"), new Color(-16776961),
-				false);
+				.getString("deletedGroupDescription"), Color.GRAY, false);
 		addGroup(rb.getString("memberGroupName"), rb
-				.getString("memberGroupDescription"), new Color(-16776961),
-				false);
+				.getString("memberGroupDescription"), Color.BLACK, false);
 		// Members: guest and deleted.
 		try {
 			addMember(rb.getString("guestMemberName"), "",
@@ -301,13 +297,10 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 					0), deletedGroup);
 		} catch (InvalidDataException e) {
 			// Do nothing, it won't happen, or we don't care.
-			// TODO: mass alarm HERE.
 		}
 		addBoat(rb.getString("otherBoat"), "", true);
-		// TODO: setup dialog for admin, asking data.
-		addAdmin("root", "root".toCharArray(), "Rootable", true,
-				"Default admin");
-
+		// Ask the user to set up srl.
+		new SetupDialog(this);
 		log.exit("createDefaultData()");
 	}
 
@@ -346,8 +339,11 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			psAddBoat.execute();
 			ResultSet rs = psAddBoat.getGeneratedKeys();
 			if (rs.next()) {
-				return rs.getInt(1);
+				int ret = rs.getInt(1);
+				rs.close();
+				return ret;
 			} else {
+				rs.close();
 				throw new DatabaseError(rb.getString("commandError"), null);
 			}
 		} catch (SQLException e) {
@@ -371,9 +367,13 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			psGetBoat.execute();
 			ResultSet rs = psGetBoat.getResultSet();
 			if (rs.next()) {
-				return new BoatInfo(rs.getInt("id"), rs.getString("name"), rs
-						.getString("type"), rs.getBoolean("inHouse"));
+				BoatInfo b = new BoatInfo(rs.getInt("id"),
+						rs.getString("name"), rs.getString("type"), rs
+								.getBoolean("inHouse"));
+				rs.close();
+				return b;
 			} else { // No such boat.
+				rs.close();
 				return null;
 			}
 		} catch (SQLException e) {
@@ -436,17 +436,18 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			// Get results.
 			ResultSet rs = psGetBoats.getResultSet();
 			ArrayList<BoatInfo> a = new ArrayList<BoatInfo>();
-			// Go through the groups.
+			// Go through the boats.
 			while (rs.next()) {
 				a.add(new BoatInfo(rs.getInt("id"), rs.getString("name"), rs
 						.getString("type"), rs.getBoolean("inHouse")));
 			}
 			log.verbose("Data gotten, returning boats");
 			// Return a GroupInfo.
-			if (a.size() == 0) {
-				return null;
-			}
-			return a.toArray(new BoatInfo[0]);
+			rs.close();
+			// if (a.size() == 0) {
+			// return null;
+			// }
+			return a.toArray(new BoatInfo[a.size()]);
 		} catch (SQLException e) {
 			log.error("Error getting boats");
 			log.errorException(e);
@@ -479,10 +480,11 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			}
 			log.verbose("Data gotten, returning groups");
 			// Return a GroupInfo.
-			if (a.size() == 0) {
-				return null;
-			}
-			return a.toArray(new BoatInfo[0]);
+			rs.close();
+			// if (a.size() == 0) {
+			// return null;
+			// }
+			return a.toArray(new BoatInfo[a.size()]);
 		} catch (SQLException e) {
 			log.error("Error getting groups");
 			log.errorException(e);
@@ -545,8 +547,11 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			psAddMember.execute();
 			ResultSet rs = psAddMember.getGeneratedKeys();
 			if (rs.next()) {
-				return rs.getInt(1);
+				int ret = rs.getInt(1);
+				rs.close();
+				return ret;
 			} else {
+				rs.close();
 				throw new DatabaseError(rb.getString("commandError"), null);
 			}
 		} catch (SQLIntegrityConstraintViolationException e) {
@@ -573,10 +578,13 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			psGetMember.setInt(1, id);
 			ResultSet res = psGetMember.executeQuery();
 			if (res.next()) { // Check whether there are results
-				return new MemberInfo(id, res.getString("surname"), res
+				MemberInfo m = new MemberInfo(id, res.getString("surname"), res
 						.getString("forename"), res.getDate("dob"),
 						getGroup(res.getInt("usergroup")));
+				res.close();
+				return m;
 			} else { // No such member
+				res.close();
 				return null;
 			}
 		} catch (SQLException e) {
@@ -650,23 +658,20 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			ResultSet rs = psGetMembers.getResultSet();
 			ArrayList<MemberInfo> a = new ArrayList<MemberInfo>();
 			GroupInfo[] groups = getGroups();
+			HashMap<Integer, GroupInfo> groupMap = new HashMap<Integer, GroupInfo>();
+			for (GroupInfo g : groups) {
+				groupMap.put(g.getId(), g);
+			}
 			while (rs.next()) {
-				GroupInfo thisGroup = null;
-				for (int i = 0; i < groups.length; i++) {
-					if (groups[i].getId() == rs.getInt("usergroup")) {
-						thisGroup = groups[i];
-					}
-				}
-				a
-						.add(new MemberInfo(rs.getInt("id"), rs
-								.getString("surname"),
-								rs.getString("forename"), rs.getDate("dob"),
-								thisGroup));
+				a.add(new MemberInfo(rs.getInt("id"), rs.getString("surname"),
+						rs.getString("forename"), rs.getDate("dob"), groupMap
+								.get(rs.getInt("usergroup"))));
 			}
-			if (a.size() == 0) {
-				return null;
-			}
-			return a.toArray(new MemberInfo[0]);
+			rs.close();
+			// if (a.size() == 0) {
+			// return null;
+			// }
+			return a.toArray(new MemberInfo[a.size()]);
 		} catch (SQLException e) {
 			log.errorException(e);
 			throw new DatabaseError(rb.getString("commandError"), e);
@@ -745,8 +750,11 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			// Get the generated id.
 			ResultSet rs = psAddGroup.getGeneratedKeys();
 			if (rs.next()) {
-				return rs.getInt(1);
+				int ret = rs.getInt(1);
+				rs.close();
+				return ret;
 			} else {
+				rs.close();
 				throw new DatabaseError(rb.getString("commandError"), null);
 			}
 		} catch (SQLException e) {
@@ -775,6 +783,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			ResultSet rs = psGetGroup.getResultSet();
 			if (!rs.next()) {
 				// throw new IllegalArgumentException("No such group " + id);
+				rs.close();
 				return null;
 			}
 			// Extract data.
@@ -785,6 +794,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			isDefault = rs.getBoolean("isDefault");
 			log.verbose("Data gotten, returning group");
 			// Return a GroupInfo.
+			rs.close();
 			return new GroupInfo(id, name, description, c, isDefault);
 		} catch (SQLException e) {
 			log.error("Error getting group " + id);
@@ -855,10 +865,11 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			}
 			log.verbose("Data gotten, returning groups");
 			// Return a GroupInfo.
-			if (a.size() == 0) {
-				return null; // If there are no groups.
-			}
-			return a.toArray(new GroupInfo[0]);
+			rs.close();
+			// if (a.size() == 0) {
+			// return null; // If there are no groups.
+			// }
+			return a.toArray(new GroupInfo[a.size()]);
 		} catch (SQLException e) {
 			log.error("Error getting groups");
 			log.errorException(e);
@@ -885,6 +896,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			ResultSet rs = psGetDefaultGroup.getResultSet();
 			// Extract data.
 			if (!rs.next()) {
+				rs.close();
 				throw new DatabaseError("No default group. Major error.", null);
 			}
 			int id = rs.getInt("id");
@@ -893,6 +905,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			Color c = new Color(rs.getInt("colour"));
 			log.verbose("Data gotten, returning group");
 			// Return a GroupInfo.
+			rs.close();
 			return new GroupInfo(id, name, description, c, true);
 		} catch (SQLException e) {
 			log.error("Error getting default group.");
@@ -943,6 +956,42 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	}
 
 	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public OutingInfo[] getOutings(MemberInfo member, BoatInfo boat,
+			Date startDate, Date endDate) throws DatabaseError {
+		return outingManager.getOutings(member, boat, startDate, endDate);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public OutingInfo[] getOutings(Date startDate, Date endDate)
+			throws DatabaseError {
+		return outingManager.getOutings(startDate, endDate);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public OutingInfo[] getOutings(MemberInfo member, Date startDate,
+			Date endDate) throws DatabaseError {
+		return outingManager.getOutings(member, startDate, endDate);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public OutingInfo[] getOutings(BoatInfo boat, Date startDate, Date endDate)
+			throws DatabaseError {
+		return outingManager.getOutings(boat, startDate, endDate);
+	}
+
+	/**
 	 * Not yet implemented.
 	 */
 	@Override
@@ -961,7 +1010,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	 */
 	@Override
 	public void addAdmin(String username, char[] password, String name,
-			boolean isRoot, String comment) throws DatabaseError {
+			boolean isRoot, String comment) throws DatabaseError,
+			InvalidDataException {
 		log.entry("addAdmin(...)");
 		// Generate a salt.
 		Random r = new Random();
@@ -989,6 +1039,10 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 
 			psAddAdmin.execute();
 			psAddAdmin.clearParameters(); // So that data isn't kept in mem.
+		} catch (java.sql.SQLIntegrityConstraintViolationException e) {
+			log.error("Admin " + username + " already exists.");
+			log.dbe(org.grlea.log.DebugLevel.L6_VERBOSE, e);
+			throw new InvalidDataException("Admin already exists.", e);
 		} catch (SQLException e) {
 			log.error("Error adding new admin.");
 			log.errorException(e);
@@ -1087,6 +1141,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			ResultSet rs = psGetAdmin.getResultSet();
 			if (!rs.next()) {
 				// No such admin
+				rs.close();
 				return null;
 			}
 			String name = rs.getString("name");
@@ -1095,6 +1150,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			byte[] hash = rs.getBytes("password");
 			boolean isRoot = rs.getBoolean("isRoot");
 			String comment = rs.getString("comment");
+			rs.close();
 			return new SimpleDBAdminInfo(name, username, hash, salt, isRoot,
 					comment, getAdminPermissionList(username));
 
@@ -1138,6 +1194,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			rs.next();
 			if (rs.getString("username").equals(username))
 				isRoot = true;
+			rs.close();
 		} catch (SQLException e) {
 			log.error("Error getting the admin.");
 			log.errorException(e);
@@ -1145,7 +1202,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		}
 
 		return new AdminPermissionList(username, isRoot, permissions
-				.toArray(new String[0])) {
+				.toArray(new String[permissions.size()])) {
 			public void storePermissions() {
 				storeAdminPermissionList(this);
 			}
@@ -1217,7 +1274,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 				admins.add(new SimpleDBAdminInfo(name, username, hash, salt,
 						isRoot, comment, getAdminPermissionList(username)));
 			}
-			return admins.toArray(new AdminInfo[0]);
+			rs.close();
+			return admins.toArray(new AdminInfo[admins.size()]);
 
 		} catch (SQLException e) {
 			log.error("Error getting the admin.");
@@ -1242,6 +1300,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 
 		// Stores the various tables.
 		private Hashtable<Integer, OutingStatementSet> statementCache = new Hashtable<Integer, OutingStatementSet>();
+		private Object endCal;
 
 		public OutingManager() throws SQLException, IOException {
 			log.entry("OutingManager.OutingManager()");
@@ -1255,6 +1314,17 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			log.info("Getting outings for " + date.toString());
 			Calendar cal = new GregorianCalendar();
 			cal.setTime(date);
+			// Return null if we don't yet have a table for this year, meaning
+			// there are no outings for that year.
+			int[] years = getYears();
+			boolean isValidYear = false;
+			for (int i = 0; i < years.length; i++) {
+				if (years[i] == cal.get(Calendar.YEAR))
+					isValidYear = true;
+			}
+			if (!isValidYear)
+				return new OutingInfo[0];
+			// Continue if there is a table
 			ArrayList<OutingInfo> array = new ArrayList<OutingInfo>();
 			try {
 				PreparedStatement ps = getOutingStatementSet(
@@ -1263,18 +1333,33 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 				ps.setDate(1, new java.sql.Date(date.getTime()));
 				ResultSet res = ps.executeQuery();
 				log.info("Got ResultSet for that date, now processing.");
+
+				// Reuse a hashmap of members
+				HashMap<Integer, MemberInfo> memberMap = new HashMap<Integer, MemberInfo>();
+
 				// Process each Outing into an object.
 				// Note that for fields which can be null, the data is checked.
 				while (res.next()) {
 					long out_id = res.getLong("id");
 					log.verbose("Processing outing with id=" + out_id);
 					MemberInfo[] seats = new MemberInfo[8];
+					// Check whether member in hashmap, add if necessary.
 					for (int i = 0; i < 8; i++) {
 						int member_id = res.getInt("rower" + (i + 1));
-						if (member_id != 0) {
-							seats[i] = getMember(member_id);
+						if ((seats[i] = memberMap.get(member_id)) == null
+								&& member_id != 0) {
+							MemberInfo m = db.getMember(member_id);
+							seats[i] = m;
+							memberMap.put(member_id, m);
 						}
 					}
+
+					// for (int i = 0; i < 8; i++) {
+					// int member_id = res.getInt("rower" + (i + 1));
+					// if (member_id != 0) {
+					// seats[i] = getMember(member_id);
+					// }
+					// }
 					Date day = res.getDate("day");
 					MemberInfo cox = null;
 					int coxID = res.getInt("cox");
@@ -1294,11 +1379,521 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 					array.add(new OutingInfo(out_id, day, seats, cox, timeOut,
 							timeIn, comment, destination, boat, distance));
 				}
+				res.close();
 			} catch (SQLException e) {
 				log.errorException(e);
 				throw new DatabaseError(rb.getString("commandError"), e);
 			}
 			log.exit("OutingManager.getOutings()");
+			return array.toArray(new OutingInfo[array.size()]);
+		}
+
+		public OutingInfo[] getOutings(Date startDate, Date endDate) {
+			log.entry("OutingManager.getOutings(" + startDate.getTime() + ","
+					+ endDate.getTime() + ")");
+			Calendar startCal = new GregorianCalendar();
+			Calendar endCal = new GregorianCalendar();
+			startCal.setTime(startDate);
+			endCal.setTime(endDate);
+			// Test whether or not endDate < startDate
+			if ((startCal.get(Calendar.YEAR) > endCal.get(Calendar.YEAR))
+					|| startCal.get(Calendar.YEAR) == endCal.get(Calendar.YEAR)
+					&& startCal.get(Calendar.MONTH) > endCal
+							.get(Calendar.MONTH)
+					|| startCal.get(Calendar.YEAR) == endCal.get(Calendar.YEAR)
+					&& startCal.get(Calendar.MONTH) == endCal
+							.get(Calendar.MONTH)
+					&& startCal.get(Calendar.DAY_OF_MONTH) > endCal
+							.get(Calendar.DAY_OF_MONTH)) {
+				return new OutingInfo[0];
+				// TODO: error or something like that.
+			}
+			int[] years;
+			if (startCal.get(Calendar.YEAR) < endCal.get(Calendar.YEAR)) {
+				ArrayList<Integer> yearsList = new ArrayList<Integer>();
+				int y = startCal.get(Calendar.YEAR);
+				yearsList.add(startCal.get(Calendar.YEAR));
+				while (y < endCal.get(Calendar.YEAR)) {
+					yearsList.add(++y);
+				}
+				// Convert to int array.
+				years = new int[yearsList.size()];
+				int i = 0;
+				for (Integer yInteger : yearsList) {
+					years[i++] = yInteger.intValue();
+				}
+			} else {
+				years = new int[1];
+				years[0] = startCal.get(Calendar.YEAR);
+			}
+			// Return null if we don't yet have a table for any of these years,
+			// meaning there are no outings for that year.
+			int[] dbYears = getYears();
+			// Is a list of all the years we want and that are in the db.
+			ArrayList<Integer> validYears = new ArrayList<Integer>();
+			for (int i = 0; i < dbYears.length; i++) {
+				for (int j : years) {
+					if (j == dbYears[i]) {
+						validYears.add(dbYears[i]);
+					}
+				}
+			}
+			if (validYears.size() == 0)
+				return new OutingInfo[0];
+			// Continue
+			ArrayList<OutingInfo> array = new ArrayList<OutingInfo>();
+			try {
+
+				// start
+				for (Integer y : validYears) {
+					PreparedStatement ps = getOutingStatementSet(y.intValue())
+							.getPreparedStatement(
+									OutingStatementType.GET_OUTINGS_DATE_CONSTRAINED);
+
+					// startDate...
+					if (startCal.get(Calendar.YEAR) == y.intValue()) {
+						ps.setDate(1, new java.sql.Date(startDate.getTime()));
+					} else {
+						ps.setDate(1, new java.sql.Date(new GregorianCalendar(y
+								.intValue(), 1, 1).getTimeInMillis()));
+					}
+					if (endCal.get(Calendar.YEAR) == y.intValue()) {
+						ps.setDate(2, new java.sql.Date(endDate.getTime()));
+					} else {
+						ps.setDate(2, new java.sql.Date(new GregorianCalendar(y
+								.intValue(), 12, 31).getTimeInMillis()));
+					}
+					ResultSet res = ps.executeQuery();
+					// Process each Outing into an object.
+					// Note that for fields which can be null, the data is
+					// checked.
+					while (res.next()) {
+						long out_id = res.getLong("id");
+						log.verbose("Processing outing with id=" + out_id);
+						MemberInfo[] seats = new MemberInfo[8];
+						for (int i = 0; i < 8; i++) {
+							int member_id = res.getInt("rower" + (i + 1));
+							if (member_id != 0) {
+								seats[i] = getMember(member_id);
+							}
+						}
+						Date day = res.getDate("day");
+						MemberInfo cox = null;
+						int coxID = res.getInt("cox");
+						if (coxID != 0) {
+							cox = getMember(coxID);
+						}
+						Date timeOut = new Date(res.getLong("time_out"));
+						Date timeIn = null;
+						long timeInL = res.getLong("time_in");
+						if (timeInL != 0) {
+							timeIn = new Date(timeInL);
+						}
+						String comment = res.getString("comment");
+						String destination = res.getString("destination");
+						BoatInfo boat = getBoat(res.getInt("boat"));
+						int distance = res.getInt("distance");
+						array.add(new OutingInfo(out_id, day, seats, cox,
+								timeOut, timeIn, comment, destination, boat,
+								distance));
+
+					}
+					// end
+					res.close();
+				}
+			} catch (SQLException e) {
+				log.errorException(e);
+				throw new DatabaseError(rb.getString("commandError"), e);
+			}
+			log.exit("OutingManager.getOutings(Date startDate, Date endDate)");
+			return array.toArray(new OutingInfo[0]);
+		}
+
+		public OutingInfo[] getOutings(MemberInfo member, Date startDate,
+				Date endDate) {
+			log.entry("OutingManager.getOutings(" + member.getName() + ","
+					+ startDate.getTime() + "," + endDate.getTime() + ")");
+			Calendar startCal = new GregorianCalendar();
+			Calendar endCal = new GregorianCalendar();
+			startCal.setTime(startDate);
+			endCal.setTime(endDate);
+			// Test whether or not endDate < startDate
+			if ((startCal.get(Calendar.YEAR) > endCal.get(Calendar.YEAR))
+					|| startCal.get(Calendar.YEAR) == endCal.get(Calendar.YEAR)
+					&& startCal.get(Calendar.MONTH) > endCal
+							.get(Calendar.MONTH)
+					|| startCal.get(Calendar.YEAR) == endCal.get(Calendar.YEAR)
+					&& startCal.get(Calendar.MONTH) == endCal
+							.get(Calendar.MONTH)
+					&& startCal.get(Calendar.DAY_OF_MONTH) > endCal
+							.get(Calendar.DAY_OF_MONTH)) {
+				return new OutingInfo[0];
+				// TODO: error or something like that.
+			}
+			int[] years;
+			if (startCal.get(Calendar.YEAR) < endCal.get(Calendar.YEAR)) {
+				ArrayList<Integer> yearsList = new ArrayList<Integer>();
+				int y = startCal.get(Calendar.YEAR);
+				yearsList.add(startCal.get(Calendar.YEAR));
+				while (y < endCal.get(Calendar.YEAR)) {
+					yearsList.add(++y);
+				}
+				// Convert to int array.
+				years = new int[yearsList.size()];
+				int i = 0;
+				for (Integer yInteger : yearsList) {
+					years[i++] = yInteger.intValue();
+				}
+			} else {
+				years = new int[1];
+				years[0] = startCal.get(Calendar.YEAR);
+			}
+			// Return null if we don't yet have a table for any of these years,
+			// meaning there are no outings for that year.
+			int[] dbYears = getYears();
+			// Is a list of all the years we want and that are in the db.
+			ArrayList<Integer> validYears = new ArrayList<Integer>();
+			for (int i = 0; i < dbYears.length; i++) {
+				for (int j : years) {
+					if (j == dbYears[i]) {
+						validYears.add(dbYears[i]);
+					}
+				}
+			}
+			if (validYears.size() == 0)
+				return new OutingInfo[0];
+			// Continue
+			ArrayList<OutingInfo> array = new ArrayList<OutingInfo>();
+			try {
+
+				// start
+				for (Integer y : validYears) {
+					PreparedStatement ps = getOutingStatementSet(y.intValue())
+							.getPreparedStatement(
+									OutingStatementType.GET_OUTINGS_DATE_MEMBER_CONSTRAINED);
+
+					// startDate...
+					if (startCal.get(Calendar.YEAR) == y.intValue()) {
+						ps.setDate(1, new java.sql.Date(startDate.getTime()));
+					} else {
+						ps.setDate(1, new java.sql.Date(new GregorianCalendar(y
+								.intValue(), 1, 1).getTimeInMillis()));
+					}
+					if (endCal.get(Calendar.YEAR) == y.intValue()) {
+						ps.setDate(2, new java.sql.Date(endDate.getTime()));
+					} else {
+						ps.setDate(2, new java.sql.Date(new GregorianCalendar(y
+								.intValue(), 12, 31).getTimeInMillis()));
+					}
+					// ps.setInt(3, boat.getId());
+					ps.setInt(3, member.getId());
+					ps.setInt(4, member.getId());
+					ps.setInt(5, member.getId());
+					ps.setInt(6, member.getId());
+					ps.setInt(7, member.getId());
+					ps.setInt(8, member.getId());
+					ps.setInt(9, member.getId());
+					ps.setInt(10, member.getId());
+					ps.setInt(11, member.getId());
+					ResultSet res = ps.executeQuery();
+					// Process each Outing into an object.
+					// Note that for fields which can be null, the data is
+					// checked.
+					while (res.next()) {
+						long out_id = res.getLong("id");
+						log.verbose("Processing outing with id=" + out_id);
+						MemberInfo[] seats = new MemberInfo[8];
+						for (int i = 0; i < 8; i++) {
+							int member_id = res.getInt("rower" + (i + 1));
+							if (member_id != 0) {
+								seats[i] = getMember(member_id);
+							}
+						}
+						Date day = res.getDate("day");
+						BoatInfo boat = getBoat(res.getInt("boat"));
+						MemberInfo cox = null;
+						int coxID = res.getInt("cox");
+						if (coxID != 0) {
+							cox = getMember(coxID);
+						}
+						Date timeOut = new Date(res.getLong("time_out"));
+						Date timeIn = null;
+						long timeInL = res.getLong("time_in");
+						if (timeInL != 0) {
+							timeIn = new Date(timeInL);
+						}
+						String comment = res.getString("comment");
+						String destination = res.getString("destination");
+						int distance = res.getInt("distance");
+						array.add(new OutingInfo(out_id, day, seats, cox,
+								timeOut, timeIn, comment, destination, boat,
+								distance));
+
+					}
+					// end
+					res.close();
+				}
+			} catch (SQLException e) {
+				log.errorException(e);
+				throw new DatabaseError(rb.getString("commandError"), e);
+			}
+			log
+					.exit("OutingManager.getOutings(MemberInfo member, Date startDate, Date endDate)");
+			return array.toArray(new OutingInfo[0]);
+		}
+
+		public OutingInfo[] getOutings(MemberInfo member, BoatInfo boat,
+				Date startDate, Date endDate) {
+			log.entry("OutingManager.getOutings(" + member.getName() + ","
+					+ boat.getName() + "," + startDate.getTime() + ","
+					+ endDate.getTime() + ")");
+			Calendar startCal = new GregorianCalendar();
+			Calendar endCal = new GregorianCalendar();
+			startCal.setTime(startDate);
+			endCal.setTime(endDate);
+			// Test whether or not endDate < startDate
+			if ((startCal.get(Calendar.YEAR) > endCal.get(Calendar.YEAR))
+					|| startCal.get(Calendar.YEAR) == endCal.get(Calendar.YEAR)
+					&& startCal.get(Calendar.MONTH) > endCal
+							.get(Calendar.MONTH)
+					|| startCal.get(Calendar.YEAR) == endCal.get(Calendar.YEAR)
+					&& startCal.get(Calendar.MONTH) == endCal
+							.get(Calendar.MONTH)
+					&& startCal.get(Calendar.DAY_OF_MONTH) > endCal
+							.get(Calendar.DAY_OF_MONTH)) {
+				return new OutingInfo[0];
+				// TODO: error or something like that.
+			}
+			int[] years;
+			if (startCal.get(Calendar.YEAR) < endCal.get(Calendar.YEAR)) {
+				ArrayList<Integer> yearsList = new ArrayList<Integer>();
+				int y = startCal.get(Calendar.YEAR);
+				yearsList.add(startCal.get(Calendar.YEAR));
+				while (y < endCal.get(Calendar.YEAR)) {
+					yearsList.add(++y);
+				}
+				// Convert to int array.
+				years = new int[yearsList.size()];
+				int i = 0;
+				for (Integer yInteger : yearsList) {
+					years[i++] = yInteger.intValue();
+				}
+			} else {
+				years = new int[1];
+				years[0] = startCal.get(Calendar.YEAR);
+			}
+			// Return null if we don't yet have a table for any of these years,
+			// meaning there are no outings for that year.
+			int[] dbYears = getYears();
+			// Is a list of all the years we want and that are in the db.
+			ArrayList<Integer> validYears = new ArrayList<Integer>();
+			for (int i = 0; i < dbYears.length; i++) {
+				for (int j : years) {
+					if (j == dbYears[i]) {
+						validYears.add(dbYears[i]);
+					}
+				}
+			}
+			if (validYears.size() == 0)
+				return new OutingInfo[0];
+			// Continue
+			ArrayList<OutingInfo> array = new ArrayList<OutingInfo>();
+			try {
+
+				// start
+				for (Integer y : validYears) {
+					PreparedStatement ps = getOutingStatementSet(y.intValue())
+							.getPreparedStatement(
+									OutingStatementType.GET_OUTINGS_DATE_MEMBER_BOAT_CONSTRAINED);
+
+					// startDate...
+					if (startCal.get(Calendar.YEAR) == y.intValue()) {
+						ps.setDate(1, new java.sql.Date(startDate.getTime()));
+					} else {
+						ps.setDate(1, new java.sql.Date(new GregorianCalendar(y
+								.intValue(), 1, 1).getTimeInMillis()));
+					}
+					if (endCal.get(Calendar.YEAR) == y.intValue()) {
+						ps.setDate(2, new java.sql.Date(endDate.getTime()));
+					} else {
+						ps.setDate(2, new java.sql.Date(new GregorianCalendar(y
+								.intValue(), 12, 31).getTimeInMillis()));
+					}
+					ps.setInt(3, boat.getId());
+					ps.setInt(4, member.getId());
+					ps.setInt(5, member.getId());
+					ps.setInt(6, member.getId());
+					ps.setInt(7, member.getId());
+					ps.setInt(8, member.getId());
+					ps.setInt(9, member.getId());
+					ps.setInt(10, member.getId());
+					ps.setInt(11, member.getId());
+					ps.setInt(12, member.getId());
+					ResultSet res = ps.executeQuery();
+					// Process each Outing into an object.
+					// Note that for fields which can be null, the data is
+					// checked.
+					while (res.next()) {
+						long out_id = res.getLong("id");
+						log.verbose("Processing outing with id=" + out_id);
+						MemberInfo[] seats = new MemberInfo[8];
+						for (int i = 0; i < 8; i++) {
+							int member_id = res.getInt("rower" + (i + 1));
+							if (member_id != 0) {
+								seats[i] = getMember(member_id);
+							}
+						}
+						Date day = res.getDate("day");
+						MemberInfo cox = null;
+						int coxID = res.getInt("cox");
+						if (coxID != 0) {
+							cox = getMember(coxID);
+						}
+						Date timeOut = new Date(res.getLong("time_out"));
+						Date timeIn = null;
+						long timeInL = res.getLong("time_in");
+						if (timeInL != 0) {
+							timeIn = new Date(timeInL);
+						}
+						String comment = res.getString("comment");
+						String destination = res.getString("destination");
+						int distance = res.getInt("distance");
+						array.add(new OutingInfo(out_id, day, seats, cox,
+								timeOut, timeIn, comment, destination, boat,
+								distance));
+
+					}
+					// end
+					res.close();
+				}
+			} catch (SQLException e) {
+				log.errorException(e);
+				throw new DatabaseError(rb.getString("commandError"), e);
+			}
+			log
+					.exit("OutingManager.getOutings(MemberInfo member, BoatInfo boat, Date startDate, Date endDate)");
+			return array.toArray(new OutingInfo[0]);
+		}
+
+		public OutingInfo[] getOutings(BoatInfo boat, Date startDate,
+				Date endDate) {
+			log.entry("OutingManager.getOutings(" + startDate.getTime() + ","
+					+ endDate.getTime() + ")");
+			Calendar startCal = new GregorianCalendar();
+			Calendar endCal = new GregorianCalendar();
+			startCal.setTime(startDate);
+			endCal.setTime(endDate);
+			// Test whether or not endDate < startDate
+			if ((startCal.get(Calendar.YEAR) > endCal.get(Calendar.YEAR))
+					|| startCal.get(Calendar.YEAR) == endCal.get(Calendar.YEAR)
+					&& startCal.get(Calendar.MONTH) > endCal
+							.get(Calendar.MONTH)
+					|| startCal.get(Calendar.YEAR) == endCal.get(Calendar.YEAR)
+					&& startCal.get(Calendar.MONTH) == endCal
+							.get(Calendar.MONTH)
+					&& startCal.get(Calendar.DAY_OF_MONTH) > endCal
+							.get(Calendar.DAY_OF_MONTH)) {
+				return new OutingInfo[0];
+				// TODO: error or something like that.
+			}
+			int[] years;
+			if (startCal.get(Calendar.YEAR) < endCal.get(Calendar.YEAR)) {
+				ArrayList<Integer> yearsList = new ArrayList<Integer>();
+				int y = startCal.get(Calendar.YEAR);
+				yearsList.add(startCal.get(Calendar.YEAR));
+				while (y < endCal.get(Calendar.YEAR)) {
+					yearsList.add(++y);
+				}
+				// Convert to int array.
+				years = new int[yearsList.size()];
+				int i = 0;
+				for (Integer yInteger : yearsList) {
+					years[i++] = yInteger.intValue();
+				}
+			} else {
+				years = new int[1];
+				years[0] = startCal.get(Calendar.YEAR);
+			}
+			// Return null if we don't yet have a table for any of these years,
+			// meaning there are no outings for that year.
+			int[] dbYears = getYears();
+			// Is a list of all the years we want and that are in the db.
+			ArrayList<Integer> validYears = new ArrayList<Integer>();
+			for (int i = 0; i < dbYears.length; i++) {
+				for (int j : years) {
+					if (j == dbYears[i]) {
+						validYears.add(dbYears[i]);
+					}
+				}
+			}
+			if (validYears.size() == 0)
+				return new OutingInfo[0];
+			// Continue
+			ArrayList<OutingInfo> array = new ArrayList<OutingInfo>();
+			try {
+
+				// start
+				for (Integer y : validYears) {
+					PreparedStatement ps = getOutingStatementSet(y.intValue())
+							.getPreparedStatement(
+									OutingStatementType.GET_OUTINGS_DATE_BOAT_CONSTRAINED);
+
+					// startDate...
+					if (startCal.get(Calendar.YEAR) == y.intValue()) {
+						ps.setDate(1, new java.sql.Date(startDate.getTime()));
+					} else {
+						ps.setDate(1, new java.sql.Date(new GregorianCalendar(y
+								.intValue(), 1, 1).getTimeInMillis()));
+					}
+					if (endCal.get(Calendar.YEAR) == y.intValue()) {
+						ps.setDate(2, new java.sql.Date(endDate.getTime()));
+					} else {
+						ps.setDate(2, new java.sql.Date(new GregorianCalendar(y
+								.intValue(), 12, 31).getTimeInMillis()));
+					}
+					ps.setInt(3, boat.getId());
+					ResultSet res = ps.executeQuery();
+					// Process each Outing into an object.
+					// Note that for fields which can be null, the data is
+					// checked.
+					while (res.next()) {
+						long out_id = res.getLong("id");
+						log.verbose("Processing outing with id=" + out_id);
+						MemberInfo[] seats = new MemberInfo[8];
+						for (int i = 0; i < 8; i++) {
+							int member_id = res.getInt("rower" + (i + 1));
+							if (member_id != 0) {
+								seats[i] = getMember(member_id);
+							}
+						}
+						Date day = res.getDate("day");
+						MemberInfo cox = null;
+						int coxID = res.getInt("cox");
+						if (coxID != 0) {
+							cox = getMember(coxID);
+						}
+						Date timeOut = new Date(res.getLong("time_out"));
+						Date timeIn = null;
+						long timeInL = res.getLong("time_in");
+						if (timeInL != 0) {
+							timeIn = new Date(timeInL);
+						}
+						String comment = res.getString("comment");
+						String destination = res.getString("destination");
+						int distance = res.getInt("distance");
+						array.add(new OutingInfo(out_id, day, seats, cox,
+								timeOut, timeIn, comment, destination, boat,
+								distance));
+
+					}
+					// end
+					res.close();
+				}
+			} catch (SQLException e) {
+				log.errorException(e);
+				throw new DatabaseError(rb.getString("commandError"), e);
+			}
+			log.exit("OutingManager.getOutings(Date startDate, Date endDate)");
 			return array.toArray(new OutingInfo[0]);
 		}
 
@@ -1386,9 +1981,27 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 
 		public void modifyOuting(long id, long day, int[] rowers, int cox,
 				Date timeOut, Date timeIn, String comment, String destination,
-				int boat, int distance) {
+				int boat, int distance) throws DatabaseError {
 			log.entry("OutingManager.modifyOuting(...)");
 			log.info("Adding outing");
+			Calendar cal = new GregorianCalendar();
+			cal.setTime(new Date(day));
+			// Return null if we don't yet have a table for this year, meaning
+			// there are no outings for that year.
+			int[] years = getYears();
+			boolean foundYear = false; // Whether we have found a table for this
+			// year
+			for (int i = 0; i < years.length; i++) {
+				if (years[i] == cal.get(Calendar.YEAR)) {
+					foundYear = true;
+				}
+			}
+			// This won't actually happen since we are given a preexisting
+			// outing.
+			// if (!foundYear) {
+			// throw new InvalidDataException("There is no such outing.", null);
+			// }
+			// Test the other data.
 			if (getMember(rowers[0]) == null) {
 				throw new IllegalArgumentException("rowers[0] must be a valid"
 						+ " member");
@@ -1400,15 +2013,13 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 				throw new IllegalArgumentException("boat must be a valid "
 						+ "boat, cannot be null");
 			}
-			Calendar cal = new GregorianCalendar();
-			cal.setTime(new Date(day));
 			try {
 				PreparedStatement ps = getOutingStatementSet(
 						cal.get(GregorianCalendar.YEAR)).getPreparedStatement(
 						OutingStatementType.MODIFY_OUTING);
 				ps.setLong(16, id);
 				ps.setInt(1, rowers[0]);
-				// Go through all rowers and set to null if inexistant
+				// Go through all rowers and set to null if inexistent
 				short i;
 				for (i = 0; i < rowers.length - 1; i++) {
 					if (rowers[i + 1] != 0) {
@@ -1455,6 +2066,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 				}
 				ps.execute();
 			} catch (SQLException e) {
+				// TODO: implement a getOuting method.
 				log.errorException(e);
 				throw new DatabaseError(rb.getString("commandError"), e);
 			}
@@ -1490,6 +2102,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 				for (int i = 1; i < 10; i++) {
 					ps.setInt(i, id);
 				}
+				res.close();
 				res = ps.executeQuery();
 				log.info("Got ResultSet for that member, now processing.");
 
@@ -1497,6 +2110,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 					totalDistanceLastYear += res.getInt("distance");
 					totalOutingsLastYear++;
 				}
+				res.close();
 			} catch (SQLException e) {
 				log.errorException(e);
 				throw new DatabaseError(rb.getString("commandError"), e);
@@ -1624,6 +2238,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			while (r.next()) {
 				a.add(new Integer(r.getString("TABLE_NAME").substring(8)));
 			}
+			r.close();
 			int[] years = new int[a.size()];
 			for (int i = 0; i < a.size(); i++) {
 				years[i] = a.get(i);
@@ -1639,7 +2254,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	/* -------------------- OutingStatementSet (INTERNAL) ----------------- */
 
 	private enum OutingStatementType {
-		GET_OUTINGS, ADD_OUTING, MODIFY_OUTING, GET_MEMBER_STATISTICS
+		GET_OUTINGS, GET_OUTINGS_DATE_CONSTRAINED, GET_OUTINGS_DATE_MEMBER_BOAT_CONSTRAINED, GET_OUTINGS_DATE_MEMBER_CONSTRAINED, GET_OUTINGS_DATE_BOAT_CONSTRAINED, ADD_OUTING, MODIFY_OUTING, GET_MEMBER_STATISTICS
 	};
 
 	private class OutingStatementSet {
@@ -1652,12 +2267,16 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 
 		// The various prepared statements.
 		private PreparedStatement psGetOutings;
+		private PreparedStatement psGetOutingsDateConstrained;
+		private PreparedStatement psGetOutingsDateMemberConstrained;
+		private PreparedStatement psGetOutingsDateMemberBoatConstrained;
+		private PreparedStatement psGetOutingsDateBoatConstrained;
 		private PreparedStatement psAddOuting;
 		private PreparedStatement psModifyOuting;
 		private PreparedStatement psGetMemberStatistics;
 
 		/**
-		 * Set up an outingstatement set for a given year.
+		 * Set up an outingstatementset for a given year.
 		 * 
 		 * @param year
 		 *            The year for which the set is needed.
@@ -1667,7 +2286,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		public OutingStatementSet(Integer year,
 				Hashtable<Integer, OutingStatementSet> statementCache)
 				throws SQLException {
-			log.entry("OutingStatementSet(Integer, HashTable");
+			log.entry("OutingStatementSet(Integer, HashTable)");
 			this.year = year;
 			try {
 				log.info("Trying to create a new table for year " + year + ".");
@@ -1678,7 +2297,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 
 			} catch (SQLException e) {
 				// Just ignore. Not worrying. This means the table exists.
-				log.info("Outings table for this year already exists.");
+				log
+						.info("Outings table for this year already exists. THE FOLLOWING ERROR MESSAGE CAN BE IGNORED!");
 				log.dbe(org.grlea.log.DebugLevel.L6_VERBOSE, e);
 			} catch (IOException e) {
 				// TODO : think here.
@@ -1690,6 +2310,27 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 							.format(
 									"SELECT * FROM outings_{0} WHERE day = ? ORDER BY time_out",
 									year.toString()));
+			psGetOutingsDateConstrained = con
+					.prepareStatement(MessageFormat
+							.format(
+									"SELECT * FROM outings_{0} WHERE day >= ?AND day <= ? ORDER BY time_out",
+									year.toString()));
+			psGetOutingsDateBoatConstrained = con
+					.prepareStatement(MessageFormat
+							.format(
+									"SELECT * FROM outings_{0} WHERE day >= ?AND day <= ? AND boat = ? ORDER BY time_out",
+									year.toString()));
+			psGetOutingsDateMemberConstrained = con
+					.prepareStatement(MessageFormat
+							.format(
+									"SELECT * FROM outings_{0} WHERE day >= ?AND day <= ? AND (rower1 = ? OR rower2 = ? OR rower3 = ? OR rower4 = ? OR rower5 = ? OR rower6 = ? OR rower7 = ? OR rower8 = ? OR cox = ?) ORDER BY time_out",
+									year.toString()));
+			psGetOutingsDateMemberBoatConstrained = con
+					.prepareStatement(MessageFormat
+							.format(
+									"SELECT * FROM outings_{0} WHERE day >= ?AND day <= ? AND boat = ? AND (rower1 = ? OR rower2 = ? OR rower3 = ? OR rower4 = ? OR rower5 = ? OR rower6 = ? OR rower7 = ? OR rower8 = ? OR cox = ?) ORDER BY time_out",
+									year.toString()));
+			// TODO : check whether valid sql
 			psAddOuting = con
 					.prepareStatement(
 							MessageFormat
@@ -1727,6 +2368,14 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			updateTime();
 			if (typ == OutingStatementType.GET_OUTINGS) {
 				return psGetOutings;
+			} else if (typ == OutingStatementType.GET_OUTINGS_DATE_CONSTRAINED) {
+				return psGetOutingsDateConstrained;
+			} else if (typ == OutingStatementType.GET_OUTINGS_DATE_BOAT_CONSTRAINED) {
+				return psGetOutingsDateBoatConstrained;
+			} else if (typ == OutingStatementType.GET_OUTINGS_DATE_MEMBER_CONSTRAINED) {
+				return psGetOutingsDateMemberConstrained;
+			} else if (typ == OutingStatementType.GET_OUTINGS_DATE_MEMBER_BOAT_CONSTRAINED) {
+				return psGetOutingsDateMemberBoatConstrained;
 			} else if (typ == OutingStatementType.ADD_OUTING) {
 				return psAddOuting;
 			} else if (typ == OutingStatementType.MODIFY_OUTING) {
@@ -1734,7 +2383,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			} else if (typ == OutingStatementType.GET_MEMBER_STATISTICS) {
 				return psGetMemberStatistics;
 			}
-			return null;
+			throw new IllegalArgumentException(
+					"No such outing statement type exists.");
 		}
 
 		/**
@@ -1858,6 +2508,11 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			psModifyAdmin.setString(4, comment);
 			psModifyAdmin.setString(5, admin.getUsername());
 			psModifyAdmin.execute();
+		} catch (java.sql.SQLIntegrityConstraintViolationException e) {
+			log.error("Admin " + username + " already exists.");
+			log.dbe(org.grlea.log.DebugLevel.L6_VERBOSE, e);
+			throw new InvalidDataException(
+					"Admin with this username already exists.", e);
 		} catch (SQLException e) {
 			log.error("Error modifying admin " + admin.getUsername() + " .");
 			log.errorException(e);
@@ -1938,8 +2593,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		try {
 			if (psSetAdminPassword == null) {
 				psSetAdminPassword = con
-						.prepareStatement("UPDATE admins SET hash=?, salt=? " +
-								"where username=?");
+						.prepareStatement("UPDATE admins SET password=?, salt=? "
+								+ "where username=?");
 			}
 			// Generate a salt.
 			Random r = new Random();
@@ -1993,6 +2648,42 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			throw new DatabaseError(rb.getString("commandError"), e);
 		}
 		log.exit("removeAdmin(" + username + ")");
+	}
+
+	/**
+	 * Completely delete the database, i.e. remove the files used by the
+	 * database. Do not attempt to use the database after this, the results are
+	 * undefined.
+	 */
+	protected void delete() {
+		log.entry("delete()");
+		try {
+			con.close();
+		} catch (Exception e) {
+			log.error("Error thrown while closing connection to db:");
+			log.errorException(e);
+		}
+		delete_dir(new File("./database/srl"));
+		log.exit("delete(): deleted database.");
+	}
+
+	/**
+	 * Delete a folder. This works recursively by initially deleting all
+	 * contained files and folders.
+	 * 
+	 * @param dir
+	 *            The Folder to be deleted.
+	 */
+	private void delete_dir(File dir) {
+		for (File f : dir.listFiles()) {
+			if (f.isDirectory()) {
+				delete_dir(f);
+			} else {
+				f.delete();
+			}
+		}
+		dir.delete();
+
 	}
 
 }
