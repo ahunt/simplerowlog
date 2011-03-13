@@ -257,8 +257,11 @@ public class AdminAuthenticationDialog extends JDialog {
 					return;
 				}
 			}
+			// otherwise the login failed
 			validatedAdmin = db.getAdmin("INVALID");
 			attemptsLeft--; // One more false.
+			// Clear the password field
+			passwordEntry.setText("");
 			if (attemptsLeft == 0) {
 				setVisible(false);
 				timeout = new Timer(Integer.parseInt(conf

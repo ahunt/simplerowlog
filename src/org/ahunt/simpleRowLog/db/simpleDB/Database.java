@@ -934,7 +934,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		return null;
 	}
 
-	/* -------------------- Outings [AG+M] ----------------- */
+	/* -------------------- Outings [AG+MR] ----------------- */
 
 	/**
 	 * {@inheritDoc}
@@ -992,7 +992,7 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	}
 
 	/**
-	 * Not yet implemented.
+	 * {@inheritDoc}
 	 */
 	@Override
 	public void modifyOuting(OutingInfo outing, long created, int[] rowers,
@@ -1001,6 +1001,14 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 		outingManager.modifyOuting(outing.getId(), created, rowers, cox, out,
 				in, comment, destination, boat, distance);
 
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void removeOuting(OutingInfo outing) throws DatabaseError {
+		outingManager.removeOuting(outing);
 	}
 
 	/* -------------------- Admins [AG,G+,M,R,AUTH] ----------------- */
@@ -1307,6 +1315,32 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			// Start the cache checker.
 			new Thread(this).start();
 			log.exit("OutingManager.OutingManager()");
+		}
+
+		public void removeOuting(OutingInfo outing) throws DatabaseError {
+			log.entry("OutingManager.getOutings(...)");
+			Calendar cal = new GregorianCalendar();
+			cal.setTime(outing.getDay());
+			int[] years = getYears();
+			boolean isValidYear = false;
+			for (int i = 0; i < years.length; i++) {
+				if (years[i] == cal.get(Calendar.YEAR))
+					isValidYear = true;
+			}
+			if (!isValidYear) {
+				throw new IllegalArgumentException(
+						"Specified outing doesn't exist, and therefore can't be deleted.");
+			}
+			try {
+				Statement s = con.createStatement();
+				s.execute("DELETE FROM outings_" + cal.get(Calendar.YEAR)
+						+ " WHERE id = " + outing.getId());
+			} catch (SQLException e) {
+				log.errorException(e);
+				throw new DatabaseError(rb.getString("commandError"), e);
+			}
+			log.exit("OutingManager.removeOutings(...)");
+
 		}
 
 		public OutingInfo[] getOutings(Date date) throws DatabaseError {
@@ -2308,27 +2342,27 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 			psGetOutings = con
 					.prepareStatement(MessageFormat
 							.format(
-									"SELECT * FROM outings_{0} WHERE day = ? ORDER BY time_out",
+									"SELECT * FROM outings_{0} WHERE day = ? ORDER BY day, time_out",
 									year.toString()));
 			psGetOutingsDateConstrained = con
 					.prepareStatement(MessageFormat
 							.format(
-									"SELECT * FROM outings_{0} WHERE day >= ?AND day <= ? ORDER BY time_out",
+									"SELECT * FROM outings_{0} WHERE day >= ?AND day <= ? ORDER BY day, time_out",
 									year.toString()));
 			psGetOutingsDateBoatConstrained = con
 					.prepareStatement(MessageFormat
 							.format(
-									"SELECT * FROM outings_{0} WHERE day >= ?AND day <= ? AND boat = ? ORDER BY time_out",
+									"SELECT * FROM outings_{0} WHERE day >= ?AND day <= ? AND boat = ? ORDER BY day, time_out",
 									year.toString()));
 			psGetOutingsDateMemberConstrained = con
 					.prepareStatement(MessageFormat
 							.format(
-									"SELECT * FROM outings_{0} WHERE day >= ?AND day <= ? AND (rower1 = ? OR rower2 = ? OR rower3 = ? OR rower4 = ? OR rower5 = ? OR rower6 = ? OR rower7 = ? OR rower8 = ? OR cox = ?) ORDER BY time_out",
+									"SELECT * FROM outings_{0} WHERE day >= ?AND day <= ? AND (rower1 = ? OR rower2 = ? OR rower3 = ? OR rower4 = ? OR rower5 = ? OR rower6 = ? OR rower7 = ? OR rower8 = ? OR cox = ?) ORDER BY day, time_out",
 									year.toString()));
 			psGetOutingsDateMemberBoatConstrained = con
 					.prepareStatement(MessageFormat
 							.format(
-									"SELECT * FROM outings_{0} WHERE day >= ?AND day <= ? AND boat = ? AND (rower1 = ? OR rower2 = ? OR rower3 = ? OR rower4 = ? OR rower5 = ? OR rower6 = ? OR rower7 = ? OR rower8 = ? OR cox = ?) ORDER BY time_out",
+									"SELECT * FROM outings_{0} WHERE day >= ?AND day <= ? AND boat = ? AND (rower1 = ? OR rower2 = ? OR rower3 = ? OR rower4 = ? OR rower5 = ? OR rower6 = ? OR rower7 = ? OR rower8 = ? OR cox = ?) ORDER BY day, time_out",
 									year.toString()));
 			// TODO : check whether valid sql
 			psAddOuting = con
@@ -2578,17 +2612,8 @@ public class Database implements org.ahunt.simpleRowLog.interfaces.Database {
 	}
 
 	@Override
-	public void removeOuting(OutingInfo outing) throws DatabaseError {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
 	public void setNewAdminPassword(AdminInfo admin, char[] password)
 			throws DatabaseError {
-		// private PreparedStatement psModifyAdmin;
-		// private PreparedStatement pdSetAdminPassword;
-		// TODO Auto-generated method stub : TEST
 		log.entry("setNewAdminPassword(...)");
 		try {
 			if (psSetAdminPassword == null) {

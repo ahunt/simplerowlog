@@ -26,13 +26,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
-import java.awt.event.ContainerEvent;
-import java.awt.event.ContainerListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.FileNotFoundException;
+import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.ResourceBundle;
 
 import javax.swing.GroupLayout;
@@ -42,7 +43,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSpinner;
 import javax.swing.JTable;
 import javax.swing.LayoutStyle;
 import javax.swing.ScrollPaneConstants;
@@ -123,6 +123,7 @@ public class OutingManagementPanel extends AbstractTableModel implements
 	private JLabel filterStartDateLabel = new JLabel();
 	private JLabel filterEndDateLabel = new JLabel();
 
+	private JButton filterResetButton = new JButton();
 	private JButton filterApplyButton = new JButton();
 	private JLabel filterCurrentLabel = new JLabel();
 
@@ -273,12 +274,15 @@ public class OutingManagementPanel extends AbstractTableModel implements
 				applyFilter();
 			}
 		});
+		filterResetButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				resetFilter();
+			}
+		});
 	}
 
 	private JPanel setupFilterPanel() {
-		// TODO: border, and add to the main thing.
-		// JComboBox yearSelectionBox;
-		// JSpinner yearSelector;
 
 		filterStartDate.setDate(new Date());
 		filterEndDate.setDate(new Date());
@@ -290,7 +294,9 @@ public class OutingManagementPanel extends AbstractTableModel implements
 				.getString("outing.filter.boat"));
 		filterMemberSelectorLabel.setText(locAdmin
 				.getString("outing.filter.member"));
+
 		filterApplyButton.setText(locAdmin.getString("outing.filter.apply"));
+		filterResetButton.setText(locAdmin.getString("outing.filter.reset"));
 
 		GroupLayout l = new GroupLayout(filterPanel);
 		filterPanel.setLayout(l);
@@ -298,21 +304,21 @@ public class OutingManagementPanel extends AbstractTableModel implements
 		l.setAutoCreateContainerGaps(true);
 		l.setHorizontalGroup(l.createParallelGroup().addGroup(
 				l.createSequentialGroup().addGroup(
-						l.createParallelGroup().addGroup(
-								l.createSequentialGroup().addComponent(
-										filterBoatSelectorLabel).addComponent(
-										filterBoatSelector)).addGroup(
-								l.createSequentialGroup().addComponent(
-										filterMemberSelectorLabel)
-										.addComponent(filterMemberSelector)))
-						.addGroup(
-								l.createParallelGroup().addComponent(
-										filterStartDateLabel).addComponent(
-										filterEndDateLabel)).addGroup(
-								l.createParallelGroup().addComponent(
-										filterStartDate).addComponent(
-										filterEndDate))).addComponent(
-				filterApplyButton, GroupLayout.Alignment.TRAILING));
+						l.createParallelGroup().addComponent(
+								filterBoatSelectorLabel).addComponent(
+								filterMemberSelectorLabel)).addGroup(
+						l.createParallelGroup()
+								.addComponent(filterBoatSelector).addComponent(
+										filterMemberSelector)).addGroup(
+						l.createParallelGroup().addComponent(
+								filterStartDateLabel).addComponent(
+								filterEndDateLabel)).addGroup(
+						l.createParallelGroup().addComponent(filterStartDate)
+								.addComponent(filterEndDate))).addGroup(
+				GroupLayout.Alignment.TRAILING,
+				l.createSequentialGroup().addComponent(filterCurrentLabel)
+						.addComponent(filterResetButton).addComponent(
+								filterApplyButton)));
 		l
 				.setVerticalGroup(l
 						.createSequentialGroup()
@@ -325,14 +331,16 @@ public class OutingManagementPanel extends AbstractTableModel implements
 														.createSequentialGroup()
 														.addGroup(
 																l
-																		.createParallelGroup()
+																		.createParallelGroup(
+																				GroupLayout.Alignment.BASELINE)
 																		.addComponent(
 																				filterBoatSelectorLabel)
 																		.addComponent(
 																				filterBoatSelector))
 														.addGroup(
 																l
-																		.createParallelGroup()
+																		.createParallelGroup(
+																				GroupLayout.Alignment.BASELINE)
 																		.addComponent(
 																				filterMemberSelectorLabel)
 																		.addComponent(
@@ -357,8 +365,11 @@ public class OutingManagementPanel extends AbstractTableModel implements
 																		.addComponent(
 																				filterEndDate))))
 						.addGroup(
-								l.createParallelGroup().addComponent(
-										filterApplyButton)));
+								l.createParallelGroup(
+										GroupLayout.Alignment.BASELINE)
+										.addComponent(filterCurrentLabel)
+										.addComponent(filterResetButton)
+										.addComponent(filterApplyButton)));
 
 		// TODO: make sure to have a -- empty -- selection available.
 		return filterPanel;
@@ -485,10 +496,21 @@ public class OutingManagementPanel extends AbstractTableModel implements
 	}
 
 	/**
+	 * Resets the filter.
+	 */
+	private void resetFilter() {
+		filterBoatSelector.setSelectedIndex(0);
+		filterMemberSelector.setSelectedIndex(0);
+		filterStartDate.setDate(new Date());
+		filterEndDate.setDate(new Date());
+		applyFilter();
+	}
+
+	/**
 	 * Updates the displayed outings using the database.
 	 * 
 	 */
-	public void applyFilter() {
+	private void applyFilter() {
 		try {
 			if (filterBoatSelector.getSelectedIndex()
 					+ filterMemberSelector.getSelectedIndex() == 0) {
@@ -516,6 +538,49 @@ public class OutingManagementPanel extends AbstractTableModel implements
 		} catch (Exception e) {
 			ErrorHandler.handleError(e);
 		}
+		String boatString;
+		String memberString;
+		String dateString;
+		if (filterBoatSelector.getSelectedIndex() > 0) {
+			boatString = MessageFormat.format(locAdmin
+					.getString("outing.filter.boat_selected.true"),
+					boats[filterBoatSelector.getSelectedIndex() - 1].getName());
+		} else {
+			boatString = locAdmin
+					.getString("outing.filter.boat_selected.false");
+		}
+		if (filterMemberSelector.getSelectedIndex() > 0) {
+			memberString = MessageFormat.format(locAdmin
+					.getString("outing.filter.member_selected.true"),
+					members[filterMemberSelector.getSelectedIndex() - 1]
+							.getName());
+		} else {
+			memberString = locAdmin
+					.getString("outing.filter.member_selected.false");
+		}
+
+		Calendar startCal = new GregorianCalendar();
+		Calendar endCal = new GregorianCalendar();
+		startCal.setTime(filterStartDate.getDate());
+		endCal.setTime(filterEndDate.getDate());
+		// Test whether or not endDate < startDate
+		if ((startCal.get(Calendar.YEAR) == endCal.get(Calendar.YEAR))
+				&& (startCal.get(Calendar.MONTH) == endCal.get(Calendar.MONTH))
+				&& (startCal.get(Calendar.DAY_OF_MONTH) == endCal
+						.get(Calendar.DAY_OF_MONTH))) {
+			dateString = MessageFormat.format(locAdmin
+					.getString("outing.filter.day.one"), filterStartDate
+					.getDate());
+		} else {
+			dateString = MessageFormat.format(locAdmin
+					.getString("outing.filter.day.multiple"), filterStartDate
+					.getDate(), filterEndDate.getDate());
+		}
+		filterCurrentLabel.setText(MessageFormat.format(locAdmin
+				.getString("outing.filter.current"), boatString, memberString,
+				dateString));
+		// MessageFormat.format(locAdmin.getString(outing.filter.day.one),
+		// arguments)
 	}
 
 	/**
@@ -564,6 +629,14 @@ public class OutingManagementPanel extends AbstractTableModel implements
 				editOutingAt(outingTable.getSelectedRow());
 		} else if (arg0.getSource() == deleteOutingButton) {
 			if (outingTable.getSelectedRow() >= 0) {
+				OutingInfo toRemove = outings[outingTable.getSelectedRow()];
+				if (JOptionPane.showConfirmDialog(null, locAdmin
+						.getString("outing.delete_outing")) == JOptionPane.OK_OPTION)
+					try {
+						db.removeOuting(toRemove);
+					} catch (Exception e) {
+						// TODO: deal with the error.
+					}
 			}
 			// TODO: confirmation dialog.
 			// deleteMemberDialog.deleteMember(outings[outingTable

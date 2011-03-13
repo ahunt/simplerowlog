@@ -1,9 +1,6 @@
 simple rowLog TODO file.
 --------------_CURRENT:
 
-Delete button OMGP, Reset Button for filter
-implement currentlabel in th Outingmanagement panel.
-fix filter layout left hand side.
 
 ------------------ [HIGH PRIORITY] ---------------------------------------------
 -- Set Log level to 4 for release.
@@ -11,16 +8,6 @@ fix filter layout left hand side.
 -- getOutings hashtable caching of members: for  all.
 
 -- Implement all getOutings.
-
--- Check the listing of Outings tables in the database in the implementation.
-   Maybe add some sort of display and selection and deletion in the admin
-   panel, with additional permissions regulating its use. Also warn if the 
-   number of outings to be shown is too large.
-   
-   -- In the Admin Panel add filtering options, by default showing only todays outings,
-   but allowing sorting by week, month, up to showing an entire year. No more than
-   one years outings need be shown, load a different year table by separate selection.
-   -- Nah, actually just use a start and end date to select, making things flexible and easy to implement.
 
 -- Launcher check javadoc properties returning null string (or not).
 
