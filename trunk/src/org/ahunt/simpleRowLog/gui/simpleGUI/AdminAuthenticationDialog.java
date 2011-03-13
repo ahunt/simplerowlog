@@ -114,8 +114,10 @@ public class AdminAuthenticationDialog extends JDialog {
 		cancelButton.setText(rb.getString("admin.cancel_login"));
 		validateButton.setText(rb.getString("admin.validate_login"));
 
-		usernameEntryLabel.setText("<html><b>" + rb.getString("username") + ":</b></html>");
-		passwordEntryLabel.setText("<html><b>" + rb.getString("password") + ":</b></html>");
+		usernameEntryLabel.setText("<html><b>" + rb.getString("username")
+				+ ":</b></html>");
+		passwordEntryLabel.setText("<html><b>" + rb.getString("password")
+				+ ":</b></html>");
 
 		cancelButton.addActionListener(new ValidationListener());
 		validateButton.addActionListener(new ValidationListener());
@@ -125,7 +127,7 @@ public class AdminAuthenticationDialog extends JDialog {
 		if (attemptsLeft == -1) { // First use
 			resetAttempts();
 		}
-		updateAttempts(); // Show on screen
+		updateAttempts(false); // Show on screen
 
 		// Assemble the gui.
 		JPanel entryPanel = new JPanel();
@@ -135,29 +137,31 @@ public class AdminAuthenticationDialog extends JDialog {
 		r.setAutoCreateGaps(true);
 		r.setAutoCreateContainerGaps(true);
 		r.setVerticalGroup(
-//				r.createParallelGroup().addGroup(r.createSequentialGroup().addComponent(usernameEntryLabel).addComponent(passwordEntryLabel)).addGroup(r.createSequentialGroup().addComponent(usernameEntry).addComponent(passwordEntry))
-//				
+		// r.createParallelGroup().addGroup(r.createSequentialGroup().addComponent(usernameEntryLabel).addComponent(passwordEntryLabel)).addGroup(r.createSequentialGroup().addComponent(usernameEntry).addComponent(passwordEntry))
+				//				
 				r.createSequentialGroup().addGroup(
-				r.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(usernameEntryLabel)
-						.addComponent(usernameEntry)).addGroup(
-				r.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(passwordEntryLabel)
+						r.createParallelGroup(GroupLayout.Alignment.BASELINE)
+								.addComponent(usernameEntryLabel).addComponent(
+										usernameEntry)).addGroup(
+						r.createParallelGroup(GroupLayout.Alignment.BASELINE)
+								.addComponent(passwordEntryLabel).addComponent(
+										passwordEntry))
+
+				);
+
+		r.setHorizontalGroup(r.createSequentialGroup().addGroup(
+				r.createParallelGroup().addComponent(usernameEntryLabel)
+						.addComponent(passwordEntryLabel)).addGroup(
+				r.createParallelGroup().addComponent(usernameEntry)
 						.addComponent(passwordEntry))
-						
-		
-		);
-		
-		
-		r.setHorizontalGroup(
-			r.createSequentialGroup().addGroup(r.createParallelGroup().addComponent(usernameEntryLabel).addComponent(passwordEntryLabel)).addGroup(r.createParallelGroup().addComponent(usernameEntry).addComponent(passwordEntry))	
-				
-//				r.createParallelGroup().addGroup(
-//				r.createSequentialGroup().addComponent(usernameEntryLabel)
-//						.addComponent(usernameEntry)).addGroup(
-//				r.createSequentialGroup().addComponent(passwordEntryLabel)
-//						.addComponent(passwordEntry))
-						
-		
-		);
+
+		// r.createParallelGroup().addGroup(
+				// r.createSequentialGroup().addComponent(usernameEntryLabel)
+				// .addComponent(usernameEntry)).addGroup(
+				// r.createSequentialGroup().addComponent(passwordEntryLabel)
+				// .addComponent(passwordEntry))
+
+				);
 
 		GroupLayout l = new GroupLayout(getContentPane());
 		getContentPane().setLayout(l);
@@ -190,10 +194,16 @@ public class AdminAuthenticationDialog extends JDialog {
 	/**
 	 * Update the label showing the number of login attempts allowed.
 	 */
-	private void updateAttempts() {
-		if (attemptsLeft > 0) {
-			attemptsLeftLabel.setText(MessageFormat.format(rb
-					.getString("admin.attempts_remaining"), attemptsLeft));
+	private void updateAttempts(boolean lastLoginFailed) {
+		if (lastLoginFailed) {
+			attemptsLeftLabel.setText(MessageFormat.format("<html><font color=red>"
+					+ rb.getString("admin.login_failed") + "</font><br/>"
+					+ rb.getString("admin.attempts_remaining"), attemptsLeft)
+					+ "</html>");
+		} else if (attemptsLeft > 0) {
+			attemptsLeftLabel.setText(MessageFormat.format("<html><br/>"
+					+ rb.getString("admin.attempts_remaining"), attemptsLeft)
+					+ "</html>");
 		}
 	}
 
@@ -276,7 +286,7 @@ public class AdminAuthenticationDialog extends JDialog {
 				// Then count the time.
 				timeout.start();
 			}
-			updateAttempts();
+			updateAttempts(true);
 		}
 
 	}

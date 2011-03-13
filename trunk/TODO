@@ -5,9 +5,6 @@ simple rowLog TODO file.
 ------------------ [HIGH PRIORITY] ---------------------------------------------
 -- Set Log level to 4 for release.
 -- Implement the permissions.
--- getOutings hashtable caching of members: for  all.
-
--- Implement all getOutings.
 
 -- Launcher check javadoc properties returning null string (or not).
 
@@ -17,9 +14,6 @@ simple rowLog TODO file.
 
 -- Finish the db: implement deletion of items, rearrange order as necessary.
 (Done: Boat, Member) (TODO: Outing, Group)
-
--- Initial LAF: javax.swing.UIManager.getSystemLookAndFeelClassName()
-(Add initial configurator)
 
 -- Statistics: rower with most km, comparison, etc.
 
@@ -36,8 +30,6 @@ simple rowLog TODO file.
 
 -- Auto backup tool for db and settings.
 
--- Logging of everything on the db.
-
 ------------------ [LOW PRIORITY] ----------------------------------------------
 -- Build in some sort of system for hard compiling the default language files,
     so that srl can run without them if necessary/damaged/missing.
@@ -46,26 +38,16 @@ simple rowLog TODO file.
 
 -- Tooltips for info in the admin dialog.
 
--- Admin Dialog global shortcuts, to add, edit member and outings and boats
-   from any location.
-
 -- Change listeners in config panels where necessary, and then change the apply button.
-
--- Verify that the test classes AREN'T included in the ant jar command.
 
 -- ErrorHandler for all the program, with a command line version implemented.
 
 -- Tell the admin / person logging in if they have failed an attempt, by displaying
     a red text at the top of the dialog, similarly to kde unlock dialogs.
-
--- In the database, for all getGroups etc, extract data directly from one request
-    (instead of simply getting ids, then single groups).
     
 -- Security log.
 
 -- Groups Colour.
-    
--- Error cleaning on opening of database.
 
 -- Outingdialog: capability to directly add new members (with probability of name
     being a real name.).
