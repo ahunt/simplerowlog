@@ -19,7 +19,7 @@
  *	Changelog:
  *	07/08/2010:	Created on the basis of EditMemberDialog.
  */
-package org.ahunt.simpleRowLog.gui.admin;
+package org.ahunt.simpleRowLog.admin;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -51,7 +51,7 @@ import javax.swing.LayoutStyle;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 
-import org.ahunt.simpleRowLog.common.AdminInfo;
+import org.ahunt.simpleRowLog.common.BoatInfo;
 import org.ahunt.simpleRowLog.common.InvalidDataException;
 import org.ahunt.simpleRowLog.common.ErrorHandler;
 import org.ahunt.simpleRowLog.common.GroupInfo;
@@ -67,7 +67,7 @@ import com.toedter.calendar.JDateChooser;
  * @author Andrzej JR Hunt
  * 
  */
-public class EditGroupDialog extends JDialog {
+public class EditBoatDialog extends JDialog {
 
 	/**
 	 * 
@@ -83,7 +83,6 @@ public class EditGroupDialog extends JDialog {
 	private Database db;
 	private Configuration conf;
 
-	private int createdGroupId;
 	/**
 	 * Localisation data.
 	 */
@@ -96,27 +95,26 @@ public class EditGroupDialog extends JDialog {
 	private JLabel nameEntryLabel = new JLabel();
 	private JTextField nameEntry = new JTextField(32);
 
-	private JLabel descriptionEntryLabel = new JLabel();
-	private JTextArea descriptionEntry = new JTextArea(2, 32);
+	private JLabel typeEntryLabel = new JLabel();
+	private JTextArea typeEntry = new JTextArea(2, 32);
 
-	private JLabel defaultCheckBoxLabel = new JLabel();
-	private JCheckBox defaultCheckBox = new JCheckBox();
+	private JLabel inHouseCheckBoxLabel = new JLabel();
+	private JCheckBox inHouseCheckBox = new JCheckBox();
 
-	private JLabel colourSelectorLabel = new JLabel();
-	private JColorChooser colourSelector = new JColorChooser();
+	private JButton deleteBoatButton = new JButton();
 
 	private JButton cancelButton = new JButton();
 	private JButton saveButton = new JButton();
 
-	// The current member being modified (if applicable).
-	private GroupInfo group;
+	// The current boat being modified (if applicable).
+	private BoatInfo boat;
 
 	private AdminInfo admin;
 
 	/**
 	 * Create and show a new AddMemberDialog.
 	 */
-	public EditGroupDialog(Database db, AdminInfo admin) {
+	public EditBoatDialog(Database db, AdminInfo admin) {
 		super();
 		this.db = db;
 		this.admin = admin;
@@ -143,6 +141,7 @@ public class EditGroupDialog extends JDialog {
 		ButtonListener bl = new ButtonListener();
 		cancelButton.addActionListener(bl);
 		saveButton.addActionListener(bl);
+		deleteBoatButton.addActionListener(bl);
 		this.getRootPane().setDefaultButton(saveButton);
 	}
 
@@ -171,40 +170,22 @@ public class EditGroupDialog extends JDialog {
 		r.setHorizontalGroup(r.createSequentialGroup().addGroup(
 				r.createParallelGroup(GroupLayout.Alignment.TRAILING)
 						.addComponent(nameEntryLabel).addComponent(
-								descriptionEntryLabel).addComponent(
-								defaultCheckBoxLabel).addComponent(
-								colourSelectorLabel)).addGroup(
+								typeEntryLabel).addComponent(
+								inHouseCheckBoxLabel)).addGroup(
 				r.createParallelGroup().addComponent(nameEntry).addComponent(
-						descriptionEntry).addComponent(defaultCheckBox)
-						.addComponent(colourSelector)));
+						typeEntry).addComponent(inHouseCheckBox).addComponent(
+						deleteBoatButton, GroupLayout.Alignment.TRAILING)));
 		r.setVerticalGroup(r.createSequentialGroup().addGroup(
 				r.createParallelGroup().addComponent(nameEntryLabel)
 						.addComponent(nameEntry)).addGroup(
-				r.createParallelGroup().addComponent(descriptionEntryLabel)
-						.addComponent(descriptionEntry)).addGroup(
-				r.createParallelGroup().addComponent(defaultCheckBoxLabel)
-						.addComponent(defaultCheckBox)).addGroup(
-				r.createParallelGroup().addComponent(colourSelectorLabel)
-						.addComponent(colourSelector)));
-	}
+				r.createParallelGroup().addComponent(typeEntryLabel)
+						.addComponent(typeEntry)).addGroup(
+				r.createParallelGroup().addComponent(inHouseCheckBoxLabel)
+						.addComponent(inHouseCheckBox)).addComponent(
+				deleteBoatButton)
 
-	// /**
-	// * Set up the group selector by placing all relevant choices in it.
-	// */
-	// private void setupGroupSelector() {
-	// groupSelector.removeAllItems();
-	// groups = db.getGroups();
-	// GroupInfo defaultGroup = db.getDefaultGroup();
-	// int defaultSelectionPosition = 0;
-	// String[] groupNames = new String[groups.length];
-	// for (int i = 0; i < groups.length; i++) {
-	// groupNames[i] = groups[i].getName();
-	// groupSelector.addItem(groups[i].getName());
-	// if (groups[i] == defaultGroup)
-	// defaultSelectionPosition = i;
-	// }
-	// groupSelector.setSelectedIndex(defaultSelectionPosition);
-	// }
+		);
+	}
 
 	/**
 	 * 
@@ -213,32 +194,23 @@ public class EditGroupDialog extends JDialog {
 	 * @return The id for the new member, or 0 if the dialog was cancelled or
 	 *         otherwise failed.
 	 */
-	public int addGroup() {
+	public void addBoat() {
 		// setupGroupSelector();
 		mode = DIALOG_MODE.ADD;
-		group = null;
+		boat = null;
 
-		setTitle(loc.getString("group.add"));
-		createdGroupId = 0;
+		setTitle(loc.getString("boat.add"));
+
+		deleteBoatButton.setVisible(false);
 
 		updateLocalisation();
 		this.pack();
 		this.setResizable(false);
 
 		nameEntry.setText("");
-		descriptionEntry.setText("");
-		defaultCheckBox.setSelected(false);
-		colourSelector.setColor(Color.BLACK);
+		typeEntry.setText("");
+		inHouseCheckBox.setSelected(true);
 
-		// Even if admin can add, this doesn't mean they can affect other
-		// groups.
-		if (admin.getPermissionList().isPermissionSet("group_list.modify")) {
-			defaultCheckBox.setEnabled(true);
-			defaultCheckBoxLabel.setEnabled(true);
-		} else {
-			defaultCheckBox.setEnabled(false);
-			defaultCheckBoxLabel.setEnabled(false);
-		}
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		setLocation(screenSize.width / 2 - this.getSize().width / 2,
 				screenSize.height / 2 - this.getSize().height / 2);
@@ -246,36 +218,29 @@ public class EditGroupDialog extends JDialog {
 		setVisible(true);
 
 		this.setResizable(true);
-		return createdGroupId;
 	}
 
-	public void editGroup(GroupInfo group) {
+	public void editBoat(BoatInfo boat) {
 		// setupGroupSelector();
-		this.group = group;
+		this.boat = boat;
 		mode = DIALOG_MODE.EDIT;
-		setTitle(loc.getString("group.edit"));
+		setTitle(loc.getString("boat.edit"));
 
+		deleteBoatButton.setVisible(true);
+		if (boat.getId() == Database.OTHER_BOAT_ID) {
+			deleteBoatButton.setEnabled(false);
+		} else {
+			deleteBoatButton.setEnabled(true);
+		}
+		
 		updateLocalisation();
 		this.pack();
 		this.setResizable(false);
 
-		nameEntry.setText(group.getName());
-		descriptionEntry.setText(group.getDescription());
-		defaultCheckBox.setSelected(group.isDefault());
-		colourSelector.setColor(group.getDisplayColour());
-		// for (int i = 0; i < groups.length; i++) {
-		// if (group.getGroupInfo().getId() == groups[i].getId()) {
-		// groupSelector.setSelectedIndex(i);
-		// }
-		// }
+		nameEntry.setText(boat.getName());
+		typeEntry.setText(boat.getType());
+		inHouseCheckBox.setSelected(boat.inHouse());
 
-		if (group.isDefault()) {
-			defaultCheckBox.setEnabled(false);
-			defaultCheckBoxLabel.setEnabled(false);
-		} else {
-			defaultCheckBox.setEnabled(true);
-			defaultCheckBoxLabel.setEnabled(true);
-		}
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		setLocation(screenSize.width / 2 - this.getSize().width / 2,
 				screenSize.height / 2 - this.getSize().height / 2);
@@ -287,13 +252,12 @@ public class EditGroupDialog extends JDialog {
 
 	public void updateLocalisation() {
 
-		entryPanelBorder.setTitle(loc.getString("group.add.entryframe"));
+		entryPanelBorder.setTitle(loc.getString("boat.add.entryframe"));
 
-		nameEntryLabel.setText(locCommon.getString("group_name") + ":");
-		descriptionEntryLabel.setText(locCommon.getString("group_description")
-				+ ":");
-		defaultCheckBox.setText(loc.getString("group.set_as_default"));
-		colourSelectorLabel.setText(loc.getString("group.colour") + ":");
+		nameEntryLabel.setText(loc.getString("boat.name") + ":");
+		typeEntryLabel.setText(loc.getString("boat.type") + ":");
+		inHouseCheckBox.setText(loc.getString("boat.in_house"));
+		deleteBoatButton.setText(loc.getString("boat.delete"));
 
 		cancelButton.setText(locCommon.getString("cancel"));
 		saveButton.setText(locCommon.getString("save"));
@@ -303,13 +267,11 @@ public class EditGroupDialog extends JDialog {
 
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
-			// Check that all required details are filled in or warn.
 			if (arg0.getSource() == saveButton) {
-				if (nameEntry.getText().length() == 0
-						|| colourSelector.getColor() == null) {
+				if (nameEntry.getText().length() == 0) {
 					JOptionPane.showMessageDialog(null, loc
-							.getString("group.add.missing_details"), loc
-							.getString("group.add.missing_details.title"),
+							.getString("boat.add.no_name"), loc
+							.getString("boat.add.no_name.title"),
 							JOptionPane.WARNING_MESSAGE);
 					return;
 				}
@@ -322,14 +284,8 @@ public class EditGroupDialog extends JDialog {
 				// forename = Util.capitaliseName(forename);
 				// TODO: listener for fields.
 				try {
-					createdGroupId = db.addGroup(nameEntry.getText(),
-							descriptionEntry.getText(), colourSelector
-									.getColor(), defaultCheckBox.isSelected());
-
-					// Member(surnameEntry.getText(),
-					// forenameEntry.getText(), dobEntry.getDate(),
-					// groups[groupSelector.getSelectedIndex()].getId());
-					// Dialog stating success?
+					db.addBoat(nameEntry.getText(), typeEntry.getText(),
+							inHouseCheckBox.isSelected());
 					setVisible(false);
 				} catch (Exception e) {
 					// TODO: process, check that the exceptions can be thrown in
@@ -367,14 +323,8 @@ public class EditGroupDialog extends JDialog {
 				// forename = Util.capitaliseName(forename);
 				// TODO: listener for fields.
 				try {
-					db.modifyGroup(group, nameEntry.getText(), descriptionEntry
-							.getText(), colourSelector.getColor(),
-							defaultCheckBox.isSelected());
-
-					// modifyMember(group.getKey(), surnameEntry.getText(),
-					// forenameEntry.getText(), dobEntry.getDate(),
-					// groups[groupSelector.getSelectedIndex()].getId());
-					// Dialog stating success?
+					db.modifyBoat(boat, nameEntry.getText(), typeEntry
+							.getText(), inHouseCheckBox.isSelected());
 					setVisible(false);
 				} catch (Exception e) {
 					// TODO: check that this can be thrown etc. and process:
@@ -406,6 +356,10 @@ public class EditGroupDialog extends JDialog {
 					// .getString("member.add.exists.title"),
 					// JOptionPane.ERROR_MESSAGE);
 				}
+			} else if (arg0.getSource() == deleteBoatButton
+					&& mode == DIALOG_MODE.EDIT) {
+				if (new DeleteBoatDialog(db).deleteBoat(boat))
+					setVisible(false);
 			}
 
 		}

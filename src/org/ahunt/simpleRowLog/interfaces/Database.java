@@ -40,6 +40,7 @@ import java.util.Date;
 import java.lang.IllegalArgumentException;
 
 import org.ahunt.simpleRowLog.common.*;
+import org.ahunt.simpleRowLog.admin.AdminInfo;
 
 /**
  * The interface to connect to database engines used in simple rowLog. This

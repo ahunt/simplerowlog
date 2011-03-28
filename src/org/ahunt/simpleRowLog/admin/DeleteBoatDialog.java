@@ -19,7 +19,7 @@
  *	Changelog:
  *	04/10/2010:	Created on the basis of DeleteMemberDialog.
  */
-package org.ahunt.simpleRowLog.gui.admin;
+package org.ahunt.simpleRowLog.admin;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -40,7 +40,6 @@ import javax.swing.LayoutStyle;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 
-import org.ahunt.simpleRowLog.common.AdminInfo;
 import org.ahunt.simpleRowLog.common.BoatInfo;
 import org.ahunt.simpleRowLog.common.ErrorHandler;
 import org.ahunt.simpleRowLog.common.MemberInfo;

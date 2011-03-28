@@ -51,8 +51,6 @@ import java.util.Hashtable;
 import java.util.Random;
 import java.util.ResourceBundle;
 
-import org.ahunt.simpleRowLog.common.AdminInfo;
-import org.ahunt.simpleRowLog.common.AdminPermissionList;
 import org.ahunt.simpleRowLog.common.BoatInfo;
 import org.ahunt.simpleRowLog.common.BoatStatistic;
 import org.ahunt.simpleRowLog.common.DatabaseError;
@@ -62,6 +60,8 @@ import org.ahunt.simpleRowLog.common.GroupStatistic;
 import org.ahunt.simpleRowLog.common.MemberInfo;
 import org.ahunt.simpleRowLog.common.MemberStatistic;
 import org.ahunt.simpleRowLog.common.OutingInfo;
+import org.ahunt.simpleRowLog.admin.AdminInfo;
+import org.ahunt.simpleRowLog.admin.AdminPermissionList;
 
 import org.grlea.log.SimpleLogger;
 

@@ -17,20 +17,18 @@
  *
  *
  *	Changelog:
- *	01/12/2010: Create, based on MemberManagementPanel.
+ *	06/08/2010:	Created.
  */
-package org.ahunt.simpleRowLog.gui.admin;
+package org.ahunt.simpleRowLog.admin;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.text.MessageFormat;
 import java.util.ResourceBundle;
 
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -38,26 +36,24 @@ import javax.swing.LayoutStyle;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.table.AbstractTableModel;
 
-import org.ahunt.simpleRowLog.common.AdminInfo;
 import org.ahunt.simpleRowLog.common.ErrorHandler;
+import org.ahunt.simpleRowLog.common.MemberInfo;
 import org.ahunt.simpleRowLog.interfaces.Database;
 
 /**
- * Panel allowing access to the list of admins. Depending on the permissions the
- * administrator has, they may either be able to only view the names (and
- * database id) of admins, or also add, modify and delete admins, or view their
- * other details (permissions). (Check the manual under Administrator
- * Permissions for specific information on the permissions.) Before calling this
- * panel the code should check whether the permission <code>admin_list</code> is
- * set.
+ * Panel allowing access to the list of members. Depending on the permissions
+ * the administrator has, they may either be able to only view the names (and
+ * database id) of, and add members, or also modify and delete members, or view
+ * their other details (date of birth and group). (Check the manual under
+ * Administrator Permissions for specific information on the permissions.)
+ * Before calling this panel the code should check whether the permission
+ * <code>member_list</code> is set.
  * 
  * @author Andrzej JR Hunt
  * 
  */
-public class AdminManagementPanel extends AbstractTableModel implements
+public class MemberManagementPanel extends AbstractTableModel implements
 		ConfigPanelInterface, MouseListener, ActionListener {
-
-	// TODO: add a make root button?
 
 	/** serialVersionUID */
 	private static final long serialVersionUID = 1L;
@@ -76,29 +72,32 @@ public class AdminManagementPanel extends AbstractTableModel implements
 	private Database db;
 
 	/**
-	 * The list of admins currently in the database. Is updated after any
+	 * The list of members currently in the database. Is updated after any
 	 * changes. Use this to access any data as opposed to requesting from the
 	 * database.
 	 */
-	private AdminInfo[] admins;
+	private MemberInfo[] members;
 
 	/** The panel containing all the graphical components. */
 	private JPanel displayPanel = new JPanel();
 
-	private JButton addAdminButton = new JButton();
-	private JButton editAdminButton = new JButton();
-	private JButton deleteAdminButton = new JButton();
+	private JButton addMemberButton = new JButton();
+	private JButton editMemberButton = new JButton();
+	private JButton deleteMemberButton = new JButton();
 
-	/** Table displaying the list of admins. */
-	private JTable adminTable;
-	private JScrollPane adminTablePane;
+	/** Table displaying the list of members. */
+	private JTable memberTable;
+	private JScrollPane memberTablePane;
 
-	/** Dialog allowing editing of admins. */
-	private EditAdminDialog adminDialog;
+	/** Dialog allowing editing of members. */
+	private EditMemberDialog memberDialog;
+
+	/** Dialog allowing deletion of members. */
+	private DeleteMemberDialog deleteMemberDialog;
 
 	/**
-	 * Create the AdminManagementPanel, allowing access to and modification of
-	 * the list of admin currently in the database.
+	 * Create the MemberManagementPanel, allowing access to and modification of
+	 * the list of members currently in the database.
 	 * 
 	 * @param db
 	 *            The database to be used.
@@ -106,48 +105,49 @@ public class AdminManagementPanel extends AbstractTableModel implements
 	 *            The current administrator accessing the panel (used to
 	 *            determine permissions).
 	 */
-	public AdminManagementPanel(Database db, AdminInfo admin) {
+	public MemberManagementPanel(Database db, AdminInfo admin) {
 		super();
 		this.db = db;
 		this.admin = admin;
-		
+
 		// Setup the editing dialog (used throughout)
-		adminDialog = new EditAdminDialog(db);
+		memberDialog = new EditMemberDialog(db);
+		deleteMemberDialog = new DeleteMemberDialog(db);
 
-		adminTable = new JTable(this);
-		adminTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+		memberTable = new JTable(this);
+		memberTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 
-		adminTablePane = new JScrollPane(adminTable);
-		adminTablePane
+		memberTablePane = new JScrollPane(memberTable);
+		memberTablePane
 				.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-		adminTablePane
+		memberTablePane
 				.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
 		// Listeners to detect when someone wants to edit (for double clicks on
 		// table).
-		adminTable.addMouseListener(this);
-		adminTablePane.addMouseListener(this);
+		memberTable.addMouseListener(this);
+		memberTablePane.addMouseListener(this);
 
 		// Setup the display
-		addAdminButton.setText(loc.getString("admin.add"));
-		editAdminButton.setText(loc.getString("admin.edit"));
-		deleteAdminButton.setText(loc.getString("admin.delete"));
+		addMemberButton.setText(loc.getString("member.add"));
+		editMemberButton.setText(loc.getString("member.edit"));
+		deleteMemberButton.setText(loc.getString("member.delete"));
 
 		// Listeners for the buttons
-		addAdminButton.addActionListener(this);
-		editAdminButton.addActionListener(this);
-		deleteAdminButton.addActionListener(this);
+		addMemberButton.addActionListener(this);
+		editMemberButton.addActionListener(this);
+		deleteMemberButton.addActionListener(this);
 
 		// Disable functions this admin can't use.
-		if (admin.getPermissionList().isPermissionSet("admin_list.modify")) {
-			editAdminButton.setEnabled(true);
+		if (admin.getPermissionList().isPermissionSet("member_list.modify")) {
+			editMemberButton.setEnabled(true);
 		} else {
-			editAdminButton.setEnabled(false);
+			editMemberButton.setEnabled(false);
 		}
-		if (admin.getPermissionList().isPermissionSet("admin_list.remove")) {
-			deleteAdminButton.setEnabled(true);
+		if (admin.getPermissionList().isPermissionSet("member_list.remove")) {
+			deleteMemberButton.setEnabled(true);
 		} else {
-			deleteAdminButton.setEnabled(false);
+			deleteMemberButton.setEnabled(false);
 		}
 
 		// Layouting
@@ -156,37 +156,37 @@ public class AdminManagementPanel extends AbstractTableModel implements
 		l.setAutoCreateGaps(true);
 		l.setAutoCreateContainerGaps(true);
 		l.setVerticalGroup(l.createSequentialGroup().addComponent(
-				adminTablePane).addGroup(
-				l.createParallelGroup().addComponent(addAdminButton)
-						.addComponent(editAdminButton).addComponent(
-								deleteAdminButton)));
+				memberTablePane).addGroup(
+				l.createParallelGroup().addComponent(addMemberButton)
+						.addComponent(editMemberButton).addComponent(
+								deleteMemberButton)));
 		l.setHorizontalGroup(l.createParallelGroup().addComponent(
-				adminTablePane).addGroup(
+				memberTablePane).addGroup(
 				l.createSequentialGroup().addPreferredGap(
 						LayoutStyle.ComponentPlacement.RELATED,
 						GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-						.addComponent(addAdminButton).addComponent(
-								editAdminButton)
-						.addComponent(deleteAdminButton)));
+						.addComponent(addMemberButton).addComponent(
+								editMemberButton).addComponent(
+								deleteMemberButton)));
 		// Get the data loaded in from the db.
-		updateAdmins();
+		updateMembers();
 	}
 
 	/**
 	 * The columns in the table.
 	 */
-	private String[] columnNames = { loc.getString("admin.username"),
-			locCommon.getString("name"), loc.getString("admin.isRoot"),
-			loc.getString("admin.comment") };
+	private String[] columnNames = { loc.getString("member.id"),
+			locCommon.getString("name"), locCommon.getString("dob"),
+			locCommon.getString("group") };
 
 	/**
 	 * {@inheritDoc}
 	 */
 	public int getColumnCount() {
-		// No details on admins if not allowed, i.e only show username,
-		// root and name columns.
-		if (!admin.getPermissionList().isPermissionSet("admin_list.details"))
-			return 3;
+		// No details on members if not allowed, i.e only show id and name
+		// columns.
+		if (!admin.getPermissionList().isPermissionSet("member_list.details"))
+			return 2;
 		return columnNames.length;
 	}
 
@@ -201,21 +201,21 @@ public class AdminManagementPanel extends AbstractTableModel implements
 	 * {@inheritDoc}
 	 */
 	public int getRowCount() {
-		return admins.length;
+		return members.length;
 	}
 
 	/**
-	 * Edit the admin in a specific row by calling the EditAdminDialog. Only
+	 * Edit the member in a specific row by calling the EditMemberDialog. Only
 	 * works if the current admin has the required permissions.
 	 * 
 	 * @param row
-	 *            The row in which the admin is on the table.
+	 *            The row in which the member is on the table.
 	 */
-	private void editAdminAt(int row) {
+	private void editMemberAt(int row) {
 		// Exit if not allowed.
-		if (!admin.getPermissionList().isPermissionSet("admin_list.modify"))
+		if (!admin.getPermissionList().isPermissionSet("member_list.modify"))
 			return;
-		adminDialog.editAdmin(admins[row], admin);
+		memberDialog.editMember(members[row]);
 	}
 
 	/**
@@ -224,13 +224,13 @@ public class AdminManagementPanel extends AbstractTableModel implements
 	public Object getValueAt(int row, int col) {
 		switch (col) {
 		case 0:
-			return admins[row].getUsername();
+			return members[row].getId();
 		case 1:
-			return admins[row].getName();
+			return members[row].getName();
 		case 2:
-			return admins[row].isRoot();
+			return members[row].getDob();
 		case 3:
-			return admins[row].getComment();
+			return members[row].getGroupInfo().getName();
 		default:
 			return null;
 		}
@@ -240,9 +240,9 @@ public class AdminManagementPanel extends AbstractTableModel implements
 	 * Updates the displayed outings using the database.
 	 * 
 	 */
-	public void updateAdmins() {
+	public void updateMembers() {
 		try {
-			admins = db.getAdmins();
+			members = db.getMembers();
 			fireTableDataChanged();
 		} catch (Exception e) {
 			ErrorHandler.handleError(e);
@@ -254,9 +254,7 @@ public class AdminManagementPanel extends AbstractTableModel implements
 	 */
 	@Override
 	public void apply() {
-		// We don't need to do anything here since everything "autosaves".
-		// Insert a philosophical discussion on autosave, and implied save, and
-		// [...] here...
+		// We don't need to do anything here since everything autosaves.
 	}
 
 	/**
@@ -267,13 +265,13 @@ public class AdminManagementPanel extends AbstractTableModel implements
 		if (arg0.getClickCount() != 2) {
 			return; // Return unless we have a double click
 		}
-		if (arg0.getSource() == adminTablePane) { // A click on blank area
-			adminDialog.addAdmin(admin);
-		} else if (arg0.getSource() == adminTable) {
-			if (adminTable.getSelectedRow() >= 0)
-				editAdminAt(adminTable.getSelectedRow());
+		if (arg0.getSource() == memberTablePane) { // A click on blank area
+			memberDialog.addMember();
+		} else if (arg0.getSource() == memberTable) {
+			if (memberTable.getSelectedRow() >= 0)
+				editMemberAt(memberTable.getSelectedRow());
 		}
-		updateAdmins();
+		updateMembers();
 
 	}
 
@@ -290,25 +288,17 @@ public class AdminManagementPanel extends AbstractTableModel implements
 	 */
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
-		if (arg0.getSource() == addAdminButton) {
-			adminDialog.addAdmin(admin);
-		} else if (arg0.getSource() == editAdminButton) {
-			if (adminTable.getSelectedRow() >= 0)
-				editAdminAt(adminTable.getSelectedRow());
-		} else if (arg0.getSource() == deleteAdminButton) {
-			if (adminTable.getSelectedRow() >= 0) {
-				AdminInfo toRemove = admins[adminTable.getSelectedRow()];
-				if (JOptionPane.showConfirmDialog(null, MessageFormat.format(
-						loc.getString("admin.deleteAdmin"),
-						toRemove.getUsername(), toRemove.getName())) == JOptionPane.OK_OPTION)
-					try {
-						db.removeAdmin(toRemove.getUsername());
-					} catch (Exception e) {
-						// TODO: deal with the error.
-					}
-			}
+		if (arg0.getSource() == addMemberButton) {
+			memberDialog.addMember();
+		} else if (arg0.getSource() == editMemberButton) {
+			if (memberTable.getSelectedRow() >= 0)
+				editMemberAt(memberTable.getSelectedRow());
+		} else if (arg0.getSource() == deleteMemberButton) {
+			if (memberTable.getSelectedRow() >= 0)
+				deleteMemberDialog.deleteMember(members[memberTable
+						.getSelectedRow()]);
 		}
-		updateAdmins();
+		updateMembers();
 	}
 
 	/**
@@ -341,7 +331,7 @@ public class AdminManagementPanel extends AbstractTableModel implements
 
 	@Override
 	public String getName() {
-		return loc.getString("dialog.conf.edit_admins.title");
+		return loc.getString("dialog.conf.edit_members.title");
 	}
 
 }

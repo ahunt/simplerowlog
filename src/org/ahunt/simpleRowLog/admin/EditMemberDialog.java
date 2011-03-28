@@ -19,7 +19,7 @@
  *	Changelog:
  *	06/08/2010:	Created on the basis of AddMemberDialog.
  */
-package org.ahunt.simpleRowLog.gui.admin;
+package org.ahunt.simpleRowLog.admin;
 
 import java.awt.Color;
 import java.awt.Dimension;

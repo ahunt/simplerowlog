@@ -19,7 +19,7 @@
  *	Changelog:
  *	06/08/2010:	Created.
  */
-package org.ahunt.simpleRowLog.gui.admin;
+package org.ahunt.simpleRowLog.admin;
 
 import javax.swing.JPanel;
 

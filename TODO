@@ -1,7 +1,9 @@
 simple rowLog TODO file.
 --------------_CURRENT:
+Implement admin permission editing: finish the dialog, add editing in the Edit
+Admin Dialog, and in the AdminPanel
 
-
+Check whether the html formatting messes things up.
 ------------------ [HIGH PRIORITY] ---------------------------------------------
 -- Set Log level to 4 for release.
 -- Implement the permissions.
@@ -29,6 +31,8 @@ simple rowLog TODO file.
 -- Documentation: incorporate into packaging.
 
 -- Auto backup tool for db and settings.
+
+-- Add change listeners in all relevant dialogs, linked to the apply buttons of said dialogs.
 
 ------------------ [LOW PRIORITY] ----------------------------------------------
 -- Build in some sort of system for hard compiling the default language files,
@@ -97,9 +101,10 @@ update once the user has stopped changing the date.
    Mention this in the install instructions.
    
 -- Filter boats by type.
+
 --------------------------------------------------------------------------------
 Code cleaning and documentation:
 --------------------------------
 DONE:
-org.ahunt.simpleRowLog.gui.admin.BoatManagementPanel
-org.ahunt.simpleRowLog.gui.admin.MemberManagementPanel      
+org.ahunt.simpleRowLog.admin.BoatManagementPanel
+org.ahunt.simpleRowLog.admin.MemberManagementPanel      
