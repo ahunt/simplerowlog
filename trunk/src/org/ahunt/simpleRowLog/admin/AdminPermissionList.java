@@ -19,7 +19,7 @@
  *	Changelog:
  *  10/03/2010: Created.
  */
-package org.ahunt.simpleRowLog.common;
+package org.ahunt.simpleRowLog.admin;
 
 import java.util.ArrayList;
 
@@ -33,6 +33,17 @@ import java.util.ArrayList;
  */
 public abstract class AdminPermissionList {
 
+	/**
+	 * A list of all the possible permissions.
+	 */
+	static protected String[] permissions = { "config_main", "can_do_shutdown",
+			"admin_list", "admin_list.details", "admin_list.modify",
+			"member_list", "member_list.details", "member_list.modify",
+			"member_list.remove", "group_list", "group_list.modify",
+			"group_list.remove", "boat_list", "boat_list.modify",
+			"boat_list.remove", "outings_list", "outings_list.add",
+			"outings_list.modify", "outings_list.remove"};
+
 	private ArrayList<String> permissionsList = new ArrayList<String>();
 
 	private String username;
@@ -42,7 +53,7 @@ public abstract class AdminPermissionList {
 	 * to be told to do so.
 	 */
 	private boolean autoStore;
-	
+
 	/**
 	 * Whether or not this is the root user.
 	 */
@@ -57,7 +68,8 @@ public abstract class AdminPermissionList {
 	 *            Whether or not the list should automatically be stored on
 	 *            modification.
 	 */
-	public AdminPermissionList(String username, boolean isRoot, boolean autoStore) {
+	public AdminPermissionList(String username, boolean isRoot,
+			boolean autoStore) {
 		this.username = username;
 		this.isRoot = isRoot;
 		this.autoStore = autoStore;
@@ -84,8 +96,8 @@ public abstract class AdminPermissionList {
 	 * @param autoStore
 	 *            Whether or not auto-storing should be enabled.
 	 */
-	public AdminPermissionList(String username, boolean isRoot, String[] permissions,
-			boolean autoStore) {
+	public AdminPermissionList(String username, boolean isRoot,
+			String[] permissions, boolean autoStore) {
 		this(username, isRoot, autoStore);
 		addPermissions(permissions);
 	}
@@ -99,7 +111,8 @@ public abstract class AdminPermissionList {
 	 * @param permissions
 	 *            The permissions to be set.
 	 */
-	public AdminPermissionList(String username, boolean isRoot, String[] permissions) {
+	public AdminPermissionList(String username, boolean isRoot,
+			String[] permissions) {
 		this(username, isRoot, permissions, true);
 	}
 
@@ -212,7 +225,8 @@ public abstract class AdminPermissionList {
 	 * @return
 	 */
 	public boolean isPermissionSet(String permission) {
-		if (isRoot) return true;
+		if (isRoot)
+			return true;
 		return permissionsList.contains(permission);
 	}
 

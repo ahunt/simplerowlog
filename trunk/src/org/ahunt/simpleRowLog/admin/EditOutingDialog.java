@@ -19,7 +19,7 @@
  *	Changelog:
  *  06/01/2011: Created from the ModifyOutingDialog in simpleGUI.
  */
-package org.ahunt.simpleRowLog.gui.admin;
+package org.ahunt.simpleRowLog.admin;
 
 import org.ahunt.simpleRowLog.common.SuggestiveTextField;
 import java.awt.Color;

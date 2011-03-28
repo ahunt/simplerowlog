@@ -21,7 +21,7 @@
  *  06/08/2010: Moved to separate package, renamed AdminDialog, started real
  *  			work.
  */
-package org.ahunt.simpleRowLog.gui.admin;
+package org.ahunt.simpleRowLog.admin;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;
@@ -39,7 +39,6 @@ import javax.swing.LayoutStyle;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import org.ahunt.simpleRowLog.common.AdminInfo;
 import org.ahunt.simpleRowLog.common.ErrorHandler;
 import org.ahunt.simpleRowLog.conf.Configuration;
 import org.ahunt.simpleRowLog.interfaces.Database;

@@ -19,7 +19,7 @@
  *	Changelog:
  *	06/08/2010:	Created.
  */
-package org.ahunt.simpleRowLog.gui.admin;
+package org.ahunt.simpleRowLog.admin;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -36,7 +36,6 @@ import javax.swing.LayoutStyle;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.table.AbstractTableModel;
 
-import org.ahunt.simpleRowLog.common.AdminInfo;
 import org.ahunt.simpleRowLog.common.BoatInfo;
 import org.ahunt.simpleRowLog.common.ErrorHandler;
 import org.ahunt.simpleRowLog.interfaces.Database;

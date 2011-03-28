@@ -20,7 +20,8 @@
  *  09/03/2010
  */
 
-package org.ahunt.simpleRowLog.common;
+package org.ahunt.simpleRowLog.admin;
+
 
 /**
  * All the information about an administrator account, including a method to

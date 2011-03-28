@@ -19,7 +19,7 @@
  *	Changelog:
  *	03/12/2010:	Created on the basis of EditMemberDialog.
  */
-package org.ahunt.simpleRowLog.gui.admin;
+package org.ahunt.simpleRowLog.admin;
 
 // TODO: password
 
@@ -53,7 +53,6 @@ import javax.swing.border.TitledBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import org.ahunt.simpleRowLog.common.AdminInfo;
 import org.ahunt.simpleRowLog.common.InvalidDataException;
 import org.ahunt.simpleRowLog.common.ErrorHandler;
 import org.ahunt.simpleRowLog.common.Util;
@@ -120,7 +119,7 @@ public class EditAdminDialog extends JDialog {
 	public EditAdminDialog(Database db) {
 		super();
 		this.db = db;
-
+		
 		try {
 			conf = Configuration.getConf("admin");
 		} catch (FileNotFoundException e) {

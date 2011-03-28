@@ -73,11 +73,12 @@ public final class Info {
 	 * @return Copyright string.
 	 */
 	public static String getCopyright(boolean basicText) {
-		if (basicText) {
-			return "Copyright (C) 2009, 2010, 2011 Andrzej JR Hunt";
-		} else {
-			return "Copyright \u00a9 2009, 2010, 2011 Andrzej JR Hunt";
-		}
+		return "Copyright " + (basicText ? "(C)" : "\u00a9") + " 2009, 2010, 2011 Andrzej JR Hunt";
+//		if (basicText) {
+//			return "Copyright (C) 2009, 2010, 2011 Andrzej JR Hunt";
+//		} else {
+//			return "Copyright \u00a9 2009, 2010, 2011 Andrzej JR Hunt";
+//		}
 	}
 
 	/**

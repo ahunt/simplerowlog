@@ -60,14 +60,14 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 
-import org.ahunt.simpleRowLog.common.AdminInfo;
 import org.ahunt.simpleRowLog.common.BoatInfo;
 import org.ahunt.simpleRowLog.common.ErrorHandler;
 import org.ahunt.simpleRowLog.common.GroupInfo;
 import org.ahunt.simpleRowLog.common.MemberInfo;
 import org.ahunt.simpleRowLog.common.OutingInfo;
 import org.ahunt.simpleRowLog.conf.Configuration;
-import org.ahunt.simpleRowLog.gui.admin.AdminDialog;
+import org.ahunt.simpleRowLog.admin.AdminDialog;
+import org.ahunt.simpleRowLog.admin.AdminInfo;
 import org.ahunt.simpleRowLog.interfaces.Database;
 
 /**
