@@ -21,6 +21,8 @@
  */
 package org.ahunt.simpleRowLog.admin;
 
+import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -34,6 +36,7 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.GroupLayout.Alignment;
 import javax.swing.GroupLayout.ParallelGroup;
 import javax.swing.GroupLayout.SequentialGroup;
 
@@ -61,6 +64,8 @@ public class EditAdminPermissions extends JDialog {
 	private JLabel[] permissionDescriptors;
 	private JCheckBox[] permissionSelectors;
 
+	private JCheckBox allPermissionsSelector;
+
 	private JButton applyButton = new JButton();
 	private JButton exitButton = new JButton();
 	private JButton cancelButton = new JButton();
@@ -76,8 +81,6 @@ public class EditAdminPermissions extends JDialog {
 		this.db = db;
 		this.admin = admin;
 
-		System.out.println(admin.getUsername());
-		
 		buildPermissionsPanel();
 
 		// Boring old layout code
@@ -92,6 +95,7 @@ public class EditAdminPermissions extends JDialog {
 						exitButton).addComponent(cancelButton)));
 		l.setHorizontalGroup(l.createParallelGroup().addComponent(
 				permissionsPanel).addGroup(
+				GroupLayout.Alignment.TRAILING,
 				l.createSequentialGroup().addComponent(applyButton)
 						.addComponent(exitButton).addComponent(cancelButton)));
 
@@ -115,7 +119,10 @@ public class EditAdminPermissions extends JDialog {
 						.showConfirmDialog(
 								null,
 								locAdmin
-										.getString("dialog.conf.admin.permissions.confirm_cancel")) == JOptionPane.OK_OPTION) {
+										.getString("dialog.conf.admin.permissions.confirm_cancel"),
+								locAdmin
+										.getString("dialog.conf.admin.permissions.confirm_cancel.title"),
+								JOptionPane.YES_NO_OPTION) == JOptionPane.OK_OPTION) {
 					setVisible(false);
 				}
 			}
@@ -123,9 +130,18 @@ public class EditAdminPermissions extends JDialog {
 
 		loadCurrentPermissions();
 
-		applyButton.setText(text)
+		applyButton.setText(locAdmin.getString("dialog.conf.apply"));
+		cancelButton.setText(locAdmin.getString("dialog.conf.cancel"));
+		exitButton.setText(locAdmin.getString("dialog.conf.exit"));
+
+		setTitle(locAdmin.getString("dialog.conf.admin.permissions.title"));
 		
 		pack();
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		setLocation(screenSize.width / 2 - this.getSize().width / 2,
+				screenSize.height / 2 - this.getSize().height / 2);
+
+
 		setResizable(false);
 		setModal(true);
 		setVisible(true);
@@ -133,18 +149,28 @@ public class EditAdminPermissions extends JDialog {
 	}
 
 	private void buildPermissionsPanel() {
+
+		CheckBoxListener cbl = new CheckBoxListener();
+
+		// Set up the all permissions checkbox
+		allPermissionsSelector = new JCheckBox("<html><b>"
+				+ locAdmin.getString("admin.permissions.all") + "</b</html>");
+		allPermissionsSelector.addActionListener(cbl);
+
 		permissionSelectors = new JCheckBox[AdminPermissionList.permissions.length];
 		permissionDescriptors = new JLabel[AdminPermissionList.permissions.length];
 		for (int i = 0; i < AdminPermissionList.permissions.length; i++) {
-			permissionSelectors[i] = new JCheckBox("<html><i>"
-					+ AdminPermissionList.permissions[i] + "</i></html>");
+			permissionSelectors[i] = new JCheckBox(""
+					+ AdminPermissionList.permissions[i]);
 			permissionDescriptors[i] = new JLabel(locAdmin
 					.getString(AdminPermissionList.permissions[i]));
+			permissionSelectors[i].addActionListener(cbl);
 		}
 
+		// Layouting
 		GroupLayout l = new GroupLayout(permissionsPanel);
 		permissionsPanel.setLayout(l);
-		l.setAutoCreateGaps(true);
+		l.setAutoCreateGaps(false);
 		l.setAutoCreateContainerGaps(true);
 
 		// Parallel: all the selectors, then the descriptors in P2
@@ -154,14 +180,20 @@ public class EditAdminPermissions extends JDialog {
 			hGroupP1.addComponent(permissionSelectors[i]);
 			hGroupP2.addComponent(permissionDescriptors[i]);
 		}
-		l.setHorizontalGroup(l.createSequentialGroup().addGroup(hGroupP1)
-				.addGroup(hGroupP2));
+		l.setHorizontalGroup(l.createParallelGroup().addComponent(
+				allPermissionsSelector)
+				.addGroup(
+						l.createSequentialGroup().addGroup(hGroupP1).addGroup(
+								hGroupP2)));
 
 		SequentialGroup vGroup = l.createSequentialGroup();
+		vGroup.addGroup(l.createSequentialGroup().addComponent( 
+					allPermissionsSelector));
 		for (int i = 0; i < AdminPermissionList.permissions.length; i++) {
-			vGroup.addGroup(l.createParallelGroup().addComponent(
-					permissionSelectors[i]).addComponent(
-					permissionDescriptors[i]));
+			vGroup.addGroup(
+					l.createParallelGroup(Alignment.BASELINE)
+							.addComponent(permissionSelectors[i]).addComponent(
+									permissionDescriptors[i]));
 		}
 		l.setVerticalGroup(vGroup);
 	}
@@ -192,5 +224,34 @@ public class EditAdminPermissions extends JDialog {
 		}
 		admin.getPermissionList().storePermissions();
 		admin.getPermissionList().setAutoStore(autoStore);
+	}
+
+	private class CheckBoxListener implements ActionListener {
+
+		public void actionPerformed(ActionEvent e) {
+			boolean allChecked = true;
+			boolean noneChecked = true;
+			for (JCheckBox c : permissionSelectors) {
+				if (noneChecked && c.isSelected())
+					noneChecked = false;
+				if (allChecked && !c.isSelected())
+					allChecked = false;
+			}
+			if (e.getSource() == allPermissionsSelector && allChecked) {
+				// allPermissionSelector.setSelected(true);
+				for (JCheckBox c : permissionSelectors) {
+					c.setSelected(false);
+				}
+			} else if (e.getSource() == allPermissionsSelector && !allChecked) {
+				for (JCheckBox c : permissionSelectors) {
+					c.setSelected(true);
+				}
+			} else if (e.getSource() != allPermissionsSelector && allChecked) {
+				allPermissionsSelector.setSelected(true);
+			} else {
+				allPermissionsSelector.setSelected(false);
+			}
+
+		}
 	}
 }
