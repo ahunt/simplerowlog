@@ -110,7 +110,9 @@ public class EditAdminDialog extends JDialog {
 	private JButton cancelButton = new JButton();
 	private JButton saveButton = new JButton();
 
-	// The current member being modified (if applicable).
+	private JButton editAdminPermissionsButton = new JButton();
+
+	/** The current member being modified (if applicable). */
 	private AdminInfo admin;
 
 	/**
@@ -119,7 +121,7 @@ public class EditAdminDialog extends JDialog {
 	public EditAdminDialog(Database db) {
 		super();
 		this.db = db;
-		
+
 		try {
 			conf = Configuration.getConf("admin");
 		} catch (FileNotFoundException e) {
@@ -245,6 +247,7 @@ public class EditAdminDialog extends JDialog {
 		passwordConfirmation.setEchoChar('*');
 
 		deleteAdminButton.setEnabled(false);
+		editAdminPermissionsButton.setEnabled(false);
 
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		setLocation(screenSize.width / 2 - this.getSize().width / 2,
@@ -295,6 +298,7 @@ public class EditAdminDialog extends JDialog {
 
 		deleteAdminButton.setEnabled(!(admin.isRoot())
 				|| admin.getUsername().equals(creator.getUsername()));
+		editAdminPermissionsButton.setEnabled(true);
 
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		setLocation(screenSize.width / 2 - this.getSize().width / 2,
@@ -315,6 +319,8 @@ public class EditAdminDialog extends JDialog {
 		makeRootLabel.setText(loc.getString("admin.makeRoot") + ":");
 
 		deleteAdminButton.setText(loc.getString("admin.delete"));
+		editAdminPermissionsButton.setText(loc
+				.getString("admin.edit_permissions"));
 
 		cancelButton.setText(locCommon.getString("cancel"));
 		saveButton.setText(locCommon.getString("save"));
@@ -341,7 +347,7 @@ public class EditAdminDialog extends JDialog {
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
 			// Check that all required details are filled in or warn.
-			if (arg0.getSource() == saveButton) {
+			if (arg0.getSource() == saveButton) { // SAFETY CHECKING
 				if (usernameEntry.getText().length() == 0) {
 					JOptionPane.showMessageDialog(null, loc
 							.getString("admin.add.missing_details"), loc
@@ -427,6 +433,8 @@ public class EditAdminDialog extends JDialog {
 								: '*'));
 				passwordConfirmation.setEchoChar((showPasswordCheckBox
 						.isSelected() ? 0 : '*'));
+			} else if (arg0.getSource() == editAdminPermissionsButton) {
+				new EditAdminPermissions(db, admin);
 			}
 
 		}

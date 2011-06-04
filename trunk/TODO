@@ -1,14 +1,14 @@
 simple rowLog TODO file.
 --------------_CURRENT:
-Implement admin permission editing: finish the dialog, add editing in the Edit
-Admin Dialog, and in the AdminPanel
 
-Check whether the html formatting messes things up.
+-- implement a front end statistic checker.
+
+-- Member Statistics: use SQL summing to save processing power.
+
+-- Consider: printing last outing(s) of a user, in addition to that of a boat.
+
 ------------------ [HIGH PRIORITY] ---------------------------------------------
 -- Set Log level to 4 for release.
--- Implement the permissions.
-
--- Launcher check javadoc properties returning null string (or not).
 
 -- FIx the popup / Enter button in the outing dialog.
 
@@ -19,7 +19,11 @@ Check whether the html formatting messes things up.
 
 -- Statistics: rower with most km, comparison, etc.
 
+
+
 ------------------ [MEDIUM PRIORITY] -------------------------------------------
+-- Command line options for the Launcher.
+
 -- Admin error log for minor messages, e.g. MemberInfo.getName etc.
 
 -- Update the error system, in the gui do the error catching and create an
@@ -102,6 +106,7 @@ update once the user has stopped changing the date.
    
 -- Filter boats by type.
 
+-- EditAdminPermissionsDialog: add text wrapping.
 --------------------------------------------------------------------------------
 Code cleaning and documentation:
 --------------------------------

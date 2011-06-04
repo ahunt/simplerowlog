@@ -549,7 +549,7 @@ public class SimpleGUI extends JFrame implements ChangeListener {
 				AdminInfo ai = AdminAuthenticationDialog.doLogin(db);
 				if (ai != null
 						&& (ai.isRoot() || ai.getPermissionList()
-								.isPermissionSet("can_do_shutdown"))) {
+								.isPermissionSet("config_main"))) {
 					new AdminDialog(db, ai);
 				} else {
 					// TODO: Rejection.
